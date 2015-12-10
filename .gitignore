@@ -1,0 +1,8 @@
+*.pyc
+DotTools/build/
+DotTools/DotTools.egg-info/
+DotTools/dist/
+DotTools/env/
+DotTools/install_log.txt
+DotTools/installed_files.txt
+.dotfiles

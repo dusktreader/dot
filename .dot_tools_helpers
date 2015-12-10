@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [[ $- == *i* ]]
+then
+    echo "Processing configuration for DotTools helper aliases and functions"
+fi
+
+export PYTHONPATH=$PYTHONPATH:~/lib/python:~/.local/lib/python
+
+# Changest to the top level of a git clone
+cdup(){
+    toplevel=$(gittop --relative)
+    if (( $? == 0 ))
+    then
+        command cd $toplevel
+    fi
+}

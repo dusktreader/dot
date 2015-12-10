@@ -1,0 +1,401 @@
+#!/bin/bash
+
+if [[ $- == *i* ]]
+then
+    echo "Processing main dot configuration"
+fi
+
+export EDITOR='vim'
+export VISUAL='vim'
+export PAGER='less -R'
+export LESS='SX'
+export HISTSIZE=1000000
+export HISTFILESIZE=1000000
+export HISTCONTROL=ignorespace:ignoredups
+shopt -s histappend
+export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
+export PATH=$PATH:~/bin:~/.local/bin
+
+alias vi='vim'
+alias evim='$EDITOR ~/dot/.vimrc'
+
+alias egit='$EDITOR ~/dot/.gitconfig'
+
+alias ebash="$EDITOR ~/.bashrc"
+alias sbash='source ~/.bashrc'
+
+alias edot="$EDITOR ~/dot/.dotrc"
+alias sdot='source ~/dot/.dotrc'
+alias idot='install_dot'
+alias cdot='cd ~/dot'
+
+alias egrep='egrep --color=auto'
+alias grep='egrep --color=auto'
+
+alias ack='ack --color'
+
+alias sl='ls'
+alias ls='ls --color=tty'
+
+alias cd='fancy_cd'
+alias less='less -RNJMw -z-4'
+
+alias mkdir="echo '(remember the td function?)'; command mkdir"
+
+alias activate="source $(ls | grep env)/bin/activate"
+
+alias gti='git'
+
+count_files_in_subdirs() {
+    target_dir=$1
+    if [[ -z $target_dir ]]
+    then
+        echo "Please supply a target directory" >&2
+        return 1
+    fi
+    echo "Counting files in subdirectories of $(readlink -f $target_dir)"
+    sort_arg=$2
+    if [[ -z $sort_arg ]]
+    then
+        sort_arg="-k2rn"
+    fi
+    timestamp=$(date '+%Y%m%d_%H%M%S')
+    filename="/tmp/$timestamp-counts.txt"
+    rm -f $filename
+    for subdir in $(find $target_dir -maxdepth 1 -type d ! -path . )
+    do
+        echo "$subdir: $(find $subdir -type f | wc -l)" >> $filename
+    done
+    cat $filename | sort $sort_arg
+}
+
+smart_ls() {
+    target=$1
+    simple_list=$(command ls -1 $target) || return
+    count=$(echo $simple_list | wc -w)
+    if (( $count == 0 ))
+    then
+        echo "Directory is empty"
+    elif (( $count <= 10 ))
+    then
+        command ls -l --color=tty $target
+    elif (( $count <= 100 ))
+    then
+        command ls --color=tty $target
+    else
+        echo "Directory contains $count files"
+    fi
+}
+
+fancy_cd() {
+    newdir=$1
+    builtin cd $newdir || return
+    smart_ls .
+}
+
+td() {
+    newdir=$1
+    command mkdir $newdir || return
+    builtin cd $newdir
+}
+
+abs_path() {
+    path=$1
+    if [[ -z $path ]]
+    then
+        pwd
+        return
+    fi
+
+    python -c "import os; print(os.path.realpath('$path'))"
+}
+
+install_local_python() {
+    log_file=$1
+    redirect=''
+    if [[ ! -z $log_file ]]
+    then
+        redirect=">>$log_file 2>&1"
+    fi
+
+    command cd ~
+    commands=(
+        "wget http://www.python.org/ftp/python/3.4/Python-3.4.tgz"
+        "tar xzf Python-3.4.tgz"
+        "command cd Python-3.4/"
+        "./configure --prefix=/home/tbeck/"
+        "make"
+        "make install"
+        "rm -rf Python-3.4*"
+    )
+    for command in "${commands[@]}"
+    do
+        eval "$command $redirect"
+        if (( $? ))
+        then
+            message="Command failed: $command"
+            return 0
+        fi
+    done
+    return 1
+}
+
+install_dot() {
+    initial_directory=$(pwd)
+    for return_status in 0
+    do
+        export SKIP_TODO=1
+
+        echo "Installing DotTools python package for current user"
+
+        command cd ~/dot/DotTools
+        if (( $? ))
+        then
+            message="Couldn't navigate to DotTools directory.  Aborting..."
+            return_status=1
+            break
+        fi
+
+        installed_files=~/dot/DotTools/installed_files.txt
+        install_log=~/dot/DotTools/install_log.txt
+        if [[ ! -e $installed_files ]]
+        then
+            touch $installed_files
+            if (( $? ))
+            then
+                message="Couldn't create record for installed files.  Aborting..."
+                return_status=1
+                break
+            fi
+        fi
+        if [[ ! -e $install_log ]]
+        then
+            touch $install_log
+            if (( $? ))
+            then
+                message="Couldn't create log for install.  Aborting..."
+                return_status=1
+                break
+            fi
+        fi
+
+        echo "Checking for Python 3.4 installation"
+        python_path=$(which python3.4)
+        if (( $? ))
+        then
+            echo "Python 3.4 is not installed. Installing locally"
+            if install_local_python $install_log
+            then
+                echo "Installed Python 3.4 locally"
+            else
+                message="Couldn't install local python. Aborting..."
+                return_status=1
+                break
+            fi
+        else
+            echo "Python 3.4 is already installed"
+        fi
+
+        pip3="$(which pip3)"
+        if (( $? ))
+        then
+            message="Couldn't find pip3 on the system. Aborting..."
+            return_status=1
+            break
+        fi
+
+        pip3 install --user --force-reinstall --verbose .
+        if (( $? ))
+        then
+            message="Couldn't install python DotTools package.  Aborting..."
+            return_status=1
+            break
+        fi
+
+        command cd $initial_directory
+
+        underlined_header "Installing dot config on $(hostname)"
+
+        link_list=(
+            .vimrc
+            .psqlrc
+            .gitconfig
+            .vim/after/
+            .vim/autoload/
+            .vim/bundle/
+            .vim/bundle2/
+            .config/terminator/
+        )
+
+        copy_list=(
+            .ssh/config
+            .ssh/rc
+        )
+
+        dot_files=(
+            .dot_colors
+            .dot_misc
+            .dot_tools_helpers
+        )
+
+        mkdir_list=(
+            .vim/local/backup
+            .vim/local/swap
+        )
+
+        if [[ -e ~/dot/.dotfiles ]]
+        then
+            > ~/dot/.dotfiles
+            if (( $? ))
+            then
+                return_status=1
+                message="Failed to clear .dotfiles"
+                break
+            fi
+        else
+            touch ~/dot/.dotfiles
+            if (( $? ))
+            then
+                return_status=1
+                message="Failed to add .dotfiles"
+                break
+            fi
+        fi
+
+        for path_name in "${mkdir_list[@]}"
+        do
+            full_path=$(abs_path ~)/$path_name
+            echo "Making $full_path directory"
+            command mkdir -p $full_path
+            if (( $? ))
+            then
+                return_status=1
+                message="Failed to make $full_path directory"
+                break
+            fi
+        done
+
+        for file_name in "${dot_files[@]}"
+        do
+            echo "Installing $file_name in .dotfiles"
+            echo $file_name >> ~/dot/.dotfiles
+        done
+
+        for file_name in "${link_list[@]}"
+        do
+            link_path=$(abs_path ~)/$file_name
+            link_dir=$(dirname $link_path)
+            target_path=$(abs_path ~)/dot/$file_name
+
+            if [[ -h $link_path && "$(readlink $link_path)" == "$target_path" ]]
+            then
+                echo "Skipping $file_name: it is already installed"
+                continue
+            fi
+
+            if [[ ! -e $link_dir ]]
+            then
+                command mkdir -p $link_dir
+                if (( $? ))
+                then
+                    echo "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
+                    continue
+                fi
+            fi
+
+            echo "Installing $file_name"
+            command ln -sb $target_path $link_dir
+            if (( $? ))
+            then
+                echo "Couldn't install $file_name: failed to link $target_path to $link_path"
+                continue
+            fi
+        done
+
+        for file_name in "${copy_list[@]}"
+        do
+            copy_path=$(abs_path ~)/$file_name
+            copy_dir=$(dirname $copy_path)
+            target_path=$(abs_path ~)/dot/$file_name
+
+            if [[ -e $copy_path && ! -h $copy_path && -z $(diff $copy_path $target_path) ]]
+            then
+                echo "Skipping $file_name: it is already installed"
+                continue
+            fi
+
+            if [[ ! -e $link_dir ]]
+            then
+                command mkdir -p $copy_dir
+                if (( $? ))
+                then
+                    echo "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
+                    continue
+                fi
+            fi
+
+            echo "Installing $file_name"
+            command cp -b $target_path $copy_dir
+            if (( $? ))
+            then
+                echo "Couldn't install $file_name: failed to copy $target_path to $copy_path"
+                continue
+            fi
+
+            chmod 600 $copy_path
+            if (( $? ))
+            then
+                echo "Couldn't change permissions of $file_name.  Connection via ssh may not work"
+                continue
+            fi
+        done
+
+        echo "Installing powerline fonts"
+        command bash ~/dot/.vim/fonts/powerline/install.sh
+
+        if [[ -z $(grep "DOT INSTALLED" ~/.bashrc) ]]
+        then
+            underlined_header "Updating .bashrc to source dot"
+
+            if [[ ! -w ~/.bashrc ]]
+            then
+                return_status=1
+                message="Couldn't modify .bashrc to install dot.  Aborting..."
+                break
+            fi
+
+            echo "# DOT INSTALLED" >> ~/.bashrc
+            echo "if [[ -e ~/dot/.dotrc ]]" >> ~/.bashrc
+            echo "then" >> ~/.bashrc
+            echo "    source ~/dot/.dotrc" >> ~/.bashrc
+            echo "fi" >> ~/.bashrc
+        fi
+
+        source ~/.bashrc
+
+        message="Finished Installing dot"
+    done
+
+    command cd $initial_directory
+    underlined_header -f $message
+    return $return_status
+}
+
+if [[ -e ~/dot/.dotfiles ]]
+then
+    while read dotfile
+    do
+        source ~/dot/$dotfile
+    done < ~/dot/.dotfiles
+fi
+
+if [[ $- == *i* && -z "$SKIP_TODO" ]]
+then
+    which todo
+    if (( ! $? ))
+    then
+        todo
+    fi
+fi
+

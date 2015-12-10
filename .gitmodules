@@ -1,0 +1,47 @@
+[submodule ".vim/bundle/vim-coffee-script"]
+    path = .vim/bundle/vim-coffee-script
+    url = https://github.com/kchmck/vim-coffee-script.git
+    ignore = dirty
+[submodule ".vim/bundle/vim-fugitive"]
+    path = .vim/bundle/vim-fugitive
+    url = https://github.com/tpope/vim-fugitive.git
+    ignore = dirty
+[submodule ".vim/bundle/nerdtree"]
+    path = .vim/bundle/nerdtree
+    url = https://github.com/scrooloose/nerdtree.git
+    ignore = dirty
+[submodule ".vim/bundle/ack.vim"]
+    path = .vim/bundle/ack.vim
+    url = https://github.com/mileszs/ack.vim.git
+    ignore = dirty
+[submodule ".vim/bundle/bufexplorer"]
+    path = .vim/bundle/bufexplorer
+    url = https://github.com/jlanzarotta/bufexplorer.git
+    ignore = dirty
+[submodule ".vim/bundle/csv.vim"]
+    path = .vim/bundle/csv.vim
+    url = https://github.com/chrisbra/csv.vim.git
+    ignore = dirty
+[submodule ".vim/bundle/vim-dispatch"]
+    path = .vim/bundle/vim-dispatch
+    url = https://github.com/tpope/vim-dispatch.git
+    ignore = dirty
+[submodule ".vim/bundle/vim-angular"]
+    path = .vim/bundle/vim-angular
+    url = https://github.com/burnettk/vim-angular.git
+    ignore = dirty
+[submodule ".vim/bundle/vim-flake8"]
+    path = .vim/bundle/vim-flake8
+    url = git@github.com:nvie/vim-flake8.git
+[submodule ".vim/bundle/vim-virtualenv"]
+    path = .vim/bundle/vim-virtualenv
+    url = git@github.com:jmcantrell/vim-virtualenv.git
+[submodule ".vim/bundle/vim-airline"]
+    path = .vim/bundle/vim-airline
+    url = git@github.com:bling/vim-airline.git
+[submodule ".vim/bundle2/vim-pyunit"]
+    path = .vim/bundle2/vim-pyunit
+    url = git://github.com/nvie/vim-pyunit.git
+[submodule ".vim/fonts/powerline"]
+    path = .vim/fonts/powerline
+    url = git@github.com:powerline/fonts.git

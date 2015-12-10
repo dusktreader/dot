@@ -1,0 +1,23 @@
+[user]
+    name  = "dusktreader"
+    email = "tucker.beck@gmail.com"
+[alias]
+    lg  = "log --pretty=format:'%C(yellow)%h%C(reset) %s %C(cyan)%cr%C(reset) %C(blue)%an%C(reset) %C(green)%d%C(reset)' --graph"
+    st  = status
+    df  = "difftool origin/master"
+    sup = "submodule update"
+    pushup = "!git push -u origin $(git rev-parse --abbrev-ref HEAD)"
+[push]
+    default = simple
+[diff]
+    tool = vimdiff
+[color]
+    ui = auto
+[color "diff"]
+    new = cyan
+    old = magenta
+    frag = yellow
+    meta = green
+    commit = normal
+[credential]
+    helper = cache

@@ -1,0 +1,183 @@
+#!/usr/bin/env python
+
+# todo: convert optparse to argparse if python version ever gets updated
+
+import os
+from optparse import OptionParser
+from dot_tools.todo import Todo, TODO_DEFAULT_CATEGORY
+from dot_tools.text_tools import underlined_header
+from distutils.util import strtobool
+from datetime import datetime, timedelta
+from dot_tools.file_tools import get_timestamp
+
+def main():
+    parser = OptionParser()
+    parser.add_option(
+        '-c',
+        '--category',
+        default = TODO_DEFAULT_CATEGORY,
+        help = "Use TEXT as the active category",
+        metavar = 'TEXT',
+    )
+    parser.add_option(
+        '-T',
+        '--today',
+        action = 'store_true',
+        default = False,
+        help = "Use today's date as the category",
+    )
+    parser.add_option(
+        '-W',
+        '--this_week',
+        action = 'store_true',
+        default = False,
+        help = "Use this dev week as the category",
+    )
+    parser.add_option(
+        '-a',
+        '--add_item',
+        help = "Add a TEXT item to the current category in the todo list",
+        metavar = 'TEXT',
+    )
+    parser.add_option(
+        '-d',
+        '--delete_items',
+        help = "Delete items matching a TEXT substring from the current category in the todo list",
+        metavar = 'TEXT',
+    )
+    parser.add_option(
+        '-D',
+        '--delete_all',
+        action = 'store_true',
+        default = False,
+        help = "Delete all items from the current category in the todo list",
+    )
+    parser.add_option(
+        '-R',
+        '--reset',
+        action = 'store_true',
+        default = False,
+        help = "Delete all items from the current category in the todo list",
+    )
+    parser.add_option(
+        '-l',
+        '--set_label',
+        help = "Set the label for the todo list to TEXT",
+        metavar = 'TEXT',
+    )
+    parser.add_option(
+        '-f',
+        '--todo_file',
+        default = '~/.todo',
+        help = "Set the save file for the todo list to FILE",
+        metavar = 'FILE',
+    )
+    parser.add_option(
+        '-q',
+        '--quiet',
+        action = 'store_true',
+        help = "Peform actions but do not print the todo list",
+    )
+    (options, args) = parser.parse_args()
+
+    todo_file_path = os.path.abspath(os.path.expanduser(options.todo_file))
+    try:
+        todo = Todo(todo_file_path)
+    except IOError as error:
+        parser.error("Can't instantiate the todo list: " + str(error))
+
+    if options.set_label != None:
+        todo.set_label(options.set_label)
+        todo.save()
+
+    conflicting_categories = (
+        ( options.category != TODO_DEFAULT_CATEGORY and options.today ) or
+        ( options.category != TODO_DEFAULT_CATEGORY and options.this_week ) or
+        ( options.today and options.this_week )
+    )
+    if conflicting_categories is True:
+        parser.error("Can only use one of --category, --today, and --this_week")
+
+    if options.today is True:
+        options.category = get_timestamp(datetime_format='%Y-%m-%d')
+
+    if options.this_week is True:
+        today = datetime.now()
+        friday = today + timedelta(days=5-today.isoweekday())
+        timestamp = get_timestamp(datetime_instance=friday, datetime_format='%Y-%m-%d')
+        options.category = 'Week of ' + timestamp
+
+    if options.add_item != None:
+        try:
+            todo.add_item(options.add_item, options.category)
+            todo.save()
+        except ValueError as error:
+            parser.error("Can't add item '%s': %s" % (options.add_item, str(error)))
+
+    if options.delete_all != False:
+        items = []
+        try:
+            items = todo.get_items(options.category)
+        except ValueError as error:
+            parser.error("Can't delete all: %s" % str(error))
+        header = "The following items will be deleted"
+        if (options.category != None):
+            header += " from category '%s'" % options.category
+        print(underlined_header(header))
+        for item in items:
+            print(item)
+        print(underlined_header("Proceed?", is_footer=True))
+        response = None
+        try:
+            response = strtobool(input())
+        except:
+            response = False
+        print()
+        if response == True:
+            todo.delete_category(options.category)
+            todo.save()
+
+    if options.delete_items != None:
+        items = []
+        try:
+            items = todo.find_items(options.delete_items, options.category)
+        except ValueError as error:
+            parser.error("Can't delete items: %s" % str(error))
+        header = "The following items will be deleted"
+        if (options.category != None):
+            header += " from category '%s'" % options.category
+        print(underlined_header(header))
+        for item in items:
+            print(item)
+        print(underlined_header("Proceed?", is_footer=True))
+        response = None
+        try:
+            response = strtobool(input())
+        except:
+            response = False
+        print()
+        if response == True:
+            todo.delete_items(items, options.category)
+            todo.save()
+
+    if options.reset is True:
+        header = "The following items will be deleted"
+        if (options.category != None):
+            header += " from category '%s'" % options.category
+        print(underlined_header("Reset todo list?  All items will be removed and label will be removed"))
+        response = None
+        try:
+            response = strtobool(input())
+        except:
+            response = False
+        print()
+        if response == True:
+            todo.reset()
+            todo.save()
+
+    if options.quiet != False:
+        print(todo)
+
+if __name__ == '__main__':
+    main()
+

@@ -1,0 +1,62 @@
+#!/bin/bash
+
+if [[ $- == *i* ]]
+then
+    echo "Processing configuration for Miscellaneous Tools"
+fi
+
+umask 0002
+function ff() {
+    find . -type f -iname '*'$*'*' -ls ;
+}
+
+function fd() {
+    find . -type d -iname '*'$*'*' -ls ;
+}
+
+function fe() {
+    find . -type f -iname '*'${1:-}'*' -exec ${2:-file} {} \; ;
+}
+
+list_functions() {
+    echo "listing functions"
+    for return_status in 0
+    do
+        if [[ $1 == "--help" || $1 == "-h" ]]
+        then
+            return_status=1
+            message="Print all the functions defined in a dot file"
+            message="$message\nUSAGE: ${FUNCNAME[0]} <dot_file>"
+            break
+        fi
+
+        dotfile=$1
+        if [[ -z $dotfile ]]
+        then
+            return_status=1
+            message="No dotfile supplied to find functions in"
+            break
+        fi
+
+        echo "Functions defined in $dotfile"
+        defined_functions=$(typeset -F | perl -pe "s/declare -f //")
+
+        for function in $defined_functions
+        do
+            line_info=$(grep -n "^$function\(\)\s*{" $dotfile)
+            if (( $? ))
+            then
+                continue
+            fi
+
+            line_num=$(echo $line_info | perl -pe "s/(\d+):.*/\1/")
+            echo "    $function  [$line_num]"
+        done
+
+        message=""
+    done
+
+    echo $message
+    return $return_status
+}
+
