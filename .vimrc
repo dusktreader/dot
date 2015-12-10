@@ -7,19 +7,13 @@ endtry
 execute pathogen#infect('~/.vim/bundle2/{}')
 execute pathogen#helptags()
 
-" fix up rtp a bit to exclude rusty old default scripts if they exist
-" if exists("g:loaded_pathogen")
-"     let list = []
-"     for dir in pathogen#split(&rtp)
-"         if dir !~# '/usr/share/vim/vimfiles'
-"             call add(list, dir)
-"         endif
-"     endfor
-"     let &rtp = pathogen#join(list)
-" endif
-
+" Let virtualenv auto activate if a virtual env is available
 let g:virtualenv_auto_activate=1
+
+" Enable powerline fonts for airline
 let g:airline_powerline_fonts=1
+
+" Set the airline theme
 let g:airline_theme='simple'
 
 " Load a vimrc for the current project if available
