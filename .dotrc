@@ -1,9 +1,13 @@
 #!/bin/bash
 
-if [[ $- == *i* ]]
-then
-    echo "Processing main dot configuration"
-fi
+debug_out() {
+    if [[ $- == *i* && $DOT_DEBUG ]]
+    then
+        echo $@
+    fi
+}
+
+debug_out "Processing main dot configuration"
 
 export EDITOR='vim'
 export VISUAL='vim'
@@ -14,6 +18,10 @@ export HISTFILESIZE=1000000
 export HISTCONTROL=ignorespace:ignoredups
 shopt -s histappend
 export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
+export GIT_PS1_SHOWDIRTYSTATE=1
+export DIFF_COLOR_DO_HORIZONTAL=1
+export DIFF_COLOR_MERGE_ONE_LINERS=1
 
 export PATH=$PATH:~/bin:~/.local/bin
 
@@ -33,8 +41,6 @@ alias cdot='cd ~/dot'
 alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
 
-alias ack='ack --color'
-
 alias sl='ls'
 alias ls='ls --color=tty'
 
@@ -46,6 +52,32 @@ alias mkdir="echo '(remember the td function?)'; command mkdir"
 alias activate="source $(ls | grep env)/bin/activate"
 
 alias gti='git'
+
+which ack > /dev/null 2>&1
+if (( $? ))
+then
+    alias ack='ack-grep --color'
+else
+    alias ack='ack --color'
+fi
+
+if [[ "$(hostname)" =~ "digidown" ]]
+then
+    export SUBSYSTEM_PATH="/data_storage/apps/digital_download/current/"
+fi
+
+rentrak_rsa_key="tbeck_rentrak_id_rsa"
+rentrak_rsa_path="/home/$(whoami)/.ssh/$rentrak_rsa_key"
+if [[ -e $rentrak_rsa_path ]]
+then
+    if [[ -z "$(ssh-add -l | grep $rentrak_rsa_key)" ]]
+    then
+        debug_out "$rentrak_rsa_key key not found in active ssh identities not found.  Setting it up:"
+        ssh-add $rentrak_rsa_path
+    fi
+fi
+
+
 
 count_files_in_subdirs() {
     target_dir=$1
@@ -141,6 +173,17 @@ install_local_python() {
     return 1
 }
 
+source_dotfiles() {
+    debug_out "Sourcing dotfiles"
+    if [[ -e ~/dot/.dotfiles ]]
+    then
+        while read dotfile
+        do
+            source ~/dot/$dotfile
+        done < ~/dot/.dotfiles
+    fi
+}
+
 install_dot() {
     initial_directory=$(pwd)
     for return_status in 0
@@ -234,9 +277,9 @@ install_dot() {
         )
 
         dot_files=(
-            .dot_colors
             .dot_misc
             .dot_tools_helpers
+            .dot_colors
         )
 
         mkdir_list=(
@@ -382,17 +425,22 @@ install_dot() {
     return $return_status
 }
 
-if [[ -e ~/dot/.dotfiles ]]
+source_dotfiles
+
+which git > /dev/null 2>&1
+if (( $? ))
 then
-    while read dotfile
-    do
-        source ~/dot/$dotfile
-    done < ~/dot/.dotfiles
+    debug_out "Did not detect git. Using default prompt"
+    export PS1="$C3// $C6[\h:\w]$C4 $P\n\$ "
+else
+    debug_out "Detected git. Embedding git branch propmt"
+    source ~/dot/.git-prompt
+    export PS1="$C3// $C6[\h:\w]$C4 \$(__git_ps1 '(%s)')$P\n\$ "
 fi
 
 if [[ $- == *i* && -z "$SKIP_TODO" ]]
 then
-    which todo
+    which todo > /dev/null 2>&1
     if (( ! $? ))
     then
         todo

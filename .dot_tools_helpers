@@ -1,9 +1,6 @@
 #!/bin/bash
 
-if [[ $- == *i* ]]
-then
-    echo "Processing configuration for DotTools helper aliases and functions"
-fi
+debug_out "Processing configuration for DotTools helper aliases and functions"
 
 export PYTHONPATH=$PYTHONPATH:~/lib/python:~/.local/lib/python
 
