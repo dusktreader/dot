@@ -49,7 +49,7 @@ alias less='less -RNJMw -z-4'
 
 alias mkdir="echo '(remember the td function?)'; command mkdir"
 
-alias activate="source $(ls | grep env)/bin/activate"
+alias activate='source $(ls | grep env)/bin/activate'
 
 alias gti='git'
 
