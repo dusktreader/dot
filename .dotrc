@@ -253,12 +253,16 @@ install_dot() {
         pip3="$(which pip3)"
         if (( $? ))
         then
-            message="Couldn't find pip3 on the system. Aborting..."
-            return_status=1
-            break
+	    pip3="$(which pip34)"
+            if (( $? ))
+            then
+                message="Couldn't find pip3 on the system. Aborting..."
+                return_status=1
+                break
+            fi
         fi
 
-        pip3 install --user --force-reinstall --verbose .
+        $pip3 install --user --force-reinstall --verbose .
         if (( $? ))
         then
             message="Couldn't install python DotTools package.  Aborting..."
@@ -431,7 +435,8 @@ install_dot() {
     done
 
     command cd $initial_directory
-    underlined_header -f $message
+    echo "================"
+    echo $message
     return $return_status
 }
 

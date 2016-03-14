@@ -3,3 +3,4 @@ GitPython==1.0.1
 ordereddict==1.1
 smmap==0.9.0
 jira==1.0.3
+flake8==2.5.4
