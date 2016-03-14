@@ -79,6 +79,16 @@ fi
 
 
 
+pip_install_save() {
+    package_name=$1
+    requirements_file=$2
+    if [[ -z $requirements_file ]]
+    then
+        requirements_file='./etc/setuptools/requirements.txt'
+    fi
+    pip install $package_name && pip freeze | grep -i "^$package_name==" >> $requirements_file
+}
+
 count_files_in_subdirs() {
     target_dir=$1
     if [[ -z $target_dir ]]
