@@ -1,7 +1,11 @@
 [global_config]
 [keybindings]
-  close_term = <Primary><Shift><Alt>w
   close_window = <Primary><Shift><Alt>q
+  go_up = <Alt>k
+  go_down = <Alt>j
+  close_term = <Primary><Shift><Alt>w
+  go_right = <Alt>l
+  go_left = <Alt>h
 [profiles]
   [[default]]
     use_system_font = False

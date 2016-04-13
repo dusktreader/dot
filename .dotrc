@@ -453,6 +453,9 @@ else
     export PS1="$C3// $C6[\h:\w]$C4 \$(__git_ps1 '(%s)')$P\n\$ "
 fi
 
+# TODO: do this right
+source $(which virtualenvwrapper.sh)
+
 if [[ $- == *i* && -z "$SKIP_TODO" ]]
 then
     which todo > /dev/null 2>&1
