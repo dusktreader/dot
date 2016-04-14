@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 debug_out() {
     if [[ $- == *i* && $DOT_DEBUG ]]
@@ -23,7 +23,15 @@ export GIT_PS1_SHOWDIRTYSTATE=1
 export DIFF_COLOR_DO_HORIZONTAL=1
 export DIFF_COLOR_MERGE_ONE_LINERS=1
 
-export PATH=$PATH:~/bin:~/.local/bin
+export PATH=$PATH:~/bin
+
+user_base=$(python3 -c 'import site;print(site.USER_BASE)')
+if (( $? ))
+then
+    debug_out "Python3 is not yet installed. Not appending scripts path"
+else
+    export PATH="$PATH:$user_base/bin"
+fi
 
 alias vi='vim'
 alias evim='$EDITOR ~/dot/.vimrc'
@@ -42,7 +50,16 @@ alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
 
 alias sl='ls'
-alias ls='ls --color=tty'
+if [[ "$(uname)" -eq 'Darwin' ]]
+then
+    alias ls='gls --color=tty'
+    alias ln='gln'
+    alias cp='gcp'
+    alias touch='gtouch'
+    alias vim=/usr/local/bin/vim
+else
+    alias ls='ls --color=tty'
+fi
 
 alias cd='fancy_cd'
 alias less='less -RNJMw -z-4'
@@ -67,7 +84,7 @@ then
 fi
 
 rentrak_rsa_key="tbeck_rentrak_id_rsa"
-rentrak_rsa_path="/home/$(whoami)/.ssh/$rentrak_rsa_key"
+rentrak_rsa_path="$HOME/.ssh/$rentrak_rsa_key"
 if [[ -e $rentrak_rsa_path ]]
 then
     if [[ -z "$(ssh-add -l | grep $rentrak_rsa_key)" ]]
@@ -96,7 +113,7 @@ count_files_in_subdirs() {
         echo "Please supply a target directory" >&2
         return 1
     fi
-    echo "Counting files in subdirectories of $(readlink -f $target_dir)"
+    debug_out "Counting files in subdirectories of $(readlink -f $target_dir)"
     sort_arg=$2
     if [[ -z $sort_arg ]]
     then
@@ -121,10 +138,10 @@ smart_ls() {
         echo "Directory is empty"
     elif (( $count <= 10 ))
     then
-        command ls -l --color=tty $target
+        ls -l --color=tty $target
     elif (( $count <= 100 ))
     then
-        command ls --color=tty $target
+        ls --color=tty $target
     else
         echo "Directory contains $count files"
     fi
@@ -209,6 +226,7 @@ install_dot() {
             return_status=1
             break
         fi
+        echo "Changed directory to $(pwd)"
 
         installed_files=~/dot/DotTools/installed_files.txt
         install_log=~/dot/DotTools/install_log.txt
@@ -250,10 +268,11 @@ install_dot() {
             echo "Python 3.4 is already installed"
         fi
 
+        echo "Discovering pip3"
         pip3="$(which pip3)"
         if (( $? ))
         then
-	    pip3="$(which pip34)"
+            pip3="$(which pip34)"
             if (( $? ))
             then
                 message="Couldn't find pip3 on the system. Aborting..."
@@ -262,17 +281,19 @@ install_dot() {
             fi
         fi
 
-        $pip3 install --user --force-reinstall --verbose .
+        echo "Installing DotTools package"
+        $pip3 install --user --force-reinstall --verbose ~/dot/DotTools/
         if (( $? ))
         then
             message="Couldn't install python DotTools package.  Aborting..."
             return_status=1
             break
         fi
+        user_base=$(python3 -c 'import site;print(site.USER_BASE)')
 
         command cd $initial_directory
 
-        underlined_header "Installing dot config on $(hostname)"
+        $user_base/bin/underlined_header "Installing dot config on $(hostname)"
 
         link_list=(
             .vimrc
@@ -282,6 +303,7 @@ install_dot() {
             .vim/autoload/
             .vim/bundle/
             .vim/bundle2/
+            .vim/fonts/
             .config/terminator/
         )
 
@@ -324,7 +346,7 @@ install_dot() {
         do
             full_path=$(abs_path ~)/$path_name
             echo "Making $full_path directory"
-            command mkdir -p $full_path
+            mkdir -p $full_path
             if (( $? ))
             then
                 return_status=1
@@ -353,7 +375,7 @@ install_dot() {
 
             if [[ ! -e $link_dir ]]
             then
-                command mkdir -p $link_dir
+                mkdir -p $link_dir
                 if (( $? ))
                 then
                     echo "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
@@ -362,7 +384,7 @@ install_dot() {
             fi
 
             echo "Installing $file_name"
-            command ln -sb $target_path $link_dir
+            ln -sb $target_path $link_dir
             if (( $? ))
             then
                 echo "Couldn't install $file_name: failed to link $target_path to $link_path"
@@ -384,7 +406,7 @@ install_dot() {
 
             if [[ ! -e $link_dir ]]
             then
-                command mkdir -p $copy_dir
+                mkdir -p $copy_dir
                 if (( $? ))
                 then
                     echo "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
@@ -393,7 +415,7 @@ install_dot() {
             fi
 
             echo "Installing $file_name"
-            command cp -b $target_path $copy_dir
+            cp -b $target_path $copy_dir
             if (( $? ))
             then
                 echo "Couldn't install $file_name: failed to copy $target_path to $copy_path"
@@ -409,34 +431,47 @@ install_dot() {
         done
 
         echo "Installing powerline fonts"
-        command bash ~/dot/.vim/fonts/powerline/install.sh
+        bash ~/dot/.vim/fonts/powerline/install.sh
 
-        if [[ -z $(grep "DOT INSTALLED" ~/.bashrc) ]]
+        if [[ "$(uname)" -eq 'Darwin' ]]
         then
-            underlined_header "Updating .bashrc to source dot"
+            startup_config="$HOME/.bash_profile"
+        else
+            startup_config="$HOME/.bashrc"
+        fi
 
-            if [[ ! -w ~/.bashrc ]]
+        echo "$startup_config doesn't exist. Creating it"
+        if [[ ! -e $startup_config ]]
+        then
+            touch $startup_config
+        fi
+
+        echo "Adding .dotrc to $startup_config"
+        if [[ -z $(grep "DOT INSTALLED" $startup_config) ]]
+        then
+            $user_base/bin/underlined_header "Updating .bashrc to source dot"
+
+            if [[ ! -w $startup_config ]]
             then
                 return_status=1
                 message="Couldn't modify .bashrc to install dot.  Aborting..."
                 break
             fi
 
-            echo "# DOT INSTALLED" >> ~/.bashrc
-            echo "if [[ -e ~/dot/.dotrc ]]" >> ~/.bashrc
-            echo "then" >> ~/.bashrc
-            echo "    source ~/dot/.dotrc" >> ~/.bashrc
-            echo "fi" >> ~/.bashrc
+            echo "# DOT INSTALLED" >> $startup_config
+            echo "if [[ -e ~/dot/.dotrc ]]" >> $startup_config
+            echo "then" >> $startup_config
+            echo "    source ~/dot/.dotrc" >> $startup_config
+            echo "fi" >> $startup_config
         fi
 
-        source ~/.bashrc
+        source $startup_config
 
         message="Finished Installing dot"
     done
 
     command cd $initial_directory
-    echo "================"
-    echo $message
+    $user_base/bin/underlined_header -f "Updating .bashrc to source dot"
     return $return_status
 }
 
@@ -454,6 +489,7 @@ else
 fi
 
 # TODO: do this right
+export VIRTUALENVWRAPPER_PYTHON=$(which python3)
 source $(which virtualenvwrapper.sh)
 
 if [[ $- == *i* && -z "$SKIP_TODO" ]]

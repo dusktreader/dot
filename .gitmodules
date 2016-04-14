@@ -50,3 +50,6 @@
     path = .vim/fonts/powerline
     url = git@github.com:powerline/fonts.git
     ignore = dirty
+[submodule "vim_bridge"]
+	path = vim_bridge
+	url = git@github.com:nvie/vim_bridge.git
