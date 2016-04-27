@@ -25,7 +25,8 @@ export DIFF_COLOR_MERGE_ONE_LINERS=1
 
 export PATH=$PATH:~/bin
 
-user_base=$(python3 -c 'import site;print(site.USER_BASE)')
+alias python3='python3.4'
+user_base=$(python3 -c 'import site;print(site.USER_BASE)' > /dev/null 2>&1)
 if (( $? ))
 then
     debug_out "Python3 is not yet installed. Not appending scripts path"
@@ -50,7 +51,7 @@ alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
 
 alias sl='ls'
-if [[ "$(uname)" -eq 'Darwin' ]]
+if [[ $(uname) == "Darwin" ]]
 then
     alias ls='gls --color=tty'
     alias ln='gln'
@@ -70,6 +71,7 @@ alias activate='source $(ls | grep env)/bin/activate'
 
 alias gti='git'
 
+debug_out "Detecting which ack"
 which ack > /dev/null 2>&1
 if (( $? ))
 then
@@ -281,6 +283,9 @@ install_dot() {
             fi
         fi
 
+        debug_out "Installing virtualenvwrapper"
+        $pip3 install --user --force-reinstall --verbose virtualenvwrapper
+
         echo "Installing DotTools package"
         $pip3 install --user --force-reinstall --verbose ~/dot/DotTools/
         if (( $? ))
@@ -477,6 +482,7 @@ install_dot() {
 
 source_dotfiles
 
+debug_out "Detecting git"
 which git > /dev/null 2>&1
 if (( $? ))
 then
@@ -489,8 +495,16 @@ else
 fi
 
 # TODO: do this right
-export VIRTUALENVWRAPPER_PYTHON=$(which python3)
-source $(which virtualenvwrapper.sh)
+debug_out "Detecting virtualenvwrapper"
+which virtualenvwrapper.sh > /dev/null 2>&1
+if (( $? ))
+then
+    debug_out "Did not detect virtualenvwrapper. Skipping"
+else
+    debug_out "Found virtualenvwrapper. Sourcing with python3"
+    export VIRTUALENVWRAPPER_PYTHON=$(which python3)
+    source $(which virtualenvwrapper.sh)
+fi
 
 if [[ $- == *i* && -z "$SKIP_TODO" ]]
 then
