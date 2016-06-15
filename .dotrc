@@ -58,6 +58,7 @@ then
     alias cp='gcp'
     alias touch='gtouch'
     alias vim=/usr/local/bin/vim
+    alias ps='pstree -wg3 | less'
 else
     alias ls='ls --color=tty'
 fi

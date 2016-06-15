@@ -21,3 +21,5 @@
     commit = normal
 [credential]
     helper = cache
+[github]
+	user = dusktreader
