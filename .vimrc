@@ -16,7 +16,7 @@ let g:airline_powerline_fonts=1
 " Set the airline theme
 let g:airline_theme='simple'
 
-" Load a vimrc for the current project if available
+" load a vimrc for the current project if available
 if filereadable("etc/vim/vimrc.local")
     source etc/vim/vimrc.local
 endif
@@ -30,21 +30,27 @@ filetype plugin indent on
 " Turn on syntax highlighting
 syntax enable
 
+" Sets the leader character for commands
+let mapleader=","
+
 " Remaps K to split lines under cursor
 nnoremap K i<CR><Esc>
+
+" Remaps F5 to open the gundo graph
+nnoremap <leader>G :GundoToggle<CR>
 
 " Puts in column markers for 80 and 120 characters
 set colorcolumn=80
 set colorcolumn+=100
 highlight ColorColumn ctermbg=4
 
-" Remove trailing whitespace on save
-autocmd BufWritePre  * :%s/\s\+$//e
+" remove trailing whitespace on save
+autocmd bufwritepre  * :%s/\s\+$//e
 
 " Execute flake8 against python files on save
 autocmd BufWritePost *.py call Flake8()
 
-" Shows ine numbers
+" Shows line numbers
 set number
 
 " Tells vim to always show a status line
@@ -71,9 +77,6 @@ set nostartofline
 
 " Shows an underscore where there are trailing whitespaces
 set list listchars=trail:_
-
-" Sets the leader character for commands
-let mapleader=","
 
 " Makes vim remember the last 100000 commands
 set history=100000
