@@ -6,3 +6,4 @@ DotTools/env/
 DotTools/install_log.txt
 DotTools/installed_files.txt
 .dotfiles
+.rtk-dotfiles

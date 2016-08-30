@@ -110,3 +110,11 @@ if has('clipboard')
     endif
 endif
 
+" Replaces commonly mistyped commands with the correct one
+" See: http://stackoverflow.com/questions/3878692/aliasing-a-command-in-vim/3879737#3879737
+fun! SetupCommandAlias(from, to)
+  exec 'cnoreabbrev <expr> '.a:from
+        \ .' ((getcmdtype() is# ":" && getcmdline() is# "'.a:from.'")'
+        \ .'? ("'.a:to.'") : ("'.a:from.'"))'
+endfun
+call SetupCommandAlias("E","e")

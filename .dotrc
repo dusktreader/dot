@@ -23,15 +23,23 @@ export GIT_PS1_SHOWDIRTYSTATE=1
 export DIFF_COLOR_DO_HORIZONTAL=1
 export DIFF_COLOR_MERGE_ONE_LINERS=1
 
-export PATH=$PATH:~/bin
+export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 
-alias python3='python3.4'
-user_base=$(python3 -c 'import site;print(site.USER_BASE)' > /dev/null 2>&1)
-if (( $? ))
+debug_out "Detecting which python3"
+# For the rtk machines...they make executables for python3.4 this way
+python3_path=$(which python34 || which python3)
+if [[ -n $python3_path ]]
 then
-    debug_out "Python3 is not yet installed. Not appending scripts path"
-else
-    export PATH="$PATH:$user_base/bin"
+    debug_out "Detected python3 at $python3_path"
+    user_base=$($python3_path -c 'import site;print(site.USER_BASE)')
+    if (( $? ))
+    then
+        debug_out "Python3 is not yet installed. Not modifying PATH"
+    else
+        export PATH="$PATH:$user_base/bin"
+        alias python3=python3_path
+        debug_out "Added python3 user base to PATH"
+    fi
 fi
 
 alias vi='vim'
@@ -229,7 +237,7 @@ install_dot() {
             return_status=1
             break
         fi
-        echo "Changed directory to $(pwd)"
+        debug_out "Changed directory to $(pwd)"
 
         installed_files=~/dot/DotTools/installed_files.txt
         install_log=~/dot/DotTools/install_log.txt
@@ -254,40 +262,36 @@ install_dot() {
             fi
         fi
 
-        echo "Checking for Python 3.4 installation"
-        python_path=$(which python3.4)
+        debug_out "Checking for Python 3 installation"
+        which python3 > /dev/null 2>&1
         if (( $? ))
         then
-            echo "Python 3.4 is not installed. Installing locally"
+            debug_out "Python 3 is not installed. Installing locally"
             if install_local_python $install_log
             then
-                echo "Installed Python 3.4 locally"
+                debug_out "Installed Python 3 locally"
             else
                 message="Couldn't install local python. Aborting..."
                 return_status=1
                 break
             fi
         else
-            echo "Python 3.4 is already installed"
+            debug_out "Python 3 is already installed"
         fi
 
-        echo "Discovering pip3"
-        pip3="$(which pip3)"
+        debug_out "Discovering pip3"
+        pip3="$(which pip3 || which pip34)"
         if (( $? ))
         then
-            pip3="$(which pip34)"
-            if (( $? ))
-            then
-                message="Couldn't find pip3 on the system. Aborting..."
-                return_status=1
-                break
-            fi
+            message="Couldn't find pip3 on the system. Aborting..."
+            return_status=1
+            break
         fi
 
         debug_out "Installing virtualenvwrapper"
         $pip3 install --user --force-reinstall --verbose virtualenvwrapper
 
-        echo "Installing DotTools package"
+        debug_out "Installing DotTools package"
         $pip3 install --user --force-reinstall --verbose ~/dot/DotTools/
         if (( $? ))
         then
@@ -351,7 +355,7 @@ install_dot() {
         for path_name in "${mkdir_list[@]}"
         do
             full_path=$(abs_path ~)/$path_name
-            echo "Making $full_path directory"
+            debug_out "Making $full_path directory"
             mkdir -p $full_path
             if (( $? ))
             then
@@ -363,8 +367,8 @@ install_dot() {
 
         for file_name in "${dot_files[@]}"
         do
-            echo "Installing $file_name in .dotfiles"
-            echo $file_name >> ~/dot/.dotfiles
+            debug_out "Installing $file_name in .dotfiles"
+            debug_out $file_name >> ~/dot/.dotfiles
         done
 
         for file_name in "${link_list[@]}"
@@ -375,7 +379,7 @@ install_dot() {
 
             if [[ -h $link_path && "$(readlink $link_path)" == "$target_path" ]]
             then
-                echo "Skipping $file_name: it is already installed"
+                debug_out "Skipping $file_name: it is already installed"
                 continue
             fi
 
@@ -384,16 +388,16 @@ install_dot() {
                 mkdir -p $link_dir
                 if (( $? ))
                 then
-                    echo "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
+                    debug_out "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
                     continue
                 fi
             fi
 
-            echo "Installing $file_name"
+            debug_out "Installing $file_name"
             ln -sb $target_path $link_dir
             if (( $? ))
             then
-                echo "Couldn't install $file_name: failed to link $target_path to $link_path"
+                debug_out "Couldn't install $file_name: failed to link $target_path to $link_path"
                 continue
             fi
         done
@@ -406,7 +410,7 @@ install_dot() {
 
             if [[ -e $copy_path && ! -h $copy_path && -z $(diff $copy_path $target_path) ]]
             then
-                echo "Skipping $file_name: it is already installed"
+                debug_out "Skipping $file_name: it is already installed"
                 continue
             fi
 
@@ -415,28 +419,28 @@ install_dot() {
                 mkdir -p $copy_dir
                 if (( $? ))
                 then
-                    echo "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
+                    debug_out "Couldn't install $file_name: Couldn't make $link_dir for link $link_path"
                     continue
                 fi
             fi
 
-            echo "Installing $file_name"
+            debug_out "Installing $file_name"
             cp -b $target_path $copy_dir
             if (( $? ))
             then
-                echo "Couldn't install $file_name: failed to copy $target_path to $copy_path"
+                debug_out "Couldn't install $file_name: failed to copy $target_path to $copy_path"
                 continue
             fi
 
             chmod 600 $copy_path
             if (( $? ))
             then
-                echo "Couldn't change permissions of $file_name.  Connection via ssh may not work"
+                debug_out "Couldn't change permissions of $file_name.  Connection via ssh may not work"
                 continue
             fi
         done
 
-        echo "Installing powerline fonts"
+        debug_out "Installing powerline fonts"
         bash ~/dot/.vim/fonts/powerline/install.sh
 
         if [[ "$(uname)" -eq 'Darwin' ]]
@@ -446,13 +450,13 @@ install_dot() {
             startup_config="$HOME/.bashrc"
         fi
 
-        echo "$startup_config doesn't exist. Creating it"
+        debug_out "$startup_config doesn't exist. Creating it"
         if [[ ! -e $startup_config ]]
         then
             touch $startup_config
         fi
 
-        echo "Adding .dotrc to $startup_config"
+        debug_out "Adding .dotrc to $startup_config"
         if [[ -z $(grep "DOT INSTALLED" $startup_config) ]]
         then
             $user_base/bin/underlined_header "Updating .bashrc to source dot"

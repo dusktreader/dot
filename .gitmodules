@@ -59,3 +59,6 @@
 [submodule ".vim/bundle/vim-bridge"]
 	path = .vim/bundle/vim-bridge
 	url = git@github.com:nvie/vim_bridge.git
+[submodule ".vim/bundle/vim-gitgutter"]
+	path = .vim/bundle/vim-gitgutter
+	url = git@github.com:airblade/vim-gitgutter.git
