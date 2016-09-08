@@ -105,6 +105,17 @@ then
     fi
 fi
 
+dusktreader_rsa_key="dusktreader_id_rsa"
+dusktreader_rsa_path="$HOME/.ssh/$dusktreader_rsa_key"
+if [[ -e $dusktreader_rsa_path ]]
+then
+    if [[ -z "$(ssh-add -l | grep $dusktreader_rsa_key)" ]]
+    then
+        debug_out "$dusktreader_rsa_key key not found in active ssh identities not found.  Setting it up:"
+        ssh-add $dusktreader_rsa_path
+    fi
+fi
+
 
 
 pip_install_save() {

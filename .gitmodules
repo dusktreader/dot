@@ -42,29 +42,28 @@
     path = .vim/bundle/vim-airline
     url = git@github.com:bling/vim-airline.git
     ignore = dirty
-[submodule ".vim/bundle2/vim-pyunit"]
-    path = .vim/bundle2/vim-pyunit
-    url = git://github.com/nvie/vim-pyunit.git
-    ignore = dirty
 [submodule ".vim/fonts/powerline"]
     path = .vim/fonts/powerline
     url = git@github.com:powerline/fonts.git
     ignore = dirty
 [submodule ".vim/bundle/gist-vim"]
-	path = .vim/bundle/gist-vim
-	url = git@github.com:mattn/gist-vim.git
+    path = .vim/bundle/gist-vim
+    url = git@github.com:mattn/gist-vim.git
 [submodule ".vim/bundle/webapi-vim"]
-	path = .vim/bundle/webapi-vim
-	url = git@github.com:mattn/webapi-vim.git
+    path = .vim/bundle/webapi-vim
+    url = git@github.com:mattn/webapi-vim.git
 [submodule ".vim/bundle/vim-bridge"]
-	path = .vim/bundle/vim-bridge
-	url = git@github.com:nvie/vim_bridge.git
+    path = .vim/bundle/vim-bridge
+    url = git@github.com:nvie/vim_bridge.git
 [submodule ".vim/bundle/vim-gitgutter"]
-	path = .vim/bundle/vim-gitgutter
-	url = git@github.com:airblade/vim-gitgutter.git
+    path = .vim/bundle/vim-gitgutter
+    url = git@github.com:airblade/vim-gitgutter.git
 [submodule ".vim/bundle/gundo"]
-	path = .vim/bundle/gundo
-	url = http://github.com/sjl/gundo.vim.git
+    path = .vim/bundle/gundo
+    url = http://github.com/sjl/gundo.vim.git
 [submodule ".vim/bundle/vim-qml"]
-	path = .vim/bundle/vim-qml
-	url = https://github.com/peterhoeg/vim-qml.git
+    path = .vim/bundle/vim-qml
+    url = https://github.com/peterhoeg/vim-qml.git
+[submodule ".vim/bundle/vim-test"]
+    path = .vim/bundle/vim-test
+    url = https://github.com/janko-m/vim-test.git

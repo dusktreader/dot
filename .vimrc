@@ -1,10 +1,9 @@
 execute pathogen#infect()
-try
-    call virtualenv#activate()
-catch
-    " No virtualenv to activate
-endtry
-execute pathogen#infect('~/.vim/bundle2/{}')
+" try
+"     call virtualenv#activate()
+" catch
+"     " No virtualenv to activate
+" endtry
 execute pathogen#helptags()
 
 " Let virtualenv auto activate if a virtual env is available
@@ -78,8 +77,8 @@ set nostartofline
 " Shows an underscore where there are trailing whitespaces
 set list listchars=trail:_
 
-" Makes vim remember the last 100000 commands
-set history=100000
+" Makes vim remember the last 10000 commands
+set history=10000
 
 " Put backup files and swap files in a sane place
 set backup
@@ -121,3 +120,10 @@ fun! SetupCommandAlias(from, to)
         \ .'? ("'.a:to.'") : ("'.a:from.'"))'
 endfun
 call SetupCommandAlias("E","e")
+
+" Mappings for vim-test
+nmap <silent> <leader>t :TestNearest<CR>
+nmap <silent> <leader>T :TestFile<CR>
+let test#strategy = "dispatch"
+" let g:test#runner_commands = ['py.test']
+let test#python#runner = 'pytest'
