@@ -66,7 +66,7 @@ then
     alias ln='gln'
     alias cp='gcp'
     alias touch='gtouch'
-    alias vim=/usr/local/bin/vim
+    alias vim='/usr/local/bin/vim -O'
     alias ps='pstree -wg3 | less'
 else
     alias ls='ls --color=tty'

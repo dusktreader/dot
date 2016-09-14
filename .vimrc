@@ -104,6 +104,9 @@ set background=dark
 " Nerdtree ch dir correctly (replacement for autochdir)
 let g:NERDTreeChDirMode=2
 
+" Map ,e to open nerdtree on the current file
+nnoremap <leader>e :NERDTreeFind<CR>
+
 " Put yanked text in the 'clipboard' buffer.  Will not fucking work!!!
 if has('clipboard')
     set clipboard=unnamed
