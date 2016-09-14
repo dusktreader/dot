@@ -64,3 +64,6 @@
 [submodule ".vim/bundle/vim-qml"]
     path = .vim/bundle/vim-qml
     url = https://github.com/peterhoeg/vim-qml.git
+[submodule ".vim/bundle/vim-test"]
+	path = .vim/bundle/vim-test
+	url = https://github.com/janko-m/vim-test.git
