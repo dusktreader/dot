@@ -241,6 +241,9 @@ install_dot() {
 
         echo "Installing DotTools python package for current user"
 
+        debug_out "Attempting to deactivate virtual environment"
+        deactivate
+
         command cd ~/dot/DotTools
         if (( $? ))
         then
