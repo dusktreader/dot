@@ -101,8 +101,8 @@ set incsearch
 " Make the background color dark
 set background=dark
 
-" Automatically change current directory to the file being edited
-set autochdir
+" Nerdtree ch dir correctly (replacement for autochdir)
+let g:NERDTreeChDirMode=2
 
 " Put yanked text in the 'clipboard' buffer.  Will not fucking work!!!
 if has('clipboard')

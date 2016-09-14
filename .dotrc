@@ -42,6 +42,7 @@ then
     fi
 fi
 
+alias vim='vim -O'
 alias vi='vim'
 alias evim='$EDITOR ~/dot/.vimrc'
 
