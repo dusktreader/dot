@@ -101,11 +101,12 @@ set incsearch
 " Make the background color dark
 set background=dark
 
-" Nerdtree ch dir correctly (replacement for autochdir)
-let g:NERDTreeChDirMode=2
+" Have NERDTree close when I open a file
+let NERDTreeQuitOnOpen=1
 
 " Map ,e to open nerdtree on the current file
 nnoremap <leader>e :NERDTreeFind<CR>
+
 
 " Put yanked text in the 'clipboard' buffer.  Will not fucking work!!!
 if has('clipboard')
@@ -127,6 +128,7 @@ call SetupCommandAlias("E","e")
 " Mappings for vim-test
 nmap <silent> <leader>t :TestNearest<CR>
 nmap <silent> <leader>T :TestFile<CR>
+nmap <silent> <leader>l :TestLast<CR>
 let test#strategy = "dispatch"
 " let g:test#runner_commands = ['py.test']
 let test#python#runner = 'pytest'

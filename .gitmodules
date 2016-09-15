@@ -67,3 +67,6 @@
 [submodule ".vim/bundle/vim-test"]
 	path = .vim/bundle/vim-test
 	url = https://github.com/janko-m/vim-test.git
+[submodule ".vim/bundle/python.vim"]
+	path = .vim/bundle/python.vim
+	url = https://github.com/hdima/python-syntax.git
