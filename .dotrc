@@ -28,6 +28,7 @@ export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 debug_out "Detecting which python3"
 # For the rtk machines...they make executables for python3.4 this way
 python3_path=$(which python34 || which python3)
+debug_out "found python path at $python3_path"
 if [[ -n $python3_path ]]
 then
     debug_out "Detected python3 at $python3_path"
