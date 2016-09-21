@@ -1,0 +1,26 @@
+{
+    "links": [
+        ".vimrc",
+        ".psqlrc",
+        ".gitconfig",
+        ".vim/after",
+        ".vim/autoload",
+        ".vim/bundle",
+        ".vim/fonts",
+        ".config/terminator"
+    ],
+    "copy": [
+        ".ssh/config",
+        ".ssh/rc"
+    ],
+    "dotfiles": [
+        ".dotrc",
+        ".dot_misc",
+        ".dot_tools_helpers",
+        ".dot_colors"
+    ],
+    "mkdirs": [
+        ".vim/local/backup",
+        ".vim/local/swap"
+    ]
+}

@@ -1,0 +1,12 @@
+gitdb==0.6.4
+GitPython==1.0.1
+ordereddict==1.1
+smmap==0.9.0
+jira==1.0.7
+flake8==2.5.4
+hjson==2.0.2
+sh==1.11
+pytest-virtualenv==1.1.0
+pytest==3.0.2
+cmdline==0.1.6
+capturer==2.1.1

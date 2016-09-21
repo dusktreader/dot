@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+import os
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+from dot_tools.configure import DotInstaller
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser(
+        formatter_class=ArgumentDefaultsHelpFormatter,
+        description='Configure dot for current user',
+        )
+    parser.add_argument(
+        '-d',
+        '--target_dir',
+        default=os.path.expanduser('~'),
+        help='Configure dot to use DIR as the base directory',
+        metavar='DIR',
+        )
+    args = parser.parse_args()
+
+    installer = DotInstaller(home=args.target_dir)
+    installer.install_dot()
