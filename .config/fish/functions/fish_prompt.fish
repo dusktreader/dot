@@ -1,56 +1,73 @@
-#!/usr/bin/env bash
+function fish_prompt --description 'Write out the prompt'
+  set -l last_status $status
 
-debug_out() {
-    if [[ $- == *i* && $DOT_DEBUG ]]
-    then
-        echo $@
-    fi
-}
+  # User
+  set_color $fish_color_user
+  echo -n (whoami)
+  set_color normal
+
+  echo -n '@'
+
+  # Host
+  set_color $fish_color_host
+  echo -n (hostname -s)
+  set_color normal
+
+  echo -n ':'
+
+  # PWD
+  set_color $fish_color_cwd
+  echo -n (prompt_pwd)
+  set_color normal
+
+  __terlar_git_prompt
+  __fish_hg_prompt
+  echo
+
+  if not test $last_status -eq 0
+    set_color $fish_color_error
+  end
+
+  echo -n '➤ '
+  set_color normal
+end
+
+function debug_out --description Conditionally print debug lines
+    if begin; status --is-interactive; or $DOT_DEBUG; end
+        echo $argv
+    end
+end
 
 debug_out "Processing main dot configuration"
 
-export EDITOR='vim'
-export VISUAL='vim'
-export PAGER='less -R'
-export LESS='SX'
-export HISTSIZE=1000000
-export HISTFILESIZE=1000000
-export HISTCONTROL=ignorespace:ignoredups
-shopt -s histappend
-export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
-
-export GIT_PS1_SHOWDIRTYSTATE=1
-export DIFF_COLOR_DO_HORIZONTAL=1
-export DIFF_COLOR_MERGE_ONE_LINERS=1
-
-export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
+set -Ux PATH $PATH \
+    ~/bin \
+    /Applications/Postgres.app/Contents/Versions/latest/bin
 
 debug_out "Detecting which python3"
 # For the rtk machines...they make executables for python3.4 this way
-python3_path=$(which python34 || which python3)
+set python3_path (which python34; or which python3)
 debug_out "found python path at $python3_path"
-if [[ -n $python3_path ]]
-then
+if [ $python3_path ]
     debug_out "Detected python3 at $python3_path"
-    user_base=$($python3_path -c 'import site;print(site.USER_BASE)')
-    if (( $? ))
-    then
+    set user_base ($python3_path -c 'import site;print(site.USER_BASE)'
+    if [ $status ]
         debug_out "Python3 is not yet installed. Not modifying PATH"
     else
-        export PATH="$PATH:$user_base/bin"
-        alias python3=python3_path
+        set -Ux PATH $PATH "$user_base/bin"
+        function python3; command $python3_path $argv; end
         debug_out "Added python3 user base to PATH"
-    fi
-fi
+    end
+end
 
-alias vim='vim -O'
-alias vi='vim'
-alias evim='$EDITOR ~/dot/.vimrc'
+function vim; command vim -O $argv; end
+function vi; command vim $argv; end
+function evim; command $EDITOR ~/dot/.vimrc; end
 
-alias egit='$EDITOR ~/dot/.gitconfig'
+function egit; command $EDITOR ~/dot/.gitconfig; end
 
-alias ebash="$EDITOR ~/.bashrc"
-alias sbash='source ~/.bashrc'
+function ebash; command $EDITOR ~/.bashrc; end
+function sbash; command source ~/.bashrc; end
 
 alias edot="$EDITOR ~/dot/.dotrc"
 alias sdot='source ~/dot/.dotrc'

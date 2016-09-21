@@ -1,3 +1,6 @@
+" Tells vim to use the bash shell (fish compatability)
+set shell=/bin/bash
+
 execute pathogen#infect()
 " try
 "     call virtualenv#activate()
