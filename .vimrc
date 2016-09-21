@@ -38,9 +38,10 @@ nnoremap K i<CR><Esc>
 " Remaps F5 to open the gundo graph
 nnoremap <leader>G :GundoToggle<CR>
 
-" Puts in column markers for 80 and 120 characters
+" Puts in column markers for 80, 100, and 120 characters
 set colorcolumn=80
 set colorcolumn+=100
+set colorcolumn+=120
 highlight ColorColumn ctermbg=4
 
 " remove trailing whitespace on save
