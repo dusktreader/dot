@@ -10,3 +10,4 @@ pytest-virtualenv==1.1.0
 pytest==3.0.2
 cmdline==0.1.6
 capturer==2.1.1
+sh==1.11
