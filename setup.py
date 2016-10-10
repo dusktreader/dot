@@ -53,9 +53,9 @@ class PostInstallCommand(_install):
 
     def run(self):
         super().run()
-        from dot_tools.configure import DotInstaller
-        installer = DotInstaller(home=os.path.expanduser(self.target_dir))
-        installer.install_dot()
+        # from dot_tools.configure import DotInstaller
+        # installer = DotInstaller(home=os.path.expanduser(self.target_dir))
+        # installer.install_dot()
 
 
 setup(
