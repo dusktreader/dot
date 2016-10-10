@@ -105,6 +105,9 @@ set background=dark
 " Have NERDTree close when I open a file
 let NERDTreeQuitOnOpen=1
 
+" Automatically delete the buffere when I delete or remanem a file
+let NERDTreeAutoDeleteBuffer=1
+
 " Map ,e to open nerdtree on the current file
 nnoremap <leader>e :NERDTreeFind<CR>
 

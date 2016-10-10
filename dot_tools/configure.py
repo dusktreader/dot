@@ -133,13 +133,16 @@ class DotInstaller:
                     self.debug("Updating permissions for ssh config file {}".format(dst_path))
                     sh.chmod('600', dst_path)
 
-    def _dotfiles(self):
+    def _update_dotfiles(self):
         dotfile_list_path = os.path.join(self.home, '.extra_dotfiles')
-        with open(dotfile_list_path, 'w') as dotfile_list_file:
+        with open(dotfile_list_path, 'a+') as dotfile_list_file:
+            all_entries = dotfile_list_file.readlines()
             for path in self.setup_dict['dotfiles']:
                 dotfile_path = os.path.join(self.root, path)
-                self.logger.debug("Adding {} to .extra_dotfiles".format(dotfile_path))
-                print('source {}'.format(dotfile_path), file=dotfile_list_file)
+                entry = 'source {}'.format(dotfile_path)
+                if entry not in all_entries:
+                    self.logger.debug("Adding {} to .extra_dotfiles".format(dotfile_path))
+                    print(entry, file=dotfile_list_file)
 
     def _check_virtual_env(self):
         if 'env' in sh.which("python"):
@@ -179,6 +182,13 @@ class DotInstaller:
         self._scrub_extra_dotfiles_block()
         self._add_extra_dotfiles_block()
 
+    def _extra_tasks(self):
+        self.info("Installing powerline font")
+        powerline_command = sh.Command(os.path.join(
+            self.root, '.vim/fonts/powerline/install.sh',
+        ))
+        powerline_command()
+
     def install_dot(self):
         try:
             self.info("Making sure virtualenv is not active")
@@ -194,13 +204,10 @@ class DotInstaller:
             self._copy_files()
 
             self.info("Adding in extra dotfiles")
-            self._dotfiles()
+            self._update_dotfiles()
 
-            self.info("Installing powerline font")
-            powerline_command = sh.Command(os.path.join(
-                self.root, '.vim/fonts/powerline/install.sh',
-            ))
-            powerline_command()
+            self.info("Performing extra tasks")
+            self._extra_tasks()
 
             self.info("Setting up startup config to include dot")
             self._startup()

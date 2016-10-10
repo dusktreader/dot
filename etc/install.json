@@ -7,6 +7,7 @@
         ".vim/autoload",
         ".vim/bundle",
         ".vim/fonts",
+        ".vim/config",
         ".config/terminator"
     ],
     "copy": [
