@@ -152,7 +152,7 @@ class DotInstaller:
 
     def _update_dotfiles(self):
         dotfile_list_path = os.path.join(self.home, '.extra_dotfiles')
-        with open(dotfile_list_path, 'a+') as dotfile_list_file:
+        with open(dotfile_list_path, 'r+') as dotfile_list_file:
             all_entries = [l.strip() for l in dotfile_list_file.readlines()]
             for path in self.setup_dict['dotfiles']:
                 dotfile_path = os.path.join(self.root, path)
