@@ -5,7 +5,7 @@ import os
 from setuptools import setup
 from setuptools import find_packages
 from setuptools.command.test import test as TestCommand
-from setuptools.command.install import install as _install
+from setuptools.command.install import install
 
 
 requirements_path = 'etc/setuptools/requirements.txt'
@@ -38,9 +38,9 @@ class PyTest(TestCommand):
         sys.exit(errno)
 
 
-class PostInstallCommand(_install):
+class PostInstallCommand(install):
 
-    user_options = _install.user_options + [
+    user_options = install.user_options + [
         ('target-dir=', 't', "The dir where dotfiles should go"),
     ]
 
@@ -52,7 +52,7 @@ class PostInstallCommand(_install):
         super().finalize_options()
 
     def run(self):
-        super().run()
+        super().do_egg_install()
         from dot_tools.configure import DotInstaller
         installer = DotInstaller(
             home=os.path.expanduser(self.target_dir),
