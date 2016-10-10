@@ -50,8 +50,8 @@ def require_condition(*args, **kwargs):
 class DotInstaller:
     setup_dict = {}
 
-    def __init__(self, home, root, message=''):
-        self.logger = logging.getLogger(__file__)
+    def __init__(self, home, root, name='unnamed'):
+        self.logger = logging.getLogger("dot-installer-{}".format(name))
         self.logger.setLevel(logging.DEBUG)
         self.home = home
         self.root = root
@@ -68,8 +68,7 @@ class DotInstaller:
         self.logger.addHandler(handler)
         self.logger = IndentLoggingAdapter(self.logger, {})
 
-        self.message = message
-        self.debug("Initializing configure/install: {}".format(message))
+        self.debug("Initializing configure/install for {}".format(name))
 
         install_json_file_path = os.path.join(self.root, 'etc', 'install.json')
         self.debug("Using {} as install configuration file".format(install_json_file_path))
