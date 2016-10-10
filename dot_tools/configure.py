@@ -50,11 +50,11 @@ def require_condition(*args, **kwargs):
 class DotInstaller:
     setup_dict = {}
 
-    def __init__(self, home, message=''):
+    def __init__(self, home, root, message=''):
         self.logger = logging.getLogger(__file__)
         self.logger.setLevel(logging.DEBUG)
         self.home = home
-        self.root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir))
+        self.root = root
 
         if platform.system() == 'Darwin':
             self.startup_config = os.path.join(self.home, '.bash_profile')
