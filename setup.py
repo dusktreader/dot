@@ -65,7 +65,7 @@ setup(
     author_email='tucker.beck@gmail.com',
     install_requires=requirements,
     packages=find_packages(),
-    data_files=[('etc', ['install.json'])],
+    data_files=[('etc', ['etc/install.json'])],
     tests_require=['pytest'],
     cmdclass={
         'test': PyTest,
