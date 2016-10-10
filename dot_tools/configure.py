@@ -67,7 +67,7 @@ class DotInstaller:
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.logger = IndentLoggingAdapter(self.logger, {})
-        install_json_file_path = os.path.join(self.root, 'etc', 'isntall.json')
+        install_json_file_path = os.path.join(self.root, 'etc', 'install.json')
         self.debug("Using {} as install configuration file".format(install_json_file_path))
         with open(install_json_file_path) as install_json_file:
             self.setup_dict = json.load(install_json_file)
