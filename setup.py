@@ -59,7 +59,7 @@ class PostInstallCommand(_install):
 
 
 setup(
-    name="tab's dot magic",
+    name="dot",
     author="Tucker Beck",
     author_email='tucker.beck@gmail.com',
     install_requires=requirements,
