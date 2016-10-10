@@ -139,6 +139,17 @@ class DotInstaller:
                     self.debug("Updating permissions for ssh config file {}".format(dst_path))
                     sh.chmod('600', dst_path)
 
+    def _extra_scripts(self):
+        for path in self.setup_dict.get('scripts', []):
+            exe_path = os.path.join(self.root, path)
+
+            if not os.path.exists(dst_path):
+                raise Exception("Extra script doesn't exist: {}".format(exe_path))
+            else:
+                self.debug("Executing extra script {}".format(path))
+                extra_command = sh.Command(exe_path)
+                extra_command()
+
     def _update_dotfiles(self):
         dotfile_list_path = os.path.join(self.home, '.extra_dotfiles')
         with open(dotfile_list_path, 'a+') as dotfile_list_file:
@@ -188,13 +199,6 @@ class DotInstaller:
         self._scrub_extra_dotfiles_block()
         self._add_extra_dotfiles_block()
 
-    def _extra_tasks(self):
-        self.info("Installing powerline font")
-        powerline_command = sh.Command(os.path.join(
-            self.root, '.vim/fonts/powerline/install.sh',
-        ))
-        powerline_command()
-
     def install_dot(self):
         try:
             self.info("Making sure virtualenv is not active")
@@ -212,8 +216,8 @@ class DotInstaller:
             self.info("Adding in extra dotfiles")
             self._update_dotfiles()
 
-            self.info("Performing extra tasks")
-            self._extra_tasks()
+            self.info("Executing extra scripts")
+            self._extra_scripts()
 
             self.info("Setting up startup config to include dot")
             self._startup()
