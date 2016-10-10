@@ -67,9 +67,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     packages=find_packages(),
-    package_data={
-        '': ['etc/*'],
-    },
+    data_files=[('etc'), ['install.json']],
     tests_require=['pytest'],
     cmdclass={
         'test': PyTest,
