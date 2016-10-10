@@ -57,7 +57,7 @@ class PostInstallCommand(install):
         installer = DotInstaller(
             home=os.path.expanduser(self.target_dir),
             root=os.path.abspath(os.path.dirname(__file__)),
-            message="for dot-tools",
+            name="dot-tools",
         )
         installer.install_dot()
 
