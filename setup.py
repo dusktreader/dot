@@ -60,6 +60,7 @@ class PostInstallCommand(_install):
 
 setup(
     name="dot",
+    version="2.0",
     author="Tucker Beck",
     author_email='tucker.beck@gmail.com',
     install_requires=requirements,
