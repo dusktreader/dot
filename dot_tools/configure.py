@@ -78,7 +78,7 @@ class DotInstaller:
             return getattr(self.logger, name)
 
     def _make_links(self):
-        for path in self.setup_dict['links']:
+        for path in self.setup_dict.get('links', []):
             link_path = os.path.join(self.home, path)
             target_path = os.path.join(self.root, path)
             self.debug("Preparing to create symlink {} -> {}".format(link_path, target_path))
@@ -103,7 +103,7 @@ class DotInstaller:
                 os.symlink(target_path, link_path)
 
     def _make_dirs(self):
-        for path in self.setup_dict['mkdirs']:
+        for path in self.setup_dict.get('mkdirs', []):
             target_path = os.path.join(self.home, path)
             self.debug("Making target directory {}".format(target_path))
             try:
@@ -113,7 +113,7 @@ class DotInstaller:
                 self.debug("Skipping directory creation for {}. Already exists".format(target_path))
 
     def _copy_files(self):
-        for path in self.setup_dict['copy']:
+        for path in self.setup_dict.get('copy', []):
             src_path = os.path.join(self.root, path)
             dst_path = os.path.join(self.home, path)
 
