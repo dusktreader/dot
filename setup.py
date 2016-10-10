@@ -67,6 +67,9 @@ setup(
     include_package_data=True,
     zip_safe=False,
     packages=find_packages(),
+    package_data={
+        '': ['etc/*'],
+    },
     tests_require=['pytest'],
     cmdclass={
         'test': PyTest,
