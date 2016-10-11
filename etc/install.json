@@ -15,10 +15,10 @@
         ".ssh/rc"
     ],
     "dotfiles": [
-        ".dotrc",
         ".dot_misc",
         ".dot_tools_helpers",
-        ".dot_colors"
+        ".dot_colors",
+        ".dotrc"
     ],
     "mkdirs": [
         ".vim/local/backup",
