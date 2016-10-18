@@ -131,6 +131,8 @@ call SetupCommandAlias("E","e")
 
 " Mappings for vim-test
 nmap <silent> <leader>t :w<CR> :TestNearest<CR>
+nmap <silent> <leader>tv :w<CR> :TestNearest --verbose<CR>
+nmap <silent> <leader>tvv :w<CR> :TestNearest --verbose --verbose<CR>
 nmap <silent> <leader>T :w<CR> :TestFile<CR>
 nmap <silent> <leader>l :w<CR> :TestLast<CR>
 let test#strategy = "dispatch"
