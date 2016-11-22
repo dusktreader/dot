@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+# todo: convert optparse to argparse if python version ever gets updated
+
+from optparse import OptionParser
+from dot_tools.git_tools import is_git, make_flake8_link
+
+def main():
+    parser = OptionParser(usage = "usage: %prog [%prog_options]")
+    parser.add_option(
+        '-f',
+        '--file-path',
+        help = "Set the path to make the link for",
+    )
+    parser.disable_interspersed_args()
+    (options, args) = parser.parse_args()
+
+    if not is_git():
+        parser.error("Can't do this in a non git directory")
+
+    make_flake8_link(options.file_path)
+
+if __name__ == '__main__':
+    main()
+

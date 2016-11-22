@@ -47,8 +47,12 @@ highlight ColorColumn ctermbg=4
 " remove trailing whitespace on save
 autocmd bufwritepre  * :%s/\s\+$//e
 
+function! make_flake8_link()
+    echo "Stuff"
+endfunction
 " Execute flake8 against python files on save
 autocmd BufWritePost *.py call Flake8()
+let g:flake8_show_in_gutter=1
 
 " Shows line numbers
 set number

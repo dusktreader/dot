@@ -235,7 +235,7 @@ def _checkout_tracking_branch(target_branch, remote, verbose=False):
     target_upstream_branch = "%s/%s" % (remote, target_branch)
     if current_branch == target_branch:
         if verbose:
-            messsage = "Current branch is target branch.  Checking upstream"
+            message = "Current branch is target branch.  Checking upstream"
             print(message, file=sys.stderr)
         current_upstream_branch = command_assert(
             'git rev-parse --abrev-ref @{upstream}',
@@ -337,3 +337,16 @@ def _add_remote(remote_alias, remote_url, verbose=False):
             'git remote add %s %s' % (remote_alias, remote_url),
             "Couldn't add remote %s to %s" % (remote_alias, remote_url)
         )
+
+
+def make_flake8_link(file_path):
+    top = toplevel()
+    config_path = os.path.join(top, '.flake8')
+    if os.path.lexists(config_path):
+        os.remove(config_path)
+    target_config = ''
+    if str(os.path.basename(file_path)).startswith('test_'):
+        target_config = os.path.join(top, 'etc/flake8/test-style-config.ini')
+    else:
+        target_config = os.path.join(top, 'etc/flake8/src-style-config.ini')
+    os.symlink(target_config, config_path)
