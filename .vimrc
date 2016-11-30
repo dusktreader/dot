@@ -47,11 +47,19 @@ highlight ColorColumn ctermbg=4
 " remove trailing whitespace on save
 autocmd bufwritepre  * :%s/\s\+$//e
 
-"function! make_flake8_link()
-"    echo "Stuff"
-"endfunction
+" uses a different flake8 configuration based on the filename
+function! MyFlake8()
+    echo "setting up flake8 config"
+
+    execute "!make_flake8_link -f %"
+    echo "executing flake8"
+    call Flake8()
+endfunction
+
 " Execute flake8 against python files on save
-autocmd BufWritePost *.py call Flake8()
+autocmd BufWritePost *.py call MyFlake8()
+
+" shows flake8 indicators in the gutter
 let g:flake8_show_in_gutter=1
 
 " Shows line numbers
@@ -137,7 +145,7 @@ call SetupCommandAlias("E","e")
 nmap <silent> <leader>t :w<CR> :TestNearest<CR>
 nmap <silent> <leader>tv :w<CR> :TestNearest --verbose<CR>
 nmap <silent> <leader>tvv :w<CR> :TestNearest --verbose --verbose<CR>
-nmap <silent> <leader>T :w<CR> :TestFile<CR>
+nmap <silent> <leader>T :w<CR> :TestFile --maxfail=1<CR>
 nmap <silent> <leader>l :w<CR> :TestLast<CR>
 let test#strategy = "dispatch"
 " let g:test#runner_commands = ['py.test']
