@@ -122,6 +122,3 @@
 [submodule ".vim/bundle/vim-qml"]
     path = .vim/bundle/vim-qml
     url = https://github.com/peterhoeg/vim-qml.git
-[submodule ".vim/bundle/jedi-vim"]
-	path = .vim/bundle/jedi-vim
-	url = https://github.com/davidhalter/jedi-vim.git
