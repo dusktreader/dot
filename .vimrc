@@ -150,3 +150,6 @@ nmap <silent> <leader>l :w<CR> :TestLast<CR>
 let test#strategy = "dispatch"
 " let g:test#runner_commands = ['py.test']
 let test#python#runner = 'pytest'
+
+" Settings for jedi-vim
+let g:jedi#auto_initialization = 0

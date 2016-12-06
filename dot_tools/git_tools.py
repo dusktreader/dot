@@ -1,8 +1,10 @@
+import inspect
 import os
 import sys
 import re
 
 from getpass import getuser
+from setuptools import find_packages
 from socket import gethostname
 from time import strftime
 
@@ -350,3 +352,89 @@ def make_flake8_link(file_path):
     else:
         target_config = os.path.join(top, 'etc/flake8/src-style-config.ini')
     os.symlink(target_config, config_path)
+
+
+def print_var(value, print_fn=print):
+    this_function_name = inspect.getframeinfo(inspect.currentframe()).function
+    match = re.search(
+        r'{}\((\w+)\)'.format(this_function_name),
+        inspect.getframeinfo(inspect.currentframe().f_back).code_context[0],
+    )
+    if match is None:
+        print_fn("Couldn't interpret variable. Basic regex failed")
+    var_name = match.group(1)
+    print_fn("{}={}".format(var_name, value))
+
+
+def find_test_file(file_path):
+    if not os.path.exists(file_path):
+        raise DotException("Can't lookup test for non-extant source")
+    top = toplevel()
+
+    temp_dir = os.path.abspath(file_path)
+    while temp_dir != top:
+        if os.path.basename(temp_dir).startswith('test'):
+            raise DotException("Found test file or dir in source file path")
+        temp_dir = os.path.dirname(temp_dir)
+
+    possible_source_dirs = find_packages(where=top)
+    if len(possible_source_dirs) != 1:
+        raise DotException("Could not find one and only one source package")
+    source_dir = possible_source_dirs.pop()
+    source_dir_path = os.path.join(top, source_dir)
+
+    possible_test_dirs = [
+        os.path.join(top, 'test'),
+        os.path.join(top, 'tests'),
+        os.path.join(source_dir_path, 'test'),
+        os.path.join(source_dir_path, 'tests'),
+    ]
+    test_dir_path = None
+    for possible_test_dir in possible_test_dirs:
+        if os.path.exists(possible_test_dir):
+            test_dir_path = possible_test_dir
+    if test_dir_path is None:
+        raise DotException("Could not find a test dir path")
+
+    relative_file_path_from_source = os.path.relpath(
+        file_path,
+        source_dir_path,
+    )
+    (middle_path, file_name) = os.path.split(relative_file_path_from_source)
+    test_path = os.path.join(
+        test_dir_path,
+        middle_path,
+        'test_' + file_name,
+    )
+    return test_path
+
+
+def find_implementation_file(test_path):
+    if not os.path.exists(test_path):
+        raise DotException("Can't lookup implementation for non-extant test")
+    top = toplevel()
+
+    possible_test_dirs = ['test', 'tests']
+    test_dir_path = None
+    temp_dir = os.path.abspath(test_path)
+    while temp_dir != top:
+        if os.path.basename(temp_dir) in possible_test_dirs:
+            test_dir_path = temp_dir
+        temp_dir = os.path.dirname(temp_dir)
+    if test_dir_path is None:
+        raise DotException("Can't find test dir. Must not be *in* test dir")
+
+    possible_source_dirs = find_packages(where=top)
+    if len(possible_source_dirs) != 1:
+        raise DotException("Could not find one and only one source package")
+    source_dir = possible_source_dirs.pop()
+    source_dir_path = os.path.join(top, source_dir)
+
+    relative_test_path_from_test = os.path.relpath(test_path, test_dir_path)
+    (middle_path, test_name) = os.path.split(relative_test_path_from_test)
+    source_path = os.path.join(
+        source_dir_path,
+        middle_path,
+        test_name.lstrip('test_')
+    )
+    return source_path
