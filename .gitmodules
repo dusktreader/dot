@@ -122,3 +122,6 @@
 [submodule ".vim/bundle/vim-qml"]
     path = .vim/bundle/vim-qml
     url = https://github.com/peterhoeg/vim-qml.git
+[submodule ".vim/bundle/ropevim"]
+	path = .vim/bundle/ropevim
+	url = https://github.com/python-rope/ropevim.git
