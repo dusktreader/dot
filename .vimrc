@@ -151,5 +151,12 @@ let test#strategy = "dispatch"
 " let g:test#runner_commands = ['py.test']
 let test#python#runner = 'pytest'
 
-" Settings for jedi-vim
-let g:jedi#auto_initialization = 0
+function! JumpToTest()
+    execute ":edit " . system('find_test_file ' . expand('%'))
+endfunction
+nmap <leader>gt :call JumpToTest()<CR>
+
+function! JumpToImplementation()
+    execute ":edit " . system('find_implementation_file ' . expand('%'))
+endfunction
+nmap <leader>gi :call JumpToImplementation()<CR>

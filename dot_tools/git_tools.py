@@ -366,9 +366,25 @@ def print_var(value, print_fn=print):
     print_fn("{}={}".format(var_name, value))
 
 
+def find_source_path(top=None):
+    if top is None:
+        top = toplevel()
+
+    possible_source_dirs = [
+        p for p in find_packages(where=top)
+        if '.' not in p
+        and p not in ['tests', 'test']
+    ]
+    if len(possible_source_dirs) != 1:
+        raise DotException("Could not find one and only one source package")
+    return os.path.join(top, possible_source_dirs.pop())
+
+
 def find_test_file(file_path):
     if not os.path.exists(file_path):
-        raise DotException("Can't lookup test for non-extant source")
+        raise DotException(
+            "Can't lookup test for non-extant source: {}".format(file_path)
+        )
     top = toplevel()
 
     temp_dir = os.path.abspath(file_path)
@@ -377,11 +393,7 @@ def find_test_file(file_path):
             raise DotException("Found test file or dir in source file path")
         temp_dir = os.path.dirname(temp_dir)
 
-    possible_source_dirs = find_packages(where=top)
-    if len(possible_source_dirs) != 1:
-        raise DotException("Could not find one and only one source package")
-    source_dir = possible_source_dirs.pop()
-    source_dir_path = os.path.join(top, source_dir)
+    source_dir_path = find_source_path(top)
 
     possible_test_dirs = [
         os.path.join(top, 'test'),
@@ -424,11 +436,7 @@ def find_implementation_file(test_path):
     if test_dir_path is None:
         raise DotException("Can't find test dir. Must not be *in* test dir")
 
-    possible_source_dirs = find_packages(where=top)
-    if len(possible_source_dirs) != 1:
-        raise DotException("Could not find one and only one source package")
-    source_dir = possible_source_dirs.pop()
-    source_dir_path = os.path.join(top, source_dir)
+    source_dir_path = find_source_path(top)
 
     relative_test_path_from_test = os.path.relpath(test_path, test_dir_path)
     (middle_path, test_name) = os.path.split(relative_test_path_from_test)
