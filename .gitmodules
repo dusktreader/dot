@@ -56,11 +56,6 @@
     path = .vim/bundle/gundo
     url = http://github.com/sjl/gundo.vim.git
 
-# Adds pep8 indentation rules to vim
-[submodule ".vim/bundle/vim-python-pep8-indent"]
-    path = .vim/bundle/vim-python-pep8-indent
-    url = https://github.com/hynek/vim-python-pep8-indent.git
-
 # Json syntax highlighting and syntax checking
 [submodule ".vim/bundle/vim-json"]
     path = .vim/bundle/vim-json
@@ -82,16 +77,27 @@
     path = .vim/bundle/committia.vom
     url = https://github.com/rhysd/committia.vim.git
 
+# Python syntax highlighting
+[submodule ".vim/bundle/python-syntax"]
+    path = .vim/bundle/python-syntax
+    url = https://github.com/hdima/python-syntax.git
+
+# Adds pep8 indentation rules to vim
+[submodule ".vim/bundle/vim-python-pep8-indent"]
+    path = .vim/bundle/vim-python-pep8-indent
+    url = https://github.com/hynek/vim-python-pep8-indent.git
+
+# Uses currently active virtual environment
+[submodule ".vim/bundle/vim-virtualenv"]
+    path = .vim/bundle/vim-virtualenv
+    url = git@github.com:jmcantrell/vim-virtualenv.git
+    ignore = dirty
 
 # Wishlist
 # * ctrlp
 
 
 # Questionable
-[submodule ".vim/bundle/vim-virtualenv"]
-    path = .vim/bundle/vim-virtualenv
-    url = git@github.com:jmcantrell/vim-virtualenv.git
-    ignore = dirty
 [submodule ".vim/bundle/vim-bridge"]
     path = .vim/bundle/vim-bridge
     url = git@github.com:nvie/vim_bridge.git
@@ -116,9 +122,6 @@
 [submodule ".vim/bundle/vim-qml"]
     path = .vim/bundle/vim-qml
     url = https://github.com/peterhoeg/vim-qml.git
-[submodule ".vim/bundle/python.vim"]
-    path = .vim/bundle/python.vim
-    url = https://github.com/hdima/python-syntax.git
-# [submodule ".vim/bundle/python.vim"]
-#     path = .vim/bundle/python.vim
-#     url = https://github.com/hdima/python-syntax.git
+[submodule ".vim/bundle/python-rope"]
+	path = .vim/bundle/python-rope
+	url = https://github.com/python-rope/ropevim.git

@@ -50,6 +50,7 @@ setup(
         'cmdline',
         'capturer',
         'sh',
+        'rope',
         ],
     packages=find_packages(),
     data_files=[('etc', ['etc/install.json'])],
