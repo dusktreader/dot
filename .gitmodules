@@ -1,50 +1,111 @@
-[submodule ".vim/bundle/vim-coffee-script"]
-    path = .vim/bundle/vim-coffee-script
-    url = https://github.com/kchmck/vim-coffee-script.git
-    ignore = dirty
+# Adds a bunch of git goodies to vim
 [submodule ".vim/bundle/vim-fugitive"]
     path = .vim/bundle/vim-fugitive
     url = https://github.com/tpope/vim-fugitive.git
     ignore = dirty
+
+# Folder navigation and file management
 [submodule ".vim/bundle/nerdtree"]
     path = .vim/bundle/nerdtree
     url = https://github.com/scrooloose/nerdtree.git
     ignore = dirty
+
+# Ack search within vim
 [submodule ".vim/bundle/ack.vim"]
     path = .vim/bundle/ack.vim
     url = https://github.com/mileszs/ack.vim.git
     ignore = dirty
+
+# Explore open buffers
 [submodule ".vim/bundle/bufexplorer"]
     path = .vim/bundle/bufexplorer
     url = https://github.com/jlanzarotta/bufexplorer.git
     ignore = dirty
+
+# Format csv files and add column highlighting
 [submodule ".vim/bundle/csv.vim"]
     path = .vim/bundle/csv.vim
     url = https://github.com/chrisbra/csv.vim.git
     ignore = dirty
-[submodule ".vim/bundle/vim-dispatch"]
-    path = .vim/bundle/vim-dispatch
-    url = https://github.com/tpope/vim-dispatch.git
-    ignore = dirty
-[submodule ".vim/bundle/vim-angular"]
-    path = .vim/bundle/vim-angular
-    url = https://github.com/burnettk/vim-angular.git
-    ignore = dirty
+
+# Flake8 checks and lint highlighting
 [submodule ".vim/bundle/vim-flake8"]
     path = .vim/bundle/vim-flake8
     url = git@github.com:nvie/vim-flake8.git
     ignore = dirty
-[submodule ".vim/bundle/vim-virtualenv"]
-    path = .vim/bundle/vim-virtualenv
-    url = git@github.com:jmcantrell/vim-virtualenv.git
-    ignore = dirty
+
+# prettyness
 [submodule ".vim/bundle/vim-airline"]
     path = .vim/bundle/vim-airline
     url = git@github.com:bling/vim-airline.git
     ignore = dirty
+
+# Powerline fonts for airline
 [submodule ".vim/fonts/powerline"]
     path = .vim/fonts/powerline
     url = git@github.com:powerline/fonts.git
+    ignore = dirty
+
+# Show git statuses in your gutter
+[submodule ".vim/bundle/vim-gitgutter"]
+    path = .vim/bundle/vim-gitgutter
+    url = git@github.com:airblade/vim-gitgutter.git
+
+# Navigate undo trees in sidebar
+[submodule ".vim/bundle/gundo"]
+    path = .vim/bundle/gundo
+    url = http://github.com/sjl/gundo.vim.git
+
+# Adds pep8 indentation rules to vim
+[submodule ".vim/bundle/vim-python-pep8-indent"]
+    path = .vim/bundle/vim-python-pep8-indent
+    url = https://github.com/hynek/vim-python-pep8-indent.git
+
+# Json syntax highlighting and syntax checking
+[submodule ".vim/bundle/vim-json"]
+    path = .vim/bundle/vim-json
+    url = https://github.com/elzr/vim-json.git
+
+# The ultimate testing plugin for vim
+[submodule ".vim/bundle/vim-test"]
+    path = .vim/bundle/vim-test
+    url = https://github.com/janko-m/vim-test.git
+
+# Used for running vim-tests in a pane
+[submodule ".vim/bundle/vim-dispatch"]
+    path = .vim/bundle/vim-dispatch
+    url = https://github.com/tpope/vim-dispatch.git
+    ignore = dirty
+
+# Candy for git commits
+[submodule ".vim/bundle/committia.vom"]
+    path = .vim/bundle/committia.vom
+    url = https://github.com/rhysd/committia.vim.git
+
+
+# Wishlist
+# * ctrlp
+
+
+# Questionable
+[submodule ".vim/bundle/vim-virtualenv"]
+    path = .vim/bundle/vim-virtualenv
+    url = git@github.com:jmcantrell/vim-virtualenv.git
+    ignore = dirty
+[submodule ".vim/bundle/vim-bridge"]
+    path = .vim/bundle/vim-bridge
+    url = git@github.com:nvie/vim_bridge.git
+
+
+# Not in use
+# Add angular syntax highlighting and syntax checking
+[submodule ".vim/bundle/vim-angular"]
+    path = .vim/bundle/vim-angular
+    url = https://github.com/burnettk/vim-angular.git
+    ignore = dirty
+[submodule ".vim/bundle/vim-coffee-script"]
+    path = .vim/bundle/vim-coffee-script
+    url = https://github.com/kchmck/vim-coffee-script.git
     ignore = dirty
 [submodule ".vim/bundle/gist-vim"]
     path = .vim/bundle/gist-vim
@@ -52,30 +113,12 @@
 [submodule ".vim/bundle/webapi-vim"]
     path = .vim/bundle/webapi-vim
     url = git@github.com:mattn/webapi-vim.git
-[submodule ".vim/bundle/vim-bridge"]
-    path = .vim/bundle/vim-bridge
-    url = git@github.com:nvie/vim_bridge.git
-[submodule ".vim/bundle/vim-gitgutter"]
-    path = .vim/bundle/vim-gitgutter
-    url = git@github.com:airblade/vim-gitgutter.git
-[submodule ".vim/bundle/gundo"]
-    path = .vim/bundle/gundo
-    url = http://github.com/sjl/gundo.vim.git
 [submodule ".vim/bundle/vim-qml"]
     path = .vim/bundle/vim-qml
     url = https://github.com/peterhoeg/vim-qml.git
-[submodule ".vim/bundle/vim-test"]
-    path = .vim/bundle/vim-test
-    url = https://github.com/janko-m/vim-test.git
 [submodule ".vim/bundle/python.vim"]
     path = .vim/bundle/python.vim
     url = https://github.com/hdima/python-syntax.git
-[submodule ".vim/bundle/committia.vom"]
-    path = .vim/bundle/committia.vom
-    url = https://github.com/rhysd/committia.vim.git
-[submodule ".vim/bundle/vim-python-pep8-indent"]
-    path = .vim/bundle/vim-python-pep8-indent
-    url = https://github.com/hynek/vim-python-pep8-indent.git
-[submodule ".vim/bundle/vim-json"]
-	path = .vim/bundle/vim-json
-	url = https://github.com/elzr/vim-json.git
+# [submodule ".vim/bundle/python.vim"]
+#     path = .vim/bundle/python.vim
+#     url = https://github.com/hdima/python-syntax.git
