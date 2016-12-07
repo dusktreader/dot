@@ -35,6 +35,12 @@ let mapleader=","
 " Remaps K to split lines under cursor
 nnoremap K i<CR><Esc>
 
+" Disable wrapping by default
+set nowrap
+
+" Map ,W to toggle wrapping
+nnoremap <leader>W :set nowrap!<CR>
+
 " Remaps F5 to open the gundo graph
 nnoremap <leader>G :GundoToggle<CR>
 
