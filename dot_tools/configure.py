@@ -142,7 +142,7 @@ class DotInstaller:
         for path in self.setup_dict.get('scripts', []):
             exe_path = os.path.join(self.root, path)
 
-            if not os.path.exists(dst_path):
+            if not os.path.exists(exe_path):
                 raise Exception("Extra script doesn't exist: {}".format(exe_path))
             else:
                 self.debug("Executing extra script {}".format(path))
@@ -151,6 +151,8 @@ class DotInstaller:
 
     def _update_dotfiles(self):
         dotfile_list_path = os.path.join(self.home, '.extra_dotfiles')
+        if not os.path.exists(dotfile_list_path):
+            sh.touch(dotfile_list_path)
         with open(dotfile_list_path, 'r+') as dotfile_list_file:
             all_entries = [l.strip() for l in dotfile_list_file.readlines()]
             for path in self.setup_dict['dotfiles']:

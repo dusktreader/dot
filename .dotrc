@@ -38,7 +38,7 @@ then
         debug_out "Python3 is not yet installed. Not modifying PATH"
     else
         export PATH="$PATH:$user_base/bin"
-        alias python3=python3_path
+        alias python3=$python3_path
         debug_out "Added python3 user base to PATH"
     fi
 fi

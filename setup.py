@@ -17,11 +17,9 @@ class PostInstallCommand(install):
         super().initialize_options()
         self.target_dir = '~'
 
-    def finalize_options(self):
-        super().finalize_options()
-
     def run(self):
         super().do_egg_install()
+        raise Exception('die')
         from dot_tools.configure import DotInstaller
         installer = DotInstaller(
             home=os.path.expanduser(self.target_dir),

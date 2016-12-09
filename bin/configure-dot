@@ -12,13 +12,18 @@ if __name__ == '__main__':
         description='Configure dot for current user',
         )
     parser.add_argument(
-        '-d',
-        '--target_dir',
+        '-H',
+        '--home',
         default=os.path.expanduser('~'),
-        help='Configure dot to use DIR as the base directory',
-        metavar='DIR',
+        help='The home directory where dotfiles are typically found',
+        )
+    parser.add_argument(
+        '-r',
+        '--root',
+        default=os.path.expanduser('~/dot'),
+        help='The directory where dot is currently found',
         )
     args = parser.parse_args()
 
-    installer = DotInstaller(home=args.target_dir)
+    installer = DotInstaller(home=args.home, root=args.root, name='dot-tools')
     installer.install_dot()
