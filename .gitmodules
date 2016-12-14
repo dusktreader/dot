@@ -123,3 +123,6 @@
 [submodule ".vim/bundle/vim-qml"]
     path = .vim/bundle/vim-qml
     url = https://github.com/peterhoeg/vim-qml.git
+[submodule ".vim/bundle/vim-shebang"]
+	path = .vim/bundle/vim-shebang
+	url = https://github.com/vitalk/vim-shebang.git
