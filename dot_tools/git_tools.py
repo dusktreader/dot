@@ -8,6 +8,8 @@ from setuptools import find_packages
 from socket import gethostname
 from time import strftime
 
+from git import Repo
+
 from dot_tools.misc_tools import call, command_assert, DotException
 
 
@@ -446,3 +448,9 @@ def find_implementation_file(test_path):
         test_name.lstrip('test_')
     )
     return source_path
+
+
+def make_github_branch(issue_number):
+    repo = Repo(os.getcwd())
+    # response = requests.get('https://api.github.com/repos/dusktreader/sphinx-view/issues/5
+    print(repo)

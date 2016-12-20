@@ -9,8 +9,6 @@ debug_out() {
 
 debug_out "Processing main dot configuration"
 
-export EDITOR='vim'
-export VISUAL='vim'
 export PAGER='less -R'
 export LESS='SX'
 export HISTSIZE=1000000
@@ -43,9 +41,11 @@ then
     fi
 fi
 
-alias vim='vim -O'
+alias vim='/Applications/MacVim.app/Contents/MacOS/Vim -O'
 alias vi='vim'
 alias evim='$EDITOR ~/dot/.vimrc'
+export EDITOR='vim'
+export VISUAL='vim'
 
 alias egit='$EDITOR ~/dot/.gitconfig'
 
@@ -81,6 +81,8 @@ alias mkdir="echo '(remember the td function?)'; command mkdir"
 alias activate='source $(ls | grep env)/bin/activate'
 
 alias gti='git'
+
+alias nofail='py.test test --maxfail=1'
 
 debug_out "Detecting which ack"
 which ack > /dev/null 2>&1
