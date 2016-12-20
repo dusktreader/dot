@@ -9,8 +9,6 @@ debug_out() {
 
 debug_out "Processing main dot configuration"
 
-export EDITOR='vim'
-export VISUAL='vim'
 export PAGER='less -R'
 export LESS='SX'
 export HISTSIZE=1000000
@@ -43,9 +41,11 @@ then
     fi
 fi
 
-alias vim='vim -O'
+alias vim='/Applications/MacVim.app/Contents/MacOS/Vim -O'
 alias vi='vim'
 alias evim='$EDITOR ~/dot/.vimrc'
+export EDITOR='vim'
+export VISUAL='vim'
 
 alias egit='$EDITOR ~/dot/.gitconfig'
 

@@ -166,3 +166,5 @@ function! JumpToImplementation()
     execute ":edit " . system('find_implementation_file ' . expand('%'))
 endfunction
 nmap <leader>gi :call JumpToImplementation()<CR>
+
+nmap <leader>v :Start! sphinx-view %<CR>

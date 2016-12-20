@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+from dot_tools.git_tools import is_git, make_github_branch
+
+if __name__ == '__main__':
+    parser = ArgumentParser(
+        formatter_class=ArgumentDefaultsHelpFormatter,
+        description="Create a new git branch based on a github issue number",
+    )
+    parser.add_option(
+        'issue-number',
+        help = "The issue number to create a branch for",
+    )
+    args = parser.parse_args()
+
+    make_github_branch(args.issue_number)
