@@ -1,5 +1,4 @@
 import glob
-import sys
 import os
 
 from setuptools import setup
@@ -48,6 +47,9 @@ setup(
         'cmdline',
         'capturer',
         'sh',
+        'buzz-lightyear',
+        'requests',
+        'inflection',
         ],
     packages=find_packages(),
     data_files=[('etc', ['etc/install.json'])],

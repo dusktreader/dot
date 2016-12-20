@@ -1,10 +1,15 @@
-import os, sys
+import os
+import sys
 
-class DotException(Exception):
-    def __init__(self, message):
-        self.message = message
-    def __str__(self):
-        return self.message
+from buzz import Buzz
+
+
+class DotException(Buzz):
+
+    @classmethod
+    def die(cls, *format_args, message='DIED', **format_kwargs):
+        raise cls(message, *format_args, **format_kwargs)
+
 
 def call(command):
     # If the machine has at least python 2.4, use subprocess...sigh
@@ -16,24 +21,20 @@ def call(command):
     err = open(err_tmp, 'r').read().strip()
     return (was_successful, out, err)
 
+
 def command_assert(command, error_message):
     (was_successful, output, errors) = call(command)
-    if not was_successful:
-        raise DotException("%s: %s" % (error_message, errors))
+    DotException.require_condition(
+        was_successful,
+        "{}: {}".format(error_message, errors),
+    )
     return output
+
 
 def try_cd(path, verbose=False):
     if os.getcwd() != os.path.realpath(path):
         if verbose:
             print("Changing current directory to %s" % path, file=sys.stderr)
-        try:
+        message = "Couldn't change to directory: {}".format(path)
+        with DotException.handle_errors(message):
             os.chdir(path)
-        except:
-            raise DotException("Couldn't change to directory: %s" % path)
-
-def require_condition(condition, message="required condition resolved to false"):
-    if condition == False:
-        raise DotException(message)
-
-def die(message="DIED"):
-    raise DotException(message)

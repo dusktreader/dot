@@ -9,10 +9,21 @@ if __name__ == '__main__':
         formatter_class=ArgumentDefaultsHelpFormatter,
         description="Create a new git branch based on a github issue number",
     )
-    parser.add_option(
-        'issue-number',
-        help = "The issue number to create a branch for",
+    parser.add_argument(
+        'issue_number',
+        type=int,
+        help="The issue number to create a branch for",
+    )
+    parser.add_argument(
+        '-b',
+        '--base',
+        help="the base for the new branch. Defaults to current branch",
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='store_true',
+        help="print extra status messages",
     )
     args = parser.parse_args()
-
-    make_github_branch(args.issue_number)
+    make_github_branch(args.issue_number, base=args.base, verbose=args.verbose)

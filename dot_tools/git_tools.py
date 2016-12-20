@@ -1,14 +1,16 @@
+import git
+import inflection
 import inspect
 import os
-import sys
 import re
+import requests
+import sys
 
 from getpass import getuser
 from setuptools import find_packages
 from socket import gethostname
 from time import strftime
 
-from git import Repo
 
 from dot_tools.misc_tools import call, command_assert, DotException
 
@@ -24,14 +26,17 @@ def is_git(directory=os.getcwd()):
 
 def remote_url():
     (was_successful, output, errors) = call("git remote show -n origin")
-    if not was_successful:
-        message = "Couldn't fetch remote info for origin: {}".format(errors)
-        raise GitException(message)
+    GitException.require_condition(
+        was_successful,
+        "Couldn't fetch remote info for origin: {}",
+        errors,
+    )
 
     match = re.search(r'Fetch URL: ([^\s]+)', output)
-    if match is None:
-        message = "Couldn't find a fetch url for the current git repository"
-        raise GitException(message)
+    GitException.require_condition(
+        match is not None,
+        "Couldn't find a fetch url for the current git repository",
+    )
 
     return match.group(1)
 
@@ -47,8 +52,10 @@ def repo_name():
             ),
         url,
         )
-    if match is None:
-        raise GitException("Couldn't parse remote url")
+    GitException.require_condition(
+        match is not None,
+        "Couldn't parse remote url",
+    )
 
     return match.groupdict()['repo']
 
@@ -245,10 +252,10 @@ def _checkout_tracking_branch(target_branch, remote, verbose=False):
             'git rev-parse --abrev-ref @{upstream}',
             "Couldn't detect upstream branch",
         )
-        if current_upstream_branch != target_upstream_branch:
-            message = "Current upstream branch does not match target"
-            message += "upstream branch"
-            raise GitException(message)
+        GitException.require_condition(
+            current_upstream_branch == target_upstream_branch,
+            "Current upstream branch does not match target upstream branch",
+        )
         if verbose:
             print("Pulling changes from upstream", file=sys.stderr)
         command_assert(
@@ -264,9 +271,10 @@ def _checkout_tracking_branch(target_branch, remote, verbose=False):
             'git rev-parse --abrev-ref %s@{upstream}' % current_branch,
             "Couldn't detect upstream branch",
         )
-        if current_upstream_branch != target_upstream_branch:
-            message = "Upstream branch does not match target upstream branch"
-            raise GitException(message)
+        GitException.require_condition(
+            current_upstream_branch == target_upstream_branch,
+            "Upstream branch does not match target upstream branch",
+        )
         _checkout_branch(target_branch, verbose)
 
     else:
@@ -297,9 +305,10 @@ def _checkout_branch(target_branch, verbose=False):
 
 
 def _checkout_new_branch(target_branch, verbose=False):
-    if _branch_exists(target_branch):
-        message = "Target branch already exists.  Cannot create new branch"
-        raise GitException(message)
+    GitException.require_condition(
+        not _branch_exists(target_branch),
+        "Target branch already exists.  Cannot create new branch",
+    )
     if verbose:
         print("Checking out new branch %s" % target_branch, file=sys.stderr)
     command_assert(
@@ -330,11 +339,12 @@ def _add_remote(remote_alias, remote_url, verbose=False):
     (was_successful, output, errors) = call(command)
     if was_successful:
         current_url = output
-        if current_url != remote_url:
-            message = 'Remote already exists but refers to a different url'
-            message += ' than target of {}'.format(remote_url)
-            raise GitException(message)
-        elif verbose:
+        GitException.require_condition(
+            current_url == remote_url,
+            'Remote already exists but with different url than target of {}',
+            remote_url,
+        )
+        if verbose:
             print("Remote already exists", file=sys.stderr)
     else:
         command_assert(
@@ -377,22 +387,27 @@ def find_source_path(top=None):
         if '.' not in p
         and p not in ['tests', 'test']
     ]
-    if len(possible_source_dirs) != 1:
-        raise DotException("Could not find one and only one source package")
+    DotException.require_condition(
+        len(possible_source_dirs) == 1,
+        "Could not find one and only one source package",
+    )
     return os.path.join(top, possible_source_dirs.pop())
 
 
 def find_test_file(file_path):
-    if not os.path.exists(file_path):
-        raise DotException(
-            "Can't lookup test for non-extant source: {}".format(file_path)
-        )
+    DotException.require_condition(
+        os.path.exists(file_path),
+        "Can't lookup test for non-extant source: {}",
+        file_path,
+    )
     top = toplevel()
 
     temp_dir = os.path.abspath(file_path)
     while temp_dir != top:
-        if os.path.basename(temp_dir).startswith('test'):
-            raise DotException("Found test file or dir in source file path")
+        DotException.require_condition(
+            not os.path.basename(temp_dir).startswith('test'),
+            "Found test file or dir in source file path",
+        )
         temp_dir = os.path.dirname(temp_dir)
 
     source_dir_path = find_source_path(top)
@@ -407,8 +422,10 @@ def find_test_file(file_path):
     for possible_test_dir in possible_test_dirs:
         if os.path.exists(possible_test_dir):
             test_dir_path = possible_test_dir
-    if test_dir_path is None:
-        raise DotException("Could not find a test dir path")
+    DotException.require_condition(
+        test_dir_path is not None,
+        "Could not find a test dir path",
+    )
 
     relative_file_path_from_source = os.path.relpath(
         file_path,
@@ -424,8 +441,10 @@ def find_test_file(file_path):
 
 
 def find_implementation_file(test_path):
-    if not os.path.exists(test_path):
-        raise DotException("Can't lookup implementation for non-extant test")
+    DotException.require_condition(
+        os.path.exists(test_path),
+        "Can't lookup implementation for non-extant test",
+    )
     top = toplevel()
 
     possible_test_dirs = ['test', 'tests']
@@ -435,8 +454,10 @@ def find_implementation_file(test_path):
         if os.path.basename(temp_dir) in possible_test_dirs:
             test_dir_path = temp_dir
         temp_dir = os.path.dirname(temp_dir)
-    if test_dir_path is None:
-        raise DotException("Can't find test dir. Must not be *in* test dir")
+    DotException.require_condition(
+        test_dir_path is not None,
+        "Can't find test dir. Must not be *in* test dir",
+    )
 
     source_dir_path = find_source_path(top)
 
@@ -450,7 +471,80 @@ def find_implementation_file(test_path):
     return source_path
 
 
-def make_github_branch(issue_number):
-    repo = Repo(os.getcwd())
-    # response = requests.get('https://api.github.com/repos/dusktreader/sphinx-view/issues/5
-    print(repo)
+def make_github_branch(issue_number, base=None, verbose=False):
+    repo = git.Repo(os.getcwd())
+    remote = repo.remote(name='origin')
+    ref = None
+    if base is None:
+        base = repo.active_branch
+        ref = repo.active_branch
+    else:
+        with DotException.handle_errors("Couldn't find a ref for that base"):
+            if verbose:
+                print("Evaluating ref from base".format(base))
+            ref = repo.refs[base]
+
+    if 'origin' in str(base):
+        if verbose:
+            print("Fetching")
+        remote.fetch()
+
+    if verbose:
+        print("Parsing remote url")
+    urls = list(remote.urls)
+    DotException.require_condition(
+        len(urls) == 1,
+        "Remote 'origin' should only have one url",
+    )
+    url = urls.pop()
+    match = re.match(r'.*github\.com:(\w+)/(\w+).*', url)
+    DotException.require_condition(
+        match is not None,
+        "remote url must be a github hosted repo",
+    )
+    (owner, repo_name) = match.groups()
+
+    if verbose:
+        print("Building github api url to fetch issue")
+    api_url = os.path.join(
+        'https://api.github.com/repos',
+        owner,
+        repo_name,
+        'issues',
+        str(issue_number),
+    )
+
+    if verbose:
+        print("Getting issue details")
+    response = requests.get(api_url)
+    DotException.require_condition(
+        response.status_code == 200,
+        "Couldn't find issue number {}",
+        issue_number,
+    )
+    issue = response.json()
+
+    if verbose:
+        print("Finding current git user")
+    reader = repo.config_reader()
+    try:
+        user = reader.get_value('github', 'user')
+    except:
+        with DotException.handle_error("couldn't determine a username"):
+            user = reader.get_value('user', 'name')
+
+    if verbose:
+        print("Building branch name")
+    branch_name = '{}/{}--{}'.format(
+        user,
+        issue_number,
+        inflection.parameterize(issue['title']),
+    )
+
+    if verbose:
+        print("Creating new branch named {}".format(branch_name))
+    repo.create_head(branch_name, ref)
+
+    if verbose:
+        print("Checking out new branch")
+    repo.git.checkout(branch_name)
