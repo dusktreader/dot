@@ -513,6 +513,8 @@ def make_github_branch(issue_number, base=None, verbose=False):
         'issues',
         str(issue_number),
     )
+    if verbose:
+        print("url built as {}".format(api_url))
 
     if verbose:
         print("Getting issue details")
@@ -540,6 +542,8 @@ def make_github_branch(issue_number, base=None, verbose=False):
         issue_number,
         inflection.parameterize(issue['title']),
     )
+    if verbose:
+        print("branch name built as {}".format(branch_name))
 
     if verbose:
         print("Creating new branch named {}".format(branch_name))
