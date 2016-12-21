@@ -202,7 +202,6 @@ class DotInstaller:
 
     def install_dot(self):
         try:
-            raise Exception("die")
             self.info("Making sure virtualenv is not active")
             # self._check_virtual_env()
 

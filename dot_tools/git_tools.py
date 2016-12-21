@@ -497,7 +497,7 @@ def make_github_branch(issue_number, base=None, verbose=False):
         "Remote 'origin' should only have one url",
     )
     url = urls.pop()
-    match = re.match(r'.*github\.com:(\w+)/(\w+).*', url)
+    match = re.match(r'.*github\.com:([\w-]+)/([\w-]+).*', url)
     DotException.require_condition(
         match is not None,
         "remote url must be a github hosted repo",
