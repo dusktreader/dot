@@ -323,10 +323,10 @@ def pushup(verbose=False):
     if verbose:
         print("Pushing branch to origin for first time", file=sys.stderr)
     current_branch = branch()
-    command_assert(
+    print(command_assert(
         'git push --set-upstream origin %s' % current_branch,
         "Couldn't checkout base branch",
-    )
+    ))
     if verbose:
         print("Pushed branch to origin", file=sys.stderr)
 
