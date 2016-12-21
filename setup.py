@@ -15,7 +15,7 @@ class CustomInstall(setuptools_install):
     ]
 
     def initialize_options(self):
-        setuptools_install.initialize_options()
+        setuptools_install.initialize_options(self)
         self.target_dir = '~'
 
     def run(self):
