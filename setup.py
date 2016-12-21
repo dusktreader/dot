@@ -1,23 +1,40 @@
 import glob
 import os
+import sys
 
 from setuptools import setup
 from setuptools import find_packages
-from setuptools.command.install import install
+from setuptools.command.install import install as setuptools_install
+from distutils.command.install import install as distutils_install
 
 
-class PostInstallCommand(install):
+class CustomInstall(setuptools_install):
 
-    user_options = install.user_options + [
+    user_options = setuptools_install.user_options + [
         ('target-dir=', 't', "The dir where dotfiles should go"),
     ]
 
     def initialize_options(self):
-        super().initialize_options()
+        setuptools_install.initialize_options()
         self.target_dir = '~'
 
     def run(self):
-        super().do_egg_install()
+        ret = None
+        if self.old_and_unmanageable or self.single_version_externally_managed:
+            ret = distutils_install.run(self)
+        else:
+            caller = sys._getframe(2)
+            caller_module = caller.f_globals.get('__name__', '')
+            caller_name = caller.f_code.co_name
+
+            if (
+                caller_module != 'distutils.dist' or
+                caller_name != 'run_commands'
+            ):
+                distutils_install.run(self)
+            else:
+                self.do_egg_install()
+
         from dot_tools.configure import DotInstaller
         installer = DotInstaller(
             home=os.path.expanduser(self.target_dir),
@@ -25,6 +42,8 @@ class PostInstallCommand(install):
             name="dot-tools",
         )
         installer.install_dot()
+
+        return ret
 
 
 setup(
@@ -54,7 +73,7 @@ setup(
     data_files=[('etc', ['etc/install.json'])],
     tests_require=['pytest'],
     cmdclass={
-        'install': PostInstallCommand,
+        'install': CustomInstall,
     },
     scripts=glob.glob('bin/*'),
 )
