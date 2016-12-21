@@ -12,11 +12,13 @@ class CustomInstall(setuptools_install):
 
     user_options = setuptools_install.user_options + [
         ('target-dir=', 't', "The dir where dotfiles should go"),
+        ('root-dir=', 't', "The dir where dotfiles come from"),
     ]
 
     def initialize_options(self):
         setuptools_install.initialize_options(self)
         self.target_dir = '~'
+        self.root_dir = '~/dot'
 
     def run(self):
         ret = None
@@ -38,7 +40,7 @@ class CustomInstall(setuptools_install):
         from dot_tools.configure import DotInstaller
         installer = DotInstaller(
             home=os.path.expanduser(self.target_dir),
-            root=os.path.abspath(os.path.dirname(__file__)),
+            root=os.path.expanduser(self.root_dir),
             name="dot-tools",
         )
         installer.install_dot()
