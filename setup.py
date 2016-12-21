@@ -9,7 +9,10 @@ from distutils.command.install import install as distutils_install
 
 
 class CustomInstall(setuptools_install):
-
+    """
+    Custom post-install script as described here:
+    http://stackoverflow.com/a/21196195/642511
+    """
     user_options = setuptools_install.user_options + [
         ('target-dir=', 't', "The dir where dotfiles should go"),
         ('root-dir=', 't', "The dir where dotfiles come from"),
