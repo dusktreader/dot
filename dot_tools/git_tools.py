@@ -607,23 +607,20 @@ class Version:
             )
 
         else:
-            current_special_type = None
-            for special_type in VersionType.special():
-                if self.d.get(special_type) is not None:
-                    current_special_type = special_type
-                    break
-            if current_special_type is None:
+            current_type = self.current_special_type
+            if current_type is None:
+                self.d[VersionType.patch] += 1
                 self.d[bump_type] = 1
-            elif current_special_type is bump_type:
+            elif current_type is bump_type:
                 self.d[bump_type] += 1
-            elif bump_type.value > current_special_type.value:
+            elif bump_type.value > current_type.value:
                 raise DotException(
                     "Cannot bump from {} to {}",
-                    current_special_type.name,
+                    current_type.name,
                     bump_type.name,
                 )
             else:
-                del self.d[current_special_type]
+                del self.d[current_type]
                 self.d[bump_type] = 1
 
 

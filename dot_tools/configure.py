@@ -66,10 +66,6 @@ class DotInstaller:
         self.logger.addHandler(handler)
         self.logger = IndentLoggingAdapter(self.logger, {})
 
-        self.debug("Testing {} arguments", 'positional')
-        self.debug("Testing {kw} arguments", kw='keyword')
-        self.debug("Testing {} and {kw} arguments", 'positional', kw='keyword')
-        DotException.die()
         self.debug("Initializing configure/install for {}".format(name))
 
         install_json_file_path = os.path.join(self.root, 'etc', 'install.json')
