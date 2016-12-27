@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+
+from dot_tools.misc_tools import message_hipchat_room
+
+if __name__ == '__main__':
+    parser = ArgumentParser(
+        formatter_class=ArgumentDefaultsHelpFormatter,
+        description="Send a message to a hipchat user",
+    )
+    parser.add_argument(
+        'url',
+        help="the base url for the hipchat server",
+    )
+    parser.add_argument(
+        'room',
+        help="the id or name of the room to notify",
+    )
+    parser.add_argument(
+        'token',
+        help="the auth token for the hipchat api",
+    )
+    parser.add_argument(
+        'message',
+        nargs='*',
+        help="The message to send",
+    )
+    parser.add_argument(
+        '-N',
+        '--do-not-notify',
+        action='store_false',
+        help="Do not notify user of message",
+    )
+    parser.add_argument(
+        '-u',
+        '--users',
+        help="Comma separated list of users to @ mention",
+    )
+    parser.add_argument(
+        '-c',
+        '--color',
+        choices=['yellow', 'green', 'red', 'purple', 'gray', 'random'],
+        default='gray',
+        help="Color to highlight with",
+    )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='store_true',
+        help="print extra status messages",
+    )
+    args = parser.parse_args()
+    message_hipchat_room(
+        args.url, args.room, args.token, ' '.join(args.message),
+        notify=not args.do_not_notify,
+        users=args.users.split(','),
+        color=args.color,
+        verbose=args.verbose,
+    )
