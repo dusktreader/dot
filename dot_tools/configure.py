@@ -9,7 +9,8 @@ import shutil
 import traceback
 
 from textwrap import dedent
-from contextlib import contextmanager
+
+from dot_tools.misc_tools import DotException
 
 
 class IndentLoggingAdapter(logging.LoggerAdapter):
@@ -22,29 +23,24 @@ class IndentLoggingAdapter(logging.LoggerAdapter):
         # 4 frames for logging infrastructure
         return indentation_level - 6
 
+    def log(self, level, msg, *args, **kwargs):
+        format_kwargs = {}
+        log_kwargs = {}
+        for (k, v) in kwargs.items():
+            if k in ['exc_info', 'stack_info', 'extra']:
+                log_kwargs[k] = v
+            else:
+                format_kwargs[k] = v
+
+        return self.logger._log(
+            level,
+            msg.format(*args, **format_kwargs),
+            (),
+            **log_kwargs
+        )
+
     def process(self, msg, kwargs):
         return ('{}{}'.format('.' * self.indent() * 2, msg), kwargs)
-
-
-@contextmanager
-def require_condition(*args, **kwargs):
-
-    class Accumulator:
-
-        def __init__(self):
-            self._acc = True
-
-        def __iadd__(self, evaluated_expression):
-            self._acc = self._acc and evaluated_expression
-
-    fail_message = None
-    if len(args) > 0:
-        fail_message = args[0].format(*args[1:], **kwargs)
-    accumulator = Accumulator()
-    yield accumulator
-
-    if not accumulator._acc:
-        raise Exception("Condition failed{}".format(': ' + fail_message if fail_message else ''))
 
 
 class DotInstaller:
@@ -61,7 +57,9 @@ class DotInstaller:
         else:
             self.startup_config = os.path.join(self.home, '.bashrc')
 
-        formatter = logging.Formatter("%(asctime)s: %(levelname)8s: %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s: %(levelname)8s: %(message)s"
+        )
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
         handler.setFormatter(formatter)
@@ -87,14 +85,19 @@ class DotInstaller:
             link_path = os.path.join(self.home, path)
             target_path = os.path.join(self.root, path)
             self.debug("Preparing to create symlink {} -> {}".format(link_path, target_path))
-            with require_condition("can't link to non-existent path {}", path) as checker:
-                checker += os.path.exists(target_path)
+            DotException.require_condition(
+                os.path.exists(target_path),
+                "can't link to non-existent path {}",
+                path,
+            )
             if os.path.exists(link_path):
                 if os.path.islink(link_path):
                     existing_target_path = os.readlink(link_path)
-                    message = "Link already exists but points to different target: {}"
-                    with require_condition(message, existing_target_path) as checker:
-                        checker += os.path.samefile(existing_target_path, target_path)
+                    DotException.require_condition(
+                        os.path.samefile(existing_target_path, target_path),
+                        "Link already exists but points to different target: {}",
+                        existing_target_path,
+                    )
                     self.debug("Skipping symlink {}: already exists".format(link_path))
                 else:
                     self.debug("entity: " + str(sh.ls('-l', os.path.dirname(link_path))))

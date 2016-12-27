@@ -1,11 +1,14 @@
+import enum
 import git
 import inflection
 import inspect
+import json
 import os
 import re
 import requests
 import sys
 
+from bidict import bidict
 from getpass import getuser
 from setuptools import find_packages
 from socket import gethostname
@@ -384,8 +387,8 @@ def find_source_path(top=None):
 
     possible_source_dirs = [
         p for p in find_packages(where=top)
-        if '.' not in p
-        and p not in ['tests', 'test']
+        if '.' not in p and
+        p not in ['tests', 'test']
     ]
     DotException.require_condition(
         len(possible_source_dirs) == 1,
@@ -469,6 +472,224 @@ def find_implementation_file(test_path):
         test_name.lstrip('test_')
     )
     return source_path
+
+
+def is_github_repo():
+    repo = git.Repo(os.getcwd())
+    remote = repo.remote(name='origin')
+    urls = list(remote.urls)
+    DotException.require_condition(
+        len(urls) == 1,
+        "Remote 'origin' should only have one url",
+    )
+    url = urls.pop()
+    return 'github.com' in url
+
+
+class VersionType(enum.IntEnum):
+    major = 1
+    minor = 2
+    patch = 3
+    release_candidate = 4
+    beta = 5
+    alpha = 6
+
+    @classmethod
+    def short_dict(cls):
+        return bidict(
+            M=cls.major,
+            m=cls.minor,
+            p=cls.patch,
+            a=cls.alpha,
+            b=cls.beta,
+            rc=cls.release_candidate,
+        )
+
+    @classmethod
+    def all_names(cls):
+        return [e.name for e in cls]
+
+    @classmethod
+    def all_keys(cls):
+        return [e.name for e in cls] + [k for k in cls.short_dict()]
+
+    @classmethod
+    def special(cls):
+        return [e for e in cls if e > cls.patch]
+
+    @classmethod
+    def lookup(cls, key):
+        key = key.lower()
+        return (cls.short_dict().get(key) or getattr(cls, key))
+
+
+class Version:
+
+    def __init__(self, *args, **kwargs):
+        self.set_version(*args, **kwargs)
+
+    @classmethod
+    def from_string(cls, text):
+        match = re.match(
+            r'^v?(\d+)\.(\d+)\.(\d+)(?:-(\w+)(\d+))?$',
+            text,
+        )
+        DotException.require_condition(
+            match is not None,
+            "Couldn't parse version",
+        )
+        return cls(*match.groups())
+
+    def __repr__(self):
+        text = '{}.{}.{}'.format(
+            self.d[VersionType.major],
+            self.d[VersionType.minor],
+            self.d[VersionType.patch],
+        )
+        if self.current_special_type is not None:
+            text = '{}-{}{}'.format(
+                text,
+                VersionType.short_dict().inv[self.current_special_type],
+                self.d[self.current_special_type],
+            )
+        return text
+
+    def __str__(self):
+        return 'v' + repr(self)
+
+    def major_minor(self):
+        return '{}.{}'.format(
+            self.d[VersionType.major],
+            self.d[VersionType.minor],
+        )
+
+    @property
+    def current_special_type(self):
+        for special_type in VersionType.special():
+            if self.d.get(special_type) is not None:
+                return special_type
+        return None
+
+    def set_version(
+        self, major_num, minor_num, patch_num, extra_type=None, extra_num=None
+    ):
+        self.d = {
+            VersionType.major: int(major_num),
+            VersionType.minor: int(minor_num),
+            VersionType.patch: int(patch_num),
+        }
+
+        if extra_type is not None:
+            with DotException.handle_errors("Can't parse extra version info"):
+                if not isinstance(extra_type, VersionType):
+                    extra_type = VersionType.lookup(extra_type)
+                self.d[extra_type] = int(extra_num)
+
+    def bump(self, bump_type=VersionType.patch):
+        if not isinstance(bump_type, VersionType):
+            bump_type = VersionType.lookup(bump_type)
+
+        if bump_type is VersionType.major:
+            self.set_version(self.d[VersionType.major] + 1, 0, 0)
+
+        elif bump_type is VersionType.minor:
+            self.set_version(
+                self.d[VersionType.major],
+                self.d[VersionType.minor] + 1,
+                0
+            )
+
+        elif bump_type is VersionType.patch:
+            self.set_version(
+                self.d[VersionType.major],
+                self.d[VersionType.minor],
+                self.d[VersionType.patch] + 1,
+            )
+
+        else:
+            current_type = self.current_special_type
+            if current_type is None:
+                self.d[VersionType.patch] += 1
+                self.d[bump_type] = 1
+            elif current_type is bump_type:
+                self.d[bump_type] += 1
+            elif bump_type.value > current_type.value:
+                raise DotException(
+                    "Cannot bump from {} to {}",
+                    current_type.name,
+                    bump_type.name,
+                )
+            else:
+                del self.d[current_type]
+                self.d[bump_type] = 1
+
+
+def _count_changes(repo):
+    len(repo.index.diff("HEAD"))
+
+
+def tag_version(comment=None, bump_type=None, path=None, verbose=False):
+    with DotException.handle_errors("Couldn't tag version"):
+        if verbose:
+            print("Started tagging version")
+
+        repo = git.Repo(os.getcwd())
+        gitter = repo.git
+
+        if verbose:
+            print("Extracting version from: {}".format(path))
+        with open(path, 'r') as metadata_file:
+            metadata = json.load(metadata_file)
+
+        version = Version.from_string(metadata['release'])
+        if verbose:
+            print("Extracted version as: {}".format(version))
+
+        if bump_type is not None:
+            version.bump(bump_type)
+            if verbose:
+                print("Version bumped to: {}".format(version))
+            metadata['release'] = repr(version)
+            metadata['version'] = version.major_minor()
+            with open(path, 'w') as metadata_file:
+                json.dump(metadata, metadata_file, sort_keys=True, indent=4)
+
+            DotException.require_condition(
+                len(repo.index.diff("HEAD")) == 0,
+                "There must be no staged files before the tag can be made",
+            )
+            if verbose:
+                print("Adding {} for commit".format(path))
+            gitter.add(path)
+            if verbose:
+                print("Commiting changes")
+            gitter.commit(m="Version bumped to: {}".format(version))
+            if verbose:
+                print("Pushing changes")
+            gitter.push()
+
+        if verbose:
+            print("Formatting comment '{}' with metadata".format(comment))
+        if comment is None:
+            comment = "{name} version {release}"
+        comment = comment.format(**metadata)
+        if verbose:
+            print("Formatted comment is '{}'".format(comment))
+
+        if verbose:
+            print("Creating tag")
+        gitter.tag(
+            "'{}'".format(str(version)),
+            annotate=True,
+            message="'{}'".format(comment),
+        )
+
+        if verbose:
+            print("Pushing tags")
+        gitter.push(tags=True)
+
+        if verbose:
+            print("Finished tagging version")
 
 
 def make_github_branch(issue_number, base=None, verbose=False):
