@@ -658,6 +658,22 @@ def tag_version(comment=None, bump_type=None, path=None, verbose=False):
                 len(repo.index.diff("HEAD")) == 0,
                 "There must be no staged files before the tag can be made",
             )
+
+            if verbose:
+                print("Attempting to edit change-log")
+            top = toplevel()
+            changelog_files = [
+                os.path.join(top, f)
+                for f in os.listdir(top)
+                if re.search(r'(CHANGELOG|HISTORY|RELEASE)', f)
+            ]
+            if len(changelog_files) == 1:
+                changelog = changelog_files.pop()
+                os.system('$EDITOR {}'.format(changelog))
+                gitter.add(changelog)
+            elif verbose:
+                print("Skipping edit changelog: didn't find 1 changelog")
+
             if verbose:
                 print("Adding {} for commit".format(path))
             gitter.add(path)
