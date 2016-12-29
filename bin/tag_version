@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-from dot_tools.git_tools import tag_version, VersionType
+from dot_tools.git_tools import tag_version, get_current_version, VersionType
 
 if __name__ == '__main__':
     parser = ArgumentParser(
@@ -17,6 +17,12 @@ if __name__ == '__main__':
             A TEXT comment describing the version.
             May include format_arguments for settings in the metadata file
         """,
+    )
+    parser.add_argument(
+        '-C',
+        '--current-version',
+        action='store_true',
+        help="Print the current version and immediately exit",
     )
     parser.add_argument(
         '-b',
@@ -47,9 +53,14 @@ if __name__ == '__main__':
         help="print extra status messages",
     )
     args = parser.parse_args()
-    tag_version(
-        comment=args.comment,
-        bump_type=args.bump_version,
-        path=args.metadata_file,
-        verbose=args.verbose,
-    )
+
+    if args.current_version:
+        version = get_current_version(path=args.metadata_file)
+        print(version)
+    else:
+        tag_version(
+            comment=args.comment,
+            bump_type=args.bump_version,
+            path=args.metadata_file,
+            verbose=args.verbose,
+        )

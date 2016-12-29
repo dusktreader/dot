@@ -628,6 +628,13 @@ def _count_changes(repo):
     len(repo.index.diff("HEAD"))
 
 
+def get_current_version(path=None, metadata=None):
+    if metadata is None:
+        with open(path, 'r') as metadata_file:
+            metadata = json.load(metadata_file)
+    return Version.from_string(metadata['release'])
+
+
 def tag_version(comment=None, bump_type=None, path=None, verbose=False):
     with DotException.handle_errors("Couldn't tag version"):
         if verbose:
@@ -637,11 +644,13 @@ def tag_version(comment=None, bump_type=None, path=None, verbose=False):
         gitter = repo.git
 
         if verbose:
-            print("Extracting version from: {}".format(path))
+            print("Reading metadata file: {}".format(path))
         with open(path, 'r') as metadata_file:
             metadata = json.load(metadata_file)
 
-        version = Version.from_string(metadata['release'])
+        if verbose:
+            print("Extracting version from metadata")
+        version = get_current_version(path, metadata=metadata)
         if verbose:
             print("Extracted version as: {}".format(version))
 
