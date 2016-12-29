@@ -600,11 +600,19 @@ class Version:
             )
 
         elif bump_type is VersionType.patch:
-            self.set_version(
-                self.d[VersionType.major],
-                self.d[VersionType.minor],
-                self.d[VersionType.patch] + 1,
-            )
+            current_type = self.current_special_type
+            if self.current_special_type is not None:
+                self.set_version(
+                    self.d[VersionType.major],
+                    self.d[VersionType.minor],
+                    self.d[VersionType.patch],
+                )
+            else:
+                self.set_version(
+                    self.d[VersionType.major],
+                    self.d[VersionType.minor],
+                    self.d[VersionType.patch] + 1,
+                )
 
         else:
             current_type = self.current_special_type
