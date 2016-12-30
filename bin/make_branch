@@ -2,16 +2,16 @@
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-from dot_tools.git_tools import is_git, make_github_branch
+from dot_tools.git_tools import is_git, make_github_branch, make_jira_branch
+from dot_tools.misc_tools import DotException
 
 if __name__ == '__main__':
     parser = ArgumentParser(
         formatter_class=ArgumentDefaultsHelpFormatter,
-        description="Create a new git branch based on a github issue number",
+        description="Create a new git branch based on a github or JIRA issue",
     )
     parser.add_argument(
-        'issue_number',
-        type=int,
+        'issue',
         help="The issue number to create a branch for",
     )
     parser.add_argument(
@@ -20,10 +20,20 @@ if __name__ == '__main__':
         help="the base for the new branch. Defaults to current branch",
     )
     parser.add_argument(
+        '-j',
+        '--jira',
+        action='store_true',
+        help="make jira branch instead of github",
+    )
+    parser.add_argument(
         '-v',
         '--verbose',
         action='store_true',
         help="print extra status messages",
     )
     args = parser.parse_args()
-    make_github_branch(args.issue_number, base=args.base, verbose=args.verbose)
+    DotException.require_condition(
+        is_git(), "Command must be issued from a git repo"
+    )
+    make_branch = make_jira_branch if args.jira else make_github_branch
+    make_branch(args.issue, base=args.base, verbose=args.verbose)

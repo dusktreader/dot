@@ -7,6 +7,7 @@ import os
 import re
 import requests
 import sys
+import jira.client
 
 from bidict import bidict
 from getpass import getuser
@@ -723,6 +724,67 @@ def tag_version(comment=None, bump_type=None, path=None, verbose=False):
 
         if verbose:
             print("Finished tagging version")
+
+
+def make_jira_branch(key, base=None, verbose=False):
+    repo = git.Repo(os.getcwd())
+    remote = repo.remote(name='origin')
+    ref = None
+    if base is None:
+        base = repo.active_branch
+        ref = repo.active_branch
+    else:
+        with DotException.handle_errors("Couldn't find a ref for that base"):
+            if verbose:
+                print("Evaluating ref from base".format(base))
+            ref = repo.refs[base]
+
+    if 'origin' in str(base):
+        if verbose:
+            print("Fetching")
+        remote.fetch()
+
+    key = str(key)
+    GitException.require_condition(
+        re.match(r'^[A-Z]+-\d+$', key),
+        "Invalid branch key: {}",
+        key,
+    )
+
+    if verbose:
+        print("Using {} as jira key".format(key))
+
+    current_user = getuser()
+
+    if verbose:
+        print("Fetching issue from JIRA using '{}'".format(key))
+    issue = None
+    with GitException.handle_errors("Couldn't get description from JIRA api"):
+        with open(os.path.expanduser('~/.jira.json')) as jira_cred_file:
+            jira_cred = json.load(jira_cred_file)
+            jira_server = jira.client.JIRA(
+                basic_auth=(jira_cred['username'], jira_cred['password']),
+                options={'server': jira_cred['url_base']},
+                )
+            issue = jira_server.issue(key)
+
+    if verbose:
+        print("Building branch name")
+    branch_name = 'personal/{user}/{key}--{desc}'.format(
+        user=current_user,
+        key=key,
+        desc=inflection.parameterize(issue.fields.summary),
+    )
+    if verbose:
+        print("branch name built as {}".format(branch_name))
+
+    if verbose:
+        print("Creating new branch named {}".format(branch_name))
+    repo.create_head(branch_name, ref)
+
+    if verbose:
+        print("Checking out new branch")
+    repo.git.checkout(branch_name)
 
 
 def make_github_branch(issue_number, base=None, verbose=False):
