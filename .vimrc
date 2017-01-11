@@ -191,3 +191,9 @@ endfunction
 nmap <leader>gi :call JumpToImplementation()<CR>
 
 nmap <leader>v :Start! sphinx-view %<CR>
+
+" Map ,aa to Tabularize on space after comma
+nmap <leader>aa :Tab /,\zs<CR>
+vmap <leader>aa :Tab /,\zs<CR>
+nmap <leader>ap :Tab /:\zs<CR>
+vmap <leader>ap :Tab /:\zs<CR>

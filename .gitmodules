@@ -126,3 +126,9 @@
 [submodule ".vim/bundle/vim-shebang"]
 	path = .vim/bundle/vim-shebang
 	url = https://github.com/vitalk/vim-shebang.git
+[submodule ".vim/bundle/tabular"]
+	path = .vim/bundle/tabular
+	url = https://github.com/godlygeek/tabular.git
+[submodule ".vim/bundle/vim-transpose"]
+	path = .vim/bundle/vim-transpose
+	url = https://github.com/salsifis/vim-transpose.git
