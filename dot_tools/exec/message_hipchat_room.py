@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from dot_tools.misc_tools import message_hipchat_room

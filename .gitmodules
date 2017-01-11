@@ -97,13 +97,6 @@
 # Wishlist
 # * ctrlp
 
-
-# Questionable
-[submodule ".vim/bundle/vim-bridge"]
-    path = .vim/bundle/vim-bridge
-    url = git@github.com:nvie/vim_bridge.git
-
-
 # Not in use
 # Add angular syntax highlighting and syntax checking
 [submodule ".vim/bundle/vim-angular"]

@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-
-# todo: convert optparse to argparse if python version ever gets updated
-
 from optparse import OptionParser
 from dot_tools.text_tools import underlined_header, SEP_BAR_DEFAULT_SUBSTRING
 

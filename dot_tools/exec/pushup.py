@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-
-# todo: convert optparse to argparse if python version ever gets updated
-
 from optparse import OptionParser
 from dot_tools.git_tools import is_git, pushup
 

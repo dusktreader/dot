@@ -1,9 +1,4 @@
 execute pathogen#infect()
-" try
-"     call virtualenv#activate()
-" catch
-"     " No virtualenv to activate
-" endtry
 execute pathogen#helptags()
 
 " Let virtualenv auto activate if a virtual env is available
@@ -50,7 +45,7 @@ set colorcolumn+=100
 set colorcolumn+=120
 highlight ColorColumn ctermbg=4
 
-" remove trailing whitespace on save
+" remove trailing whitespace right before writing file
 autocmd bufwritepre  * :%s/\s\+$//e
 
 " Strips leading and tailing whitespace from a string
@@ -59,8 +54,14 @@ function! Strip(input_string)
     return substitute(a:input_string, '^\s*\(.\{-}\)\s*\n*$', '\1', '')
 endfunction
 
+" shows flake8 indicators in the gutter
+let g:flake8_show_in_gutter=1
+
+" hook for behaviors following writes
 function! PostWrite()
     let current_file = expand('%:t')
+
+    " For python, run flake8 against the current file
     if &filetype == 'python'
         " Set up flake8 to use appropriate config
         let toplevel = Strip(system('git rev-parse --show-toplevel'))
@@ -74,10 +75,12 @@ function! PostWrite()
         if filereadable(config_file)
             let g:flake8_config_file = config_file
         else
+            echoerr "config_file isn't readable"
             let g:flake8_config_file = ''
         endif
         call Flake8()
     endif
+
 endfunction
 
 " Execute flake8 against python files on save
@@ -85,9 +88,6 @@ augroup dotautocommands
     autocmd!
     autocmd BufWritePost * call PostWrite()
 augroup END
-
-" shows flake8 indicators in the gutter
-let g:flake8_show_in_gutter=1
 
 " Shows line numbers
 set number
@@ -177,19 +177,21 @@ nmap <silent> <leader>tvv :w<CR> :TestNearest --verbose --verbose<CR>
 nmap <silent> <leader>T :w<CR> :TestFile --maxfail=1<CR>
 nmap <silent> <leader>l :w<CR> :TestLast<CR>
 let test#strategy = "dispatch"
-" let g:test#runner_commands = ['py.test']
 let test#python#runner = 'pytest'
 
+" Shortcut for navigating to the test file for a particular source file
 function! JumpToTest()
-    execute ":edit " . system('find_test_file ' . expand('%'))
+    execute ":edit " . system('find-test-file ' . expand('%'))
 endfunction
 nmap <leader>gt :call JumpToTest()<CR>
 
-function! JumpToImplementation()
-    execute ":edit " . system('find_implementation_file ' . expand('%'))
+" Shortcut for navigating to the source file for a particular test file
+function! JumpToSource()
+    execute ":edit " . system('find-source-file ' . expand('%'))
 endfunction
-nmap <leader>gi :call JumpToImplementation()<CR>
+nmap <leader>gi :call JumpToSource()<CR>
 
+" Starts sphinx-view for the current file
 nmap <leader>v :Start! sphinx-view %<CR>
 
 " Map ,aa to Tabularize on space after comma

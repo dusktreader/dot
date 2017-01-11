@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
 from dot_tools.git_tools import tag_version, get_current_version, VersionType

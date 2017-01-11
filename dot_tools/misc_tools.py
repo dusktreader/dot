@@ -1,6 +1,9 @@
 import arrow
+import inspect
 import json
+import logbook
 import os
+import re
 import requests
 import sys
 import urllib
@@ -13,6 +16,10 @@ class DotException(Buzz):
     @classmethod
     def die(cls, *format_args, message='DIED', **format_kwargs):
         raise cls(message, *format_args, **format_kwargs)
+
+
+def setup_logging(fd=sys.stdout, level=logbook.DEBUG):
+    logbook.StreamHandler(fd, level=level).push_application()
 
 
 def call(command):
@@ -135,3 +142,15 @@ def message_hipchat_user(url, user, token, message, notify=True):
     )
     if response.text != '':
         raise Exception(response.text)
+
+
+def print_var(value, print_fn=print):
+    this_function_name = inspect.getframeinfo(inspect.currentframe()).function
+    match = re.search(
+        r'{}\((\w+)\)'.format(this_function_name),
+        inspect.getframeinfo(inspect.currentframe().f_back).code_context[0],
+    )
+    if match is None:
+        print_fn("Couldn't interpret variable. Basic regex failed")
+    var_name = match.group(1)
+    print_fn("{}={}".format(var_name, value))

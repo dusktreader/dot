@@ -1,11 +1,29 @@
 import glob
 import os
 import sys
+import re
 
 from setuptools import setup
 from setuptools import find_packages
 from setuptools.command.install import install as setuptools_install
 from distutils.command.install import install as distutils_install
+
+
+def find_console_scripts():
+    scripts = []
+    for package in find_packages():
+        if 'exec' not in package.split('.'):
+            continue
+
+        for module in os.listdir(package.replace('.', '/')):
+            if not re.match(r'[^_].*\.py', module):
+                continue
+
+            module = module.replace('.py', '')
+            dashed = module.replace('_', '-')
+            script = '{dashed} = {package}.{module}:main'.format(**locals())
+            scripts.append(script)
+    return scripts
 
 
 class CustomInstall(setuptools_install):
@@ -60,6 +78,7 @@ setup(
         'GitPython',
         'arrow',
         'bidict',
+        'click',
         'capturer',
         'cmdline',
         'flake8',
@@ -68,6 +87,7 @@ setup(
         'inflection',
         'inflection',
         'jira',
+        'logbook',
         'ordereddict',
         'py-buzz',
         'pytest',
@@ -83,5 +103,7 @@ setup(
     cmdclass={
         'install': CustomInstall,
     },
-    scripts=glob.glob('bin/*'),
+    entry_points={
+        'console_scripts': find_console_scripts(),
+    },
 )

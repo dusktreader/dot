@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-
-# todo: convert optparse to argparse if python version ever gets updated
-
 import os, sys
 from optparse import OptionParser
 from dot_tools.file_tools import get_timestamp
