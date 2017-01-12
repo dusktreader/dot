@@ -18,6 +18,11 @@ class DotException(Buzz):
         raise cls(message, *format_args, **format_kwargs)
 
 
+class DotError(DotException):
+    """This is a stand-in until I just rename DotException project wide"""
+    pass
+
+
 def setup_logging(fd=sys.stdout, level=logbook.DEBUG):
     logbook.StreamHandler(fd, level=level).push_application()
 
@@ -82,23 +87,35 @@ def alert_hipchat_room(
         },
         data=payload,
     )
-    if response.text != '':
-        raise Exception(response.text)
+    DotError.require_condition(response.text == '', response.text)
 
 
 def message_hipchat_room(
-        url, room, token, message,
-        color='gray', notify=True, users=[], verbose=False,
+    message=None,
+    url=None, room=None, token=None,
+    color='gray', notify=True, users=[], verbose=False,
 ):
+    DotError.require_condition(message is not None, "No message to post")
+    if url is None or room is None or token is None:
+        with open(os.path.expanduser('~/.hipchat.json')) as settings_file:
+            settings = json.load(settings_file)
+            if url is None:
+                url = settings['default_url']
+            if room is None:
+                room = settings['urls'][url]['default_room']
+            if token is None:
+                token = settings['urls'][url]['rooms'][room]['token']
+
+    logger = logbook.Logger('Hipchat')
     if verbose:
-        print("Messaging room '{}' at '{}'".format(room, url))
+        logger.level = logbook.DEBUG
+    logger.debug("Messaging room '{}' at '{}'".format(room, url))
     if len(users) > 0:
         message = '{users}: {message}'.format(
             users=', '.join(['@{}'.format(u) for u in users]),
             message=message,
         )
-    if verbose:
-        print("Message is: {}".format(message))
+    logger.debug("Message is: {}".format(message))
 
     payload = {
         "color": color,
@@ -106,8 +123,7 @@ def message_hipchat_room(
         "message_format": "text",
         "message": '{}'.format(message),
     }
-    if verbose:
-        print("Payload is: {}".format(payload))
+    logger.debug("Payload is: {}".format(payload))
     response = requests.post(
         '{url}/v2/room/{room}/notification'.format(
             url=url,
@@ -119,8 +135,7 @@ def message_hipchat_room(
         },
         data=json.dumps(payload),
     )
-    if response.text != '':
-        raise Exception(response.text)
+    DotError.require_condition(response.text == '', response.text)
 
 
 def message_hipchat_user(url, user, token, message, notify=True):
