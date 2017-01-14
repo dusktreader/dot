@@ -1,24 +1,24 @@
-from optparse import OptionParser
+import click
+
 from dot_tools.text_tools import underlined_header, SEP_BAR_DEFAULT_SUBSTRING
 
-def main():
-    parser = OptionParser()
-    parser.add_option(
-        '-s',
-        '--bar_substring',
-        default = SEP_BAR_DEFAULT_SUBSTRING,
-        help = "Print the header using repeating TEXT as the separator",
-        metavar = 'TEXT',
-    )
-    parser.add_option(
-        '-f',
-        '--print_footer',
-        action = 'store_true',
-        help = "Print a footer instead of a header",
-    )
-    (options, args) = parser.parse_args()
-    print((underlined_header(' '.join(args), is_footer=options.print_footer, bar_substring=options.bar_substring)))
+
+@click.command()
+@click.option(
+    '-s', '--bar-substring',
+    default=SEP_BAR_DEFAULT_SUBSTRING,
+    help="Print the header using repeating BAR_SUBSTRING as the separator",
+)
+@click.option(
+    '-f/-h', '--print-footer/--print-header', 'is_footer',
+    default=False,
+    help="Select whether to print header or footer",
+)
+@click.argument('message', nargs=-1, required=True)
+def main(**kwargs):
+    kwargs['message'] = ' '.join(kwargs['message'])
+    print(underlined_header(**kwargs))
+
 
 if __name__ == '__main__':
     main()
-

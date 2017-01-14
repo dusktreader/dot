@@ -4,27 +4,14 @@ import shutil
 import sys
 
 from datetime import datetime
+import arrow
 
-from dot_tools.misc_tools import DotException
+from dot_tools.misc_tools import DotException, get_timestamp
 from dot_tools.git_tools import GitManager
 
 
 class FileException(DotException):
     pass
-
-
-def get_timestamp(datetime_instance=None, datetime_format=None):
-    if datetime_instance is None:
-        datetime_instance = datetime.now()
-    if datetime_format is None:
-        datetime_format = '%Y%m%d_%H%M%S'
-    timestamp = datetime_instance.strftime(datetime_format)
-    # TODO: Use arrow
-    FileException.require_condition(
-        timestamp != datetime_format,
-        "Invalid format string",
-    )
-    return timestamp
 
 
 def back(
@@ -64,7 +51,7 @@ def back(
 
 def back_recover(file_path, latest_datetime=None, verbose=False):
     if latest_datetime is None:
-        latest_datetime = datetime.now()
+        latest_datetime = arrow.now()
 
     (file_directory, file_name) = os.path.split(file_path)
 

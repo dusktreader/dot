@@ -1,64 +1,64 @@
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import click
 
-from dot_tools.git_tools import tag_version, get_current_version, VersionType
+from dot_tools.misc_tools import setup_logging
+from dot_tools.version_tools import (
+    VersionType,
+    VersionManager,
+    DEFAULT_METADATA_FILE
+)
+
+
+@click.command()
+@click.option(
+    '-c', '--comment',
+    default='{name} version {release}',
+    help="""
+        A TEXT comment describing the version.
+        May include format_arguments for settings in the metadata file
+    """,
+)
+@click.option(
+    # TODO: could be eager...maybe
+    '-C', '--current-version', 'print_current',
+    is_flag=True,
+    help="Print the current version and immediately exit",
+)
+@click.option(
+    '-b', '--bump-version', 'bump_type',
+    type=click.Choice(VersionType.all_keys()),
+    is_flag=True,
+    flag_value=VersionType.patch.name,
+    default=None,
+    help="""
+        Bump the version.
+        If specified without argument, patch version will be bumped.
+    """,
+)
+@click.option(
+    '-f', '--metadata-file', 'path',
+    default='.project_metadata.json',
+    help="The path to the METADATA_FILE to parse/update",
+)
+@click.option(
+    '-v/-q',
+    '--verbose/--quiet',
+    default=False,
+    help="control verbosity of status messages",
+)
+def main(comment, print_current, bump_type, path, verbose):
+    """
+    Create a new tag based on the project's version
+    """
+    if verbose:
+        setup_logging()
+
+    version_man = VersionManager(path=path)
+
+    if print_current:
+        print(version_man.version)
+    else:
+        version_man.tag_version(comment=comment, bump_type=bump_type)
+
 
 if __name__ == '__main__':
-    parser = ArgumentParser(
-        formatter_class=ArgumentDefaultsHelpFormatter,
-        description="Create a new tag based on the project's version",
-    )
-    parser.add_argument(
-        '-c',
-        '--comment',
-        default='{name} version {release}',
-        help="""
-            A TEXT comment describing the version.
-            May include format_arguments for settings in the metadata file
-        """,
-    )
-    parser.add_argument(
-        '-C',
-        '--current-version',
-        action='store_true',
-        help="Print the current version and immediately exit",
-    )
-    parser.add_argument(
-        '-b',
-        '--bump-version',
-        nargs='?',
-        const=VersionType.patch.name,
-        choices=VersionType.all_keys(),
-        help="""
-            Bump the version.
-            If specified without argument, will be {}.
-            If an argument is supplied, it must be one of: {}.
-        """.format(
-            repr(VersionType.patch.name),
-            VersionType.all_keys(),
-        ),
-    )
-    parser.add_argument(
-        '-f',
-        '--metadata-file',
-        default='.project_metadata.json',
-        help="The PATH to the metadata file to parse/update",
-        metavar='PATH',
-    )
-    parser.add_argument(
-        '-v',
-        '--verbose',
-        action='store_true',
-        help="print extra status messages",
-    )
-    args = parser.parse_args()
-
-    if args.current_version:
-        version = get_current_version(path=args.metadata_file)
-        print(version)
-    else:
-        tag_version(
-            comment=args.comment,
-            bump_type=args.bump_version,
-            path=args.metadata_file,
-            verbose=args.verbose,
-        )
+    main()

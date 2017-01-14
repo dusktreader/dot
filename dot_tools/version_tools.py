@@ -3,10 +3,13 @@ import bidict
 import re
 import json
 import os
-import logging
+import logbook
 
 from dot_tools.misc_tools import DotException
 from dot_tools.git_tools import GitManager
+
+
+DEFAULT_METADATA_FILE = '.project_metadata.json',
 
 
 class VersionError(DotException):
@@ -53,10 +56,17 @@ class VersionType(enum.IntEnum):
 class Version:
 
     def __init__(self, *args, **kwargs):
-        self.set_version(*args, **kwargs)
+        if 'logger' in kwargs:
+            self.logger = kwargs.pop('logger')
+        else:
+            self.logger = logbook.Logger('Version')
+            self.logger.level = logbook.DEBUG
+        if len(args) > 0 or len(kwargs) > 0:
+            self.set_version(*args, **kwargs)
+        else:
+            self.set_version(0, 0, 0)
 
-    @classmethod
-    def from_string(cls, text):
+    def update_from_string(self, text):
         match = re.match(
             r'^v?(\d+)\.(\d+)\.(\d+)(?:-(\w+)(\d+))?$',
             text,
@@ -65,7 +75,7 @@ class Version:
             match is not None,
             "Couldn't parse version",
         )
-        return cls(*match.groups())
+        self.set_version(*match.groups())
 
     def __repr__(self):
         text = '{}.{}.{}'.format(
@@ -114,6 +124,7 @@ class Version:
                 self.d[extra_type] = int(extra_num)
 
     def bump(self, bump_type=VersionType.patch):
+        self.logger.debug("Bumping version with type {}", bump_type)
         if not isinstance(bump_type, VersionType):
             bump_type = VersionType.lookup(bump_type)
 
@@ -158,83 +169,97 @@ class Version:
             else:
                 del self.d[current_type]
                 self.d[bump_type] = 1
+        self.logger.debug("Version bumped to {}", self)
 
 
-def get_current_version(path=None, metadata=None):
-    if metadata is None:
-        with open(path, 'r') as metadata_file:
-            metadata = json.load(metadata_file)
-    return Version.from_string(metadata['release'])
+class VersionManager:
 
+    def __init__(self, path=None, logger=None):
+        if path is None:
+            path = os.path.join('.', DEFAULT_METADATA_FILE)
+        self.path = os.path.abspath(os.path.expanduser(path))
 
-def tag_version(
-        git_manager=None, logger=None,
-        comment=None, bump_type=None, path=None,
-):
-    if logger is None:
-        logger = logging.getLogger(__name__)
-    if git_manager is None:
-        git_manager = GitManager(logger=logger)
+        VersionError.require_condition(
+            os.path.exists(self.path),
+            "Can't initialize VersionManager with nonextant path",
+        )
 
-    with DotException.handle_errors("Couldn't tag version"):
-        logger.debug("Started tagging version")
+        if logger is None:
+            self.logger = logbook.Logger('VersionManager')
+            self.logger.level = logbook.DEBUG
+        else:
+            self.logger = logger
 
-        logger.debug("Reading metadata file: {}".format(path))
-        with open(path, 'r') as metadata_file:
-            metadata = json.load(metadata_file)
+        self.logger.debug("Reading version info from {}", self.path)
+        with open(self.path) as metadata_file:
+            self.metadata = json.load(metadata_file)
+            self.version = Version(logger=self.logger)
+            self.version.update_from_string(self.metadata['release'])
+        self.logger.debug("Current version is {}", self.version)
 
-        logger.debug("Extracting version from metadata")
-        version = get_current_version(path, metadata=metadata)
-        logger.debug("Extracted version as: {}".format(version))
+        self.git_manager = GitManager(path=self.path, logger=self.logger)
 
-        if bump_type is not None:
-            version.bump(bump_type)
-            logger.debug("Version bumped to: {}".format(version))
-            metadata['release'] = repr(version)
-            metadata['version'] = version.major_minor()
-            with open(path, 'w') as metadata_file:
-                json.dump(metadata, metadata_file, sort_keys=True, indent=4)
+        self.logger.debug("Initialized VersionManger for {}", self.path)
 
+    def save_version(self):
+        self.logger.debug("Saving current version to {}", self.path)
+        self.metadata['release'] = repr(self.version)
+        self.metadata['version'] = self.version.major_minor()
+        with open(self.path, 'w') as metadata_file:
+            json.dump(self.metadata, metadata_file, sort_keys=True, indent=4)
+        self.logger.debug("Version saved")
+
+    def tag_version(self, comment=None, bump_type=None):
+        with DotException.handle_errors("Couldn't tag version"):
+            self.logger.debug("Started tagging version")
+            self.logger.debug(self.git_manager.count_changes())
             DotException.require_condition(
-                git_manager.count_changes() == 0,
+                self.git_manager.count_changes() == 0,
                 "There must be no staged files before the tag can be made",
             )
 
-            logger.debug("Attempting to edit changelog")
-            top = git_manager.toplevel()
-            changelog_files = [
-                os.path.join(top, f)
-                for f in os.listdir(top)
-                if re.search(r'(CHANGELOG|HISTORY|RELEASE|CHANGES)', f)
-            ]
-            if len(changelog_files) == 1:
-                changelog = changelog_files.pop()
-                os.system('$EDITOR {}'.format(changelog))
-                git_manager.gitter.add(changelog)
-            else:
-                logger.warning("Didn't find 1 changelog. Skipping edit")
+            if bump_type is not None:
 
-            logger.debug("Adding {} for commit".format(path))
-            git_manager.gitter.add(path)
-            logger.debug("Commiting changes")
-            git_manager.gitter.commit(m="Version bumped to {}".format(version))
-            logger.debug("Pushing changes")
-            git_manager.gitter.push()
+                self.logger.debug("Bumping version with type {}", bump_type)
+                self.version.bump(bump_type)
+                self.logger.debug("Version bumped to {}", self.version)
 
-        logger.debug("Formatting comment '{}' with metadata".format(comment))
-        if comment is None:
-            comment = "{name} version {release}"
-        comment = comment.format(**metadata)
-        logger.debug("Formatted comment is '{}'".format(comment))
+                self.save_version()
+                self.git_manager.gitter.add(self.path)
 
-        logger.debug("Creating tag")
-        git_manager.gitter.tag(
-            "'{}'".format(str(version)),
-            annotate=True,
-            message="'{}'".format(comment),
-        )
+                self.logger.debug("Attempting to edit changelog")
+                top = self.git_manager.toplevel()
+                changelog_files = [
+                    os.path.join(top, f)
+                    for f in os.listdir(top)
+                    if re.search(r'(CHANGELOG|HISTORY|RELEASE|CHANGES)', f)
+                ]
+                if len(changelog_files) == 1:
+                    changelog = changelog_files.pop()
+                    os.system('$EDITOR {}'.format(changelog))
+                    self.git_manager.gitter.add(changelog)
+                else:
+                    self.logger.warning("Didn't find 1 changelog. Skipping edit")
 
-        logger.debug("Pushing tags")
-        git_manager.gitter.push(tags=True)
+                self.logger.debug("Commiting changes")
+                self.git_manager.gitter.commit(m="Version bumped to {}".format(self.version))
+                self.logger.debug("Pushing changes")
+                self.git_manager.gitter.push()
 
-        logger.debug("Finished tagging version")
+            self.logger.debug("Formatting comment '{}' with metadata".format(comment))
+            if comment is None:
+                comment = "{name} version {release}"
+            comment = comment.format(**self.metadata)
+            self.logger.debug("Formatted comment is '{}'".format(comment))
+
+            self.logger.debug("Creating tag")
+            self.git_manager.gitter.tag(
+                "'{}'".format(str(self.version)),
+                annotate=True,
+                message="'{}'".format(comment),
+            )
+
+            self.logger.debug("Pushing tags")
+            self.git_manager.gitter.push(tags=True)
+
+            self.logger.debug("Finished tagging version")

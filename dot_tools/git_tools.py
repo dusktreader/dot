@@ -212,7 +212,7 @@ class GitManager:
         )
 
     def make_branch(self, key, base=None):
-        key = str(key)
+        key = str(key).upper()
         issue_fetcher = None
         if not self.is_github_repo():
             issue_fetcher = self.get_issue_from_jira

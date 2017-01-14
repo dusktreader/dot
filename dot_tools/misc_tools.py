@@ -27,6 +27,17 @@ def setup_logging(fd=sys.stdout, level=logbook.DEBUG):
     logbook.StreamHandler(fd, level=level).push_application()
 
 
+def get_timestamp(instance=None, format='YYYYMMDD_HHmmss'):
+    if instance is None:
+        instance = arrow.now()
+    timestamp = instance.format(format)
+    DotError.require_condition(
+        timestamp != format,
+        "Couldn't generate timestamp",
+    )
+    return timestamp
+
+
 def call(command):
     # If the machine has at least python 2.4, use subprocess...sigh
     out_tmp = '/tmp/_call_stdout'

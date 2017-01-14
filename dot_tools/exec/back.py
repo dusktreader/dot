@@ -1,4 +1,5 @@
 import os, sys
+import arrow
 from optparse import OptionParser
 from dot_tools.file_tools import back, back_recover, back_cleanup
 from distutils.util import strtobool
@@ -31,7 +32,7 @@ def main():
         '-t',
         '--timestamp',
         default = None,
-        help = "Set the TEXT timestamp using standard datetime notation 'YYYY-MM-DD hh:mm:ss'",
+        help = "Set the timestamp manually",
         metavar = 'TEXT',
     )
     parser.add_option(
@@ -53,14 +54,8 @@ def main():
     file_paths = [os.path.expanduser(f) for f in args]
 
     if options.timestamp != None:
-        try:
-            # In Python 2.5 I could just use datetime.strptime...sigh
-            (date_component, time_component) = options.timestamp.split()
-            (year, month, day) = [int(c) for c in date_component.split('-')]
-            (hour, minute, second) = [int(c) for c in time_component.split(':')]
-            options.timestamp = datetime(year, month, day, hour, minute, second)
-        except:
-            parser.error("Could not parse timestamp %s: Must be formatted as 'YYYY-MM-DD hh:mm:ss'" % options.timestamp)
+        with DotException.handle_errors("Could not parse timestamp"):
+            options.timestamp = arrow.get(options.timestamp)
 
     for file_path in file_paths:
         if options.recover == False and options.cleanup == False:
