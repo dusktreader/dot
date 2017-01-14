@@ -1,23 +1,26 @@
-from optparse import OptionParser
-from dot_tools.git_tools import is_git, pushup
+import click
 
-def main():
-    parser = OptionParser(usage = "usage: %prog [%prog_options]")
-    parser.add_option(
-        '-v',
-        '--verbose',
-        action = 'store_true',
-        default = False,
-        help = "Print the status of the actions as execution proceeds",
-    )
-    parser.disable_interspersed_args()
-    (options, args) = parser.parse_args()
+from dot_tools.git_tools import GitManager
+from dot_tools.misc_tools import setup_logging
 
-    if not is_git():
-        parser.error("Can't push a branch from a non-git directory")
 
-    pushup(verbose=options.verbose)
+@click.command()
+@click.option(
+    '-v/-q',
+    '--verbose/--quiet',
+    default=False,
+    help="control verbosity of status messages",
+)
+def main(verbose):
+    """
+    Push a new branch up to the origin git repo
+    """
+    if verbose:
+        setup_logging()
+
+    git_man = GitManager()
+    git_man.pushup()
+
 
 if __name__ == '__main__':
     main()
-
