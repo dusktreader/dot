@@ -26,13 +26,8 @@ from dot_tools.version_tools import (
 @click.option(
     '-b', '--bump-version', 'bump_type',
     type=click.Choice(VersionType.all_keys()),
-    is_flag=True,
-    flag_value=VersionType.patch.name,
     default=None,
-    help="""
-        Bump the version.
-        If specified without argument, patch version will be bumped.
-    """,
+    help="Bump the version",
 )
 @click.option(
     '-f', '--metadata-file', 'path',
@@ -45,7 +40,7 @@ from dot_tools.version_tools import (
     default=False,
     help="control verbosity of status messages",
 )
-def main(comment, print_current, bump_type, path, verbose):
+def main(comment, print_current, path, verbose, bump_type):
     """
     Create a new tag based on the project's version
     """

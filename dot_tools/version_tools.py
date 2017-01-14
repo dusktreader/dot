@@ -212,7 +212,6 @@ class VersionManager:
     def tag_version(self, comment=None, bump_type=None):
         with DotException.handle_errors("Couldn't tag version"):
             self.logger.debug("Started tagging version")
-            self.logger.debug(self.git_manager.count_changes())
             DotException.require_condition(
                 self.git_manager.count_changes() == 0,
                 "There must be no staged files before the tag can be made",
@@ -220,9 +219,7 @@ class VersionManager:
 
             if bump_type is not None:
 
-                self.logger.debug("Bumping version with type {}", bump_type)
                 self.version.bump(bump_type)
-                self.logger.debug("Version bumped to {}", self.version)
 
                 self.save_version()
                 self.git_manager.gitter.add(self.path)
@@ -246,17 +243,18 @@ class VersionManager:
                 self.logger.debug("Pushing changes")
                 self.git_manager.gitter.push()
 
-            self.logger.debug("Formatting comment '{}' with metadata".format(comment))
             if comment is None:
                 comment = "{name} version {release}"
+            self.logger.debug("Formatting comment '{}' with metadata".format(comment))
             comment = comment.format(**self.metadata)
-            self.logger.debug("Formatted comment is '{}'".format(comment))
+
+            self.logger.debug("Tag name (message) is '{}'".format(comment))
 
             self.logger.debug("Creating tag")
             self.git_manager.gitter.tag(
-                "'{}'".format(str(self.version)),
+                str(self.version),
                 annotate=True,
-                message="'{}'".format(comment),
+                message=comment,
             )
 
             self.logger.debug("Pushing tags")

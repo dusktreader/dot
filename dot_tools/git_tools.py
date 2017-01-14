@@ -86,8 +86,10 @@ class GitManager:
 
         return match.groupdict()
 
-    def toplevel(self, start_path, relative=False):
+    def toplevel(self, start_path=None, relative=False):
         path = self.repo.working_dir
+        if start_path is None:
+            start_path = path
         self.logger.debug("Toplevel path is {}", path)
         if relative:
             self.logger.debug("Finding relative path from {}", start_path)
@@ -115,7 +117,7 @@ class GitManager:
         return source_path
 
     def count_changes(self):
-        len(self.repo.index.diff("HEAD"))
+        return len(self.repo.index.diff("HEAD"))
 
     def checkout_new_branch(self, branch_name, base=None):
 
