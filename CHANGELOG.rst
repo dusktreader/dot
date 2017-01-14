@@ -9,4 +9,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 Unreleased
 ----------
+- Reworked executables
 - Added changelog update to tag_version
