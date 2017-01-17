@@ -57,7 +57,6 @@ class DotInstaller:
         stack = traceback.extract_stack()
         if self.cruft_depth is None:
             self.cruft_depth = 2
-            print(stack[-self.cruft_depth])
             while 'logbook' in stack[-self.cruft_depth][0]:
                 self.cruft_depth += 1
         current_frame = stack[-self.cruft_depth]
