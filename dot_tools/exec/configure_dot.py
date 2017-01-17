@@ -1,27 +1,39 @@
 import os
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import click
+import logbook
 
 from dot_tools.configure import DotInstaller
+from dot_tools.misc_tools import setup_logging
+
+
+@click.command()
+@click.option(
+    '-H', '--home',
+    default=os.path.expanduser('~'), type=click.Path(exists=True),
+    help='The home directory where dotfiles are typically found',
+)
+@click.option(
+    '-r', '--root',
+    default=os.path.expanduser('~/dot'), type=click.Path(exists=True),
+    help='The directory where dot is currently found',
+)
+@click.option(
+    '-v/-q',
+    '--verbose/--quiet',
+    default=False,
+    help="control verbosity of status messages",
+)
+def main(home, root, verbose):
+    """
+    Configure dot for the current user
+    """
+    if verbose:
+        setup_logging(level=logbook.DEBUG)
+    else:
+        setup_logging(level=logbook.INFO)
+    installer = DotInstaller(home=home, root=root, name='dot-tools')
+    installer.install_dot()
 
 
 if __name__ == '__main__':
-    parser = ArgumentParser(
-        formatter_class=ArgumentDefaultsHelpFormatter,
-        description='Configure dot for current user',
-        )
-    parser.add_argument(
-        '-H',
-        '--home',
-        default=os.path.expanduser('~'),
-        help='The home directory where dotfiles are typically found',
-        )
-    parser.add_argument(
-        '-r',
-        '--root',
-        default=os.path.expanduser('~/dot'),
-        help='The directory where dot is currently found',
-        )
-    args = parser.parse_args()
-
-    installer = DotInstaller(home=args.home, root=args.root, name='dot-tools')
-    installer.install_dot()
+    main()

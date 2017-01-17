@@ -1,7 +1,7 @@
 import filecmp
 import fileinput
 import json
-import logging
+import logbook
 import os
 import platform
 import sh
@@ -10,115 +10,117 @@ import traceback
 
 from textwrap import dedent
 
-from dot_tools.misc_tools import DotException
-
-
-class IndentLoggingAdapter(logging.LoggerAdapter):
-    @staticmethod
-    def indent():
-        indentation_level = len(traceback.extract_stack())
-
-        # Remove pre-existing frames:
-        # 2 frames for module and main() method
-        # 4 frames for logging infrastructure
-        return indentation_level - 6
-
-    def log(self, level, msg, *args, **kwargs):
-        format_kwargs = {}
-        log_kwargs = {}
-        for (k, v) in kwargs.items():
-            if k in ['exc_info', 'stack_info', 'extra']:
-                log_kwargs[k] = v
-            else:
-                format_kwargs[k] = v
-
-        return self.logger._log(
-            level,
-            msg.format(*args, **format_kwargs),
-            (),
-            **log_kwargs
-        )
-
-    def process(self, msg, kwargs):
-        return ('{}{}'.format('.' * self.indent() * 2, msg), kwargs)
+from dot_tools.misc_tools import DotError
 
 
 class DotInstaller:
-    setup_dict = {}
 
-    def __init__(self, home, root, name='unnamed'):
-        self.logger = logging.getLogger("dot-installer-{}".format(name))
-        self.logger.setLevel(logging.DEBUG)
-        self.home = home
-        self.root = root
+    def __init__(self, home, root, name='unnamed', logger=None):
+        if logger is None:
+            self.logger = logbook.Logger('DotInstaller')
+            self.logger.level = logbook.DEBUG
+        else:
+            self.logger = logger
+
+        self.home = os.path.abspath(os.path.expanduser(home))
+        self.root = os.path.abspath(os.path.expanduser(root))
 
         if platform.system() == 'Darwin':
             self.startup_config = os.path.join(self.home, '.bash_profile')
         else:
             self.startup_config = os.path.join(self.home, '.bashrc')
 
-        formatter = logging.Formatter(
-            "%(asctime)s: %(levelname)8s: %(message)s"
-        )
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
-        self.logger = IndentLoggingAdapter(self.logger, {})
-
-        self.debug("Initializing configure/install for {}".format(name))
+        self.logger.debug("Initializing configure/install for {}".format(name))
 
         install_json_file_path = os.path.join(self.root, 'etc', 'install.json')
-        self.debug("Using {} as install configuration file".format(install_json_file_path))
+        self.logger.debug(
+            "Using {} as install configuration file",
+            install_json_file_path,
+        )
         with open(install_json_file_path) as install_json_file:
             self.setup_dict = json.load(install_json_file)
 
-        self.debug("Intantiated with {} as home, {} as root".format(self.home, self.root))
-        self.debug("Startup config file detected at {}".format(self.statup_config))
+        self.logger.debug(
+            "Intantiated with {} as home, {} as root",
+            self.home, self.root,
+        )
+        self.logger.debug(
+            "Startup config file detected at {}",
+            self.startup_config,
+        )
 
-    def __getattr__(self, name):
-        if name in ['debug', 'info', 'error', 'warning']:
-            return getattr(self.logger, name)
+    def init_indent(self):
+        self.cruft_depth = None
+        return self.inject_func
+
+    def inject_func(self, record):
+        stack = traceback.extract_stack()
+        if self.cruft_depth is None:
+            self.cruft_depth = 2
+            print(stack[-self.cruft_depth])
+            while 'logbook' in stack[-self.cruft_depth][0]:
+                self.cruft_depth += 1
+        current_frame = stack[-self.cruft_depth]
+        function_name = current_frame[2]
+        prefix = '[{:^20}]'.format(function_name[:18])
+
+        indentation_level = len(stack) - self.cruft_depth
+
+        record.message = prefix + '..' * indentation_level + record.message
 
     def _make_links(self):
         for path in self.setup_dict.get('links', []):
             link_path = os.path.join(self.home, path)
             target_path = os.path.join(self.root, path)
-            self.debug("Preparing to create symlink {} -> {}".format(link_path, target_path))
-            DotException.require_condition(
+            self.logger.debug(
+                "Preparing to create symlink {} -> {}",
+                link_path, target_path,
+            )
+            DotError.require_condition(
                 os.path.exists(target_path),
                 "can't link to non-existent path {}",
                 path,
             )
-            if os.path.exists(link_path):
-                if os.path.islink(link_path):
-                    existing_target_path = os.readlink(link_path)
-                    DotException.require_condition(
-                        os.path.samefile(existing_target_path, target_path),
-                        "Link already exists but points to different target: {}",
-                        existing_target_path,
-                    )
-                    self.debug("Skipping symlink {}: already exists".format(link_path))
-                else:
-                    self.debug("entity: " + str(sh.ls('-l', os.path.dirname(link_path))))
-                    raise Exception("Link path already exists but is not a symlink")
+            if os.path.lexists(link_path):
+                self.logger.debug("Link exists. Making sure it is correct")
+                DotError.require_condition(
+                    os.path.islink(link_path),
+                    "Link path already exists but is not a symlink",
+                )
+                existing_target_path = os.readlink(link_path)
+                self.logger.debug("Existing target path: {}", existing_target_path)
+                DotError.require_condition(
+                    os.path.samefile(existing_target_path, target_path),
+                    "Link already exists but points to another target: {}",
+                    existing_target_path,
+                )
+                self.logger.debug(
+                    "Skipping symlink {}: already exists",
+                    link_path,
+                )
             else:
-                self.debug("Creating symlink {} -> {}".format(link_path, target_path))
+                self.logger.debug(
+                    "Creating symlink {} -> {}",
+                    link_path, target_path,
+                )
                 symlink_dir = os.path.dirname(link_path)
                 if not os.path.exists(symlink_dir):
-                    self.debug("Creating parent directories for symlink")
+                    self.logger.debug("Creating parent dirs for symlink")
                     os.makedirs(symlink_dir)
                 os.symlink(target_path, link_path)
 
     def _make_dirs(self):
         for path in self.setup_dict.get('mkdirs', []):
             target_path = os.path.join(self.home, path)
-            self.debug("Making target directory {}".format(target_path))
+            self.logger.debug("Making target directory {}", target_path)
             try:
                 os.makedirs(target_path)
-                self.debug("Created directory {}".format(target_path))
+                self.logger.debug("Created directory {}", target_path)
             except OSError:
-                self.debug("Skipping directory creation for {}. Already exists".format(target_path))
+                self.logger.debug(
+                    "Skipping directory creation for {}. Already exists",
+                    target_path,
+                )
 
     def _copy_files(self):
         for path in self.setup_dict.get('copy', []):
@@ -126,31 +128,35 @@ class DotInstaller:
             dst_path = os.path.join(self.home, path)
 
             if os.path.exists(dst_path):
-                if filecmp.cmp(src_path, dst_path, shallow=False):
-                    self.debug("Skipping {}; it was already installed".format(path))
-                else:
-                    raise Exception("File exists at destination {} but doesn't match".format(dst_path))
+                DotError.require_condition(
+                    filecmp.cmp(src_path, dst_path, shallow=False),
+                    "File exists at destination {} but doesn't match", dst_path,
+                )
+                self.logger.debug("Skipping {} it was already installed", path)
             else:
-                self.debug("Copying {} to {}".format(src_path, dst_path))
+                self.logger.debug("Copying {} to {}", src_path, dst_path)
                 copy_dir = os.path.dirname(dst_path)
                 if not os.path.exists(copy_dir):
-                    self.debug("Creating parent directories for copy")
+                    self.logger.debug("Creating parent directories for copy")
                     os.makedirs(copy_dir)
                 shutil.copy(src_path, dst_path)
                 if 'ssh' in src_path:
-                    self.debug("Updating permissions for ssh config file {}".format(dst_path))
+                    self.logger.debug(
+                        "Updating permissions for ssh config file {}", dst_path,
+                    )
                     sh.chmod('600', dst_path)
 
     def _extra_scripts(self):
         for path in self.setup_dict.get('scripts', []):
             exe_path = os.path.join(self.root, path)
 
-            if not os.path.exists(exe_path):
-                raise Exception("Extra script doesn't exist: {}".format(exe_path))
-            else:
-                self.debug("Executing extra script {}".format(path))
-                extra_command = sh.Command(exe_path)
-                extra_command()
+            DotError.require_condition(
+                os.path.exists(exe_path),
+                "Extra script doesn't exist: {}",
+                exe_path)
+            self.logger.debug("Executing extra script {}", path)
+            extra_command = sh.Command(exe_path)
+            extra_command()
 
     def _update_dotfiles(self):
         dotfile_list_path = os.path.join(self.home, '.extra_dotfiles')
@@ -162,15 +168,22 @@ class DotInstaller:
                 dotfile_path = os.path.join(self.root, path)
                 entry = 'source {}'.format(dotfile_path)
                 if entry not in all_entries:
-                    self.logger.debug("Adding {} to .extra_dotfiles".format(dotfile_path))
+                    self.logger.debug(
+                        "Adding {} to .extra_dotfiles", dotfile_path,
+                    )
                     print(entry, file=dotfile_list_file)
 
     def _check_virtual_env(self):
-        if 'env' in sh.which("python"):
-            raise Exception("You must deactivate the virtual environment to install")
+        DotError.require_condition(
+            'env' not in sh.which("python"),
+            "You must deactivate the virtual environment to install",
+        )
 
     def _scrub_extra_dotfiles_block(self):
-        self.debug("Scrubbing extra dotfiles block from {}".format(self.startup_config))
+        self.logger.debug(
+            "Scrubbing extra dotfiles block from {}",
+            self.startup_config,
+        )
         in_extra_block = False
         for line in fileinput.input(self.startup_config, inplace=True):
             if 'EXTRA DOTFILES START' in line:
@@ -181,7 +194,10 @@ class DotInstaller:
                 in_extra_block = False
 
     def _add_extra_dotfiles_block(self):
-        self.debug("Adding extra dotfiles to startup in {}".format(self.startup_config))
+        self.logger.debug(
+            "Adding extra dotfiles to startup in {}",
+            self.startup_config,
+        )
         extra_dotfiles_path = os.path.join(self.home, '.extra_dotfiles')
         with open(self.startup_config, 'a') as startup_file:
             startup_file.write(dedent(
@@ -196,43 +212,46 @@ class DotInstaller:
             ))
 
     def _startup(self):
-        self.debug("Using {} as startup config file".format(self.startup_config))
+        self.logger.debug(
+            "Using {} as startup config file",
+            self.startup_config,
+        )
         if not os.path.exists(self.startup_config):
-            self.debug("{} doesn't exist. Creating it")
+            self.logger.debug(
+                "{} doesn't exist. Creating it",
+                self.startup_config,
+            )
             sh.touch(self.startup_config)
         self._scrub_extra_dotfiles_block()
         self._add_extra_dotfiles_block()
 
     def install_dot(self):
-        try:
-            self.info("Making sure virtualenv is not active")
-            # self._check_virtual_env()
+        self.logger.info("Started Installing dot")
+        with DotError.handle_errors('Install failed. Aborting'):
+            with logbook.Processor(self.init_indent()):
+                self.logger.debug("Making sure virtualenv is not active")
+                # self._check_virtual_env()
 
-            self.info("Create needed directories")
-            self._make_dirs()
+                self.logger.debug("Create needed directories")
+                self._make_dirs()
 
-            self.info("Making links")
-            self._make_links()
+                self.logger.debug("Making links")
+                self._make_links()
 
-            self.info("Copying files")
-            self._copy_files()
+                self.logger.debug("Copying files")
+                self._copy_files()
 
-            self.info("Adding in extra dotfiles")
-            self._update_dotfiles()
+                self.logger.debug("Adding in extra dotfiles")
+                self._update_dotfiles()
 
-            self.info("Executing extra scripts")
-            self._extra_scripts()
+                self.logger.debug("Executing extra scripts")
+                self._extra_scripts()
 
-            self.info("Setting up startup config to include dot")
-            self._startup()
+                self.logger.debug("Setting up startup config to include dot")
+                self._startup()
 
-            self.info("Finished installing dot")
-            self.info("(To apply new changes, source {})".format(self.startup_config))
-
-        except Exception as err:
-            self.error(str(err) + ' -- aborting')
-            raise
-
-if __name__ == '__main__':
-    installer = DotInstaller()
-    installer.install_dot()
+        self.logger.info("Finished installing dot")
+        self.logger.info(
+            "(To apply new changes, source {})",
+            self.startup_config,
+        )
