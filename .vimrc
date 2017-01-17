@@ -75,7 +75,7 @@ function! PostWrite()
         if filereadable(config_file)
             let g:flake8_config_file = config_file
         else
-            echoerr "config_file isn't readable"
+            echom "config_file isn't readable"
             let g:flake8_config_file = ''
         endif
         call Flake8()

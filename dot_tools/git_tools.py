@@ -1,5 +1,6 @@
 import getpass
 import git
+import giturlparse
 import inflection
 import jira.client
 import json
@@ -10,10 +11,10 @@ import requests
 import setuptools
 
 
-from dot_tools.misc_tools import DotException
+from dot_tools.misc_tools import DotError
 
 
-class GitError(DotException):
+class GitError(DotError):
     pass
 
 
@@ -59,7 +60,7 @@ class GitManager:
         if remote is None:
             remote = self.remote()
         urls = list(remote.urls)
-        DotException.require_condition(
+        DotError.require_condition(
             len(urls) == 1,
             "Remote {} had more than one url",
             remote.name,
@@ -70,21 +71,9 @@ class GitManager:
     def parse_repo_url(self, url=None):
         if url is None:
             url = self.remote_url()
-        match = re.match(
-            r'{url}{base}{repo}{extension}'.format(
-                url=r'(?P<url>.+:)?',
-                base=r'(?P<base>.+\/)?',
-                repo=r'(?P<repo>\w+)',
-                extension=r'(?P<extension>\.git)?',
-                ),
-            url,
-            )
-        GitError.require_condition(
-            match is not None,
-            "Couldn't parse url",
-        )
-
-        return match.groupdict()
+        parsed_url = giturlparse.parse(url)
+        DotError.require_condition(parsed_url.valid, "Couldn't parse url")
+        return parsed_url
 
     def toplevel(self, start_path=None, relative=False):
         path = self.repo.working_dir
@@ -99,7 +88,7 @@ class GitManager:
 
     def is_github_repo(self):
         parsed_url = self.parse_repo_url()
-        return 'github.com' in parsed_url['url']
+        return parsed_url.domain == 'github.com'
 
     def find_source_path(self, top=None):
         if top is None:
@@ -122,7 +111,7 @@ class GitManager:
     def checkout_new_branch(self, branch_name, base=None):
 
         ref = None
-        with DotException.handle_errors("Couldn't find a ref for that base"):
+        with DotError.handle_errors("Couldn't find a ref for that base"):
             if base is None:
                 base = self.repo.active_branch
                 ref = self.repo.active_branch
@@ -175,9 +164,9 @@ class GitManager:
         )
 
     def get_issue_from_github(self, key):
-        parts = self.parse_repo_url()
-        owner = parts['base']
-        repo_name = parts['repo']
+        parsed_url = self.parse_repo_url()
+        owner = parsed_url.owner
+        repo_name = parsed_url.repo
 
         self.logger.debug("Building github api url to fetch issue")
         api_url = os.path.join(
@@ -191,7 +180,7 @@ class GitManager:
 
         self.logger.debug("Getting github issue details from api")
         response = requests.get(api_url)
-        DotException.require_condition(
+        DotError.require_condition(
             response.status_code == 200,
             "Couldn't find issue number {}",
             key,
@@ -203,7 +192,7 @@ class GitManager:
         try:
             user = reader.get_value('github', 'user')
         except:
-            with DotException.handle_error("couldn't determine a username"):
+            with DotError.handle_error("couldn't determine a username"):
                 user = reader.get_value('user', 'name')
 
         return dict(
@@ -217,8 +206,10 @@ class GitManager:
         key = str(key).upper()
         issue_fetcher = None
         if not self.is_github_repo():
+            self.logger.debug("repo is not a github repo")
             issue_fetcher = self.get_issue_from_jira
         else:
+            self.logger.debug("repo is a github repo")
             issue_fetcher = self.get_issue_from_github
         branch_parts = issue_fetcher(key)
         branch_parts['desc'] = inflection.parameterize(branch_parts['desc'])

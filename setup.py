@@ -84,6 +84,7 @@ setup(
         'cmdline',
         'flake8',
         'gitdb',
+        'giturlparse.py',
         'hjson',
         'inflection',
         'inflection',
