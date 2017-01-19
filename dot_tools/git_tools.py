@@ -71,7 +71,9 @@ class GitManager:
     def parse_repo_url(self, url=None):
         if url is None:
             url = self.remote_url()
+        self.logger.debug("Attempting to parse url: {}", url)
         parsed_url = giturlparse.parse(url)
+        self.logger.debug("URL parsed as: {}", parsed_url.data)
         DotError.require_condition(parsed_url.valid, "Couldn't parse url")
         return parsed_url
 
