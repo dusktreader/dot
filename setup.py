@@ -12,8 +12,8 @@ from distutils.command.install import install as distutils_install
 
 def find_console_scripts():
     scripts = []
-    for package in find_packages():
-        if 'exec' not in package.split('.'):
+    for package in find_packages(exclude=["tests"]):
+        if 'bin' not in package.split('.'):
             continue
 
         for module in os.listdir(package.replace('.', '/')):
@@ -99,7 +99,7 @@ setup(
         'sh',
         'smmap',
         ],
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     data_files=[('etc', ['etc/install.json'])],
     tests_require=['pytest'],
     cmdclass={
