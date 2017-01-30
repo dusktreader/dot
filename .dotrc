@@ -225,17 +225,33 @@ install_local_python() {
     return 1
 }
 
+function venv_info {
+    if [[ -n "$VIRTUAL_ENV" ]]
+    then
+        echo "/venv:${VIRTUAL_ENV##*/}/ "
+    else
+        echo ""
+    fi
+}
+export VENV_INFO="\$(venv_info)"
+
+ps1_prefix="$C3// $C6[\h:\w]$C11[\D{%F %T}]$C4"
+ps1_suffix="\n$C8${VENV_INFO}$P\$ "
+
 debug_out "Detecting git"
 which git > /dev/null 2>&1
 if (( $? ))
 then
     debug_out "Did not detect git. Using default prompt"
-    export PS1="$C3// $C6[\h:\w]$C4 $P\n\$ "
+    export PS1="$ps1_prefix $ps1_suffix"
 else
     debug_out "Detected git. Embedding git branch propmt"
     source ~/dot/.git-prompt
-    export PS1="$C3// $C6[\h:\w]$C4 \$(__git_ps1 '(%s)')$P\n\$ "
+    export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
 fi
+
+debug_out "Overriding virtualenv PS1 settings"
+export VIRTUAL_ENV_DISABLE_PROMPT=1
 
 # TODO: do this right
 debug_out "Detecting virtualenvwrapper"
