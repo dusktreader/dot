@@ -121,6 +121,11 @@ pyclean () {
     find . -type d -name "__pycache__" -delete
 }
 
+install_dot() {
+    pip3 wheel -w .wheels .
+    pip3 install -U .wheels/dot*
+}
+
 pip_install_save() {
     package_name=$1
     requirements_file=$2
