@@ -230,6 +230,9 @@ install_local_python() {
     return 1
 }
 
+debug_out "Overriding virtualenv PS1 settings"
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
 function venv_info {
     if [[ -n "$VIRTUAL_ENV" ]]
     then
@@ -254,9 +257,6 @@ else
     source ~/dot/.git-prompt
     export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
 fi
-
-debug_out "Overriding virtualenv PS1 settings"
-export VIRTUAL_ENV_DISABLE_PROMPT=1
 
 # TODO: do this right
 debug_out "Detecting virtualenvwrapper"
