@@ -122,6 +122,7 @@ pyclean () {
 }
 
 install_dot() {
+    rm -rf .wheels/dot*
     pip3 wheel -w .wheels .
     pip3 install -U .wheels/dot*
 }

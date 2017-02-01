@@ -1,5 +1,7 @@
 import arrow
+import csv
 import inspect
+import io
 import json
 import logbook
 import os
@@ -21,6 +23,27 @@ class DotException(Buzz):
 class DotError(DotException):
     """This is a stand-in until I just rename DotException project wide"""
     pass
+
+
+def transpose_in_out(separator=','):
+    sys.stdout.write(transpose(sys.stdin.read(), separator=separator))
+
+
+def transpose(text, separator=','):
+
+    in_stream = io.StringIO(text)
+    out_stream = io.StringIO()
+
+    csv.writer(out_stream).writerows(
+        zip(*csv.reader(
+            in_stream,
+            skipinitialspace=True,
+            delimiter=separator,
+            quotechar="'",
+        ))
+    )
+
+    return out_stream.getvalue()
 
 
 def setup_logging(fd=sys.stdout, level=logbook.DEBUG):
