@@ -90,6 +90,7 @@ setup(
         'jira',
         'logbook',
         'ordereddict',
+        'pprintpp',
         'py-buzz',
         'pytest',
         'pytest-virtualenv',

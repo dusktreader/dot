@@ -194,24 +194,18 @@ nmap <leader>gi :call JumpToSource()<CR>
 " Starts sphinx-view for the current file
 nmap <leader>v :Start! sphinx-view %<CR>
 
-" Map ,aa to Tabularize on space after comma
+" Map ,aa to Tabularize on space after comma (or colon for dicts)
 nmap <leader>aa :Tab /,\zs<CR>
 vmap <leader>aa :Tab /,\zs<CR>
-nmap <leader>ap :Tab /:\zs<CR>
-vmap <leader>ap :Tab /:\zs<CR>
-
-
-
-
-function! s:get_visual_selection()
-  " Why is this not a built-in Vim script function?!
-  let [lnum1, col1] = getpos("'<")[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
-  let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][: col2 - (&selection == 'inclusive' ? 1 : 2)]
-  let lines[0] = lines[0][col1 - 1:]
-  return join(lines, "\n")
-endfunction
-
+nmap <leader>aad :Tab /:\zs<CR>
+vmap <leader>aad :Tab /:\zs<CR>
+"
 " map ,tt to transpose
 vmap <leader>tt :!transpose<CR>
+vmap <leader>ttd :!transpose --to-dict<CR>
+
+" Map ,AA to arrange columns
+nmap <leader>AA :%ArrangeColumn<CR>
+vmap <leader>AA :ArrangeColumn<CR>
+nmap <leader>UA :%UnArrangeColumn<CR>
+vmap <leader>UA :UnArrangeColumn<CR>

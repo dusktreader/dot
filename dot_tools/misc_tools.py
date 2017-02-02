@@ -1,10 +1,12 @@
 import arrow
+import ast
 import csv
 import inspect
 import io
 import json
 import logbook
 import os
+import pprintpp
 import re
 import requests
 import sys
@@ -25,25 +27,26 @@ class DotError(DotException):
     pass
 
 
-def transpose_in_out(separator=','):
-    sys.stdout.write(transpose(sys.stdin.read(), separator=separator))
+def _get_transpose(in_stream):
+    return zip(*[ast.literal_eval(r.strip()) for r in in_stream.readlines()])
 
 
-def transpose(text, separator=','):
+def transpose(in_stream=sys.stdin, out_stream=sys.stdout, separator=','):
+    for row in _get_transpose(in_stream):
+        out_line = separator.join([repr(i) for i in row]) + separator
+        print(out_line, file=out_stream)
 
-    in_stream = io.StringIO(text)
-    out_stream = io.StringIO()
 
-    csv.writer(out_stream).writerows(
-        zip(*csv.reader(
-            in_stream,
-            skipinitialspace=True,
-            delimiter=separator,
-            quotechar="'",
-        ))
-    )
-
-    return out_stream.getvalue()
+def transpose_dict(in_stream=sys.stdin, out_stream=sys.stdout, separator=','):
+    out_dict = {}
+    for row in _get_transpose(in_stream):
+        key = row[0]
+        values = row[1:]
+        if len(values) > 1:
+            out_dict[key] = values
+        else:
+            out_dict[key] = values[0]
+    pprintpp.pprint(out_dict, indent=4, width=1, stream=out_stream)
 
 
 def setup_logging(fd=sys.stdout, level=logbook.DEBUG):
