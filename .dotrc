@@ -116,6 +116,12 @@ then
     fi
 fi
 
+ematch () {
+    pattern=$1
+    path=$2
+    command vim $(ack -l $pattern $path)
+}
+
 pyclean () {
     find . -type f -name "*.py[co]" -delete
     find . -type d -name "__pycache__" -delete

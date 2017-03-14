@@ -125,3 +125,6 @@
 [submodule ".vim/bundle/vim-transpose"]
 	path = .vim/bundle/vim-transpose
 	url = https://github.com/salsifis/vim-transpose.git
+[submodule ".vim/bundle/nerdtree-ack"]
+	path = .vim/bundle/nerdtree-ack
+	url = https://github.com/tyok/nerdtree-ack.git
