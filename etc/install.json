@@ -8,7 +8,8 @@
         ".vim/bundle",
         ".vim/fonts",
         ".vim/config",
-        ".config/terminator"
+        ".config/terminator",
+        ".jira.json"
     ],
     "copy": [
         ".ssh/config",

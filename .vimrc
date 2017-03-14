@@ -21,6 +21,9 @@ set nocompatible
 " Explicitly activate plugins
 filetype plugin indent on
 
+" Add .pydon files to python syntax highlighting
+au BufNewFile,BufRead *.pydon set filetype=python
+
 " Turn on syntax highlighting
 syntax enable
 
