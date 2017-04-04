@@ -74,7 +74,7 @@ class GitManager:
         self.logger.debug("Attempting to parse url: {}", url)
         parsed_url = giturlparse.parse(url)
         self.logger.debug("URL parsed as: {}", parsed_url.data)
-        DotError.require_condition(parsed_url.valid, "Couldn't parse url")
+        DotError.require_condition(parsed_url.valid, "Couldn't parse url {}", url)
         return parsed_url
 
     def toplevel(self, start_path=None, relative=False):

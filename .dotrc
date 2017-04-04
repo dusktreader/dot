@@ -61,6 +61,8 @@ alias cdot='cd ~/dot'
 alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
 
+alias cojira='checkout-branch-by-pattern'
+
 alias sl='ls'
 if [[ $(uname) == "Darwin" ]]
 then
