@@ -92,6 +92,7 @@ setup(
         'ordereddict',
         'pprintpp',
         'py-buzz',
+        'pydon',
         'pytest',
         'pytest-virtualenv',
         'requests',
