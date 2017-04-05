@@ -204,7 +204,7 @@ class VersionManager:
         self.logger.debug("Saving current version to {}", self.path)
         self.metadata['release'] = repr(self.version)
         self.metadata['version'] = self.version.major_minor()
-        pydon.dump_file(self.path, indent=4, width=1)
+        pydon.dump_file(self.metadata, self.path, indent=4, width=1)
         self.logger.debug("Version saved")
 
     def tag_version(self, comment=None, bump_type=None):
