@@ -154,6 +154,9 @@ let NERDTreeQuitOnOpen=1
 " Automatically delete the buffere when I delete or remanem a file
 let NERDTreeAutoDeleteBuffer=1
 
+" Set the default size of the NERDTree window
+let NERDTreeWinSize=80
+
 " Map ,e to open nerdtree on the current file
 nnoremap <leader>e :NERDTreeFind<CR>
 
