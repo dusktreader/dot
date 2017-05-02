@@ -9,6 +9,10 @@ from setuptools.command.install import install as setuptools_install
 from distutils.command.install import install as distutils_install
 
 
+if sys.version_info < (3, 0):
+    sys.exit('dot requires python 3')
+
+
 def find_console_scripts():
     scripts = []
     for package in find_packages(exclude=["tests"]):
@@ -56,6 +60,7 @@ setup(
         'sh',
         'sh',
         'smmap',
+        'virtualenvwrapper',
         ],
     packages=find_packages(exclude=["tests"]),
     data_files=[('etc', ['etc/install.json'])],
