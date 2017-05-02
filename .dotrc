@@ -61,6 +61,8 @@ alias cdot='cd ~/dot'
 alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
 
+alias cojira='checkout-branch-by-pattern'
+
 alias sl='ls'
 if [[ $(uname) == "Darwin" ]]
 then
@@ -115,6 +117,12 @@ then
         ssh-add $dusktreader_rsa_path
     fi
 fi
+
+ematch () {
+    pattern=$1
+    path=$2
+    command vim $(ack -l $pattern $path)
+}
 
 pyclean () {
     find . -type f -name "*.py[co]" -delete

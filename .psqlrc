@@ -1,6 +1,16 @@
 \set AUTOCOMMIT off
 \set ON_ERROR_ROLLBACK on
-\timing
+\set ON_ERROR_STOP on
+\timing on
+
+-- ✪ Helpful Queries ✪
+
+\set tableswith  'select table_name from information_schema.columns where table_schema = \'public\' and column_name ='
+\set columnslike 'select table_name, column_name from information_schema.columns where table_schema = \'public\' and column_name ~'
+\set funcs       'SELECT proname FROM pg_catalog.pg_namespace n JOIN pg_catalog.pg_proc p ON pronamespace = n.oid WHERE nspname = \'public\';'
+\set sourcefor   'SELECT proname, prosrc FROM pg_catalog.pg_namespace n JOIN pg_catalog.pg_proc p ON pronamespace = n.oid WHERE nspname = \'public\' and proname ='
+\set locks       'select locktype, mode, count(*) as num_locks, count(case when not granted then 1 end) as num_ungranted_locks from pg_locks group by 1, 2 order by 1, 2;'
+\set blocks      'select blocking.pid as blocking_pid, statblocking.current_query as blocking_query, statblocking.backend_start as blocking_start, statblocking.client_addr as blocking_ip, blocked.pid as blocked_pid, statblocked.current_query as blocked_query from pg_locks as blocked join public.pg_stat_activity as statblocked on (statblocked.procpid = blocked.pid) left join pg_locks as blocking on (blocked.relation = blocking.relation and blocked.pid != blocking.pid) left join public.pg_stat_activity as statblocking on (statblocking.procpid = blocking.pid) where not blocked.granted;'
 
 -- ✪ Style Config ✪
 
@@ -10,25 +20,17 @@
 \pset linestyle unicode
 \pset border 2
 
---                   r  b    u       w  b   l       g  b    h       w  b   l       y       d       w  b   l       b  b    x       w  b   l l        c
---                   e  o    s       h  o   i       r  o    o       h  o   i       e       b       h  o   i       l  o    a       h  o   i i        l
---                   d  l    e       i  l   t       e  l    s       i  l   t       l       n       i  l   t       u  l    c       i  l   t t        e
---                   |  d    r       t  d   e       e  d    t       t  d   e       l       a       t  d   e       e  d    t       t  d   e e        a
---                   |  |    |       e  |   r       n  |    |       e  |   r       o       m       e  |   r       |  |    i       e  |   r r        r
---                   |  |    |       |  |   a       |  |    |       |  |   a       w       e       |  |   a       |  |    o       |  |   a a        |
---                   |  |    |       |  |   l       |  |    |       |  |   l       |       |       |  |   l       |  |    n       |  |   l l        |
---                   |\ |   /|       |\ |   |       |\ |   /|       |\ |   |       |\     /|       |\ |   |       |\ |   /|       |\ |   | |        |
---                   vv v   vv       vv v   v       vv v   vv       vv v   v       vv     vv       vv v   v       vv v   vv       vv v   v v        v
-\set PROMPT1 '%[%033[31;1m%]%n%[%033[37;1m%]@%[%033[32;1m%]%m%[%033[37;1m%]:%[%033[33;1m%]%/%[%033[37;1m%][%[%033[34;1m%]%x%[%033[37;1m%]] ➤ %[%033[0m%]'
+\set RED         '%[%033[31;1m%]'
+\set GREEN       '%[%033[32;1m%]'
+\set BLUE        '%[%033[34;1m%]'
+\set YELLOW      '%[%033[33;1m%]'
+\set WHITE       '%[%033[37;1m%]'
+\set CLEAR_COLOR '%[%033[0m%]'
 
---                   w  b    l        c
---                   h  o    i        l
---                   i  l    t        e
---                   t  d    e        a
---                   e  |    r        r
---                   |  |    a        |
---                   |  |    l        |
---                   |\ |    |        |
---                   vv v    v        v
-\set PROMPT2 '%[%033[37;1m%] ➢ %[%033[0m%]'
+\set USER_PROMPT        '%n'
+\set HOST_PROMPT        '%m'
+\set DBNAME_PROMPT      '%/'
+\set TRANSACTION_PROMPT '%x'
 
+\set PROMPT1 :RED :USER_PROMPT :WHITE @ :GREEN :HOST_PROMPT :WHITE : :YELLOW :DBNAME_PROMPT :WHITE '[' :BLUE :TRANSACTION_PROMPT :WHITE '] ➤ ' :CLEAR_COLOR
+\set PROMPT2 :WHITE ' ➢ ' :CLEAR_COLOR

@@ -1,7 +1,7 @@
 import enum
 import bidict
 import re
-import json
+import pydon
 import os
 import logbook
 
@@ -191,10 +191,9 @@ class VersionManager:
             self.logger = logger
 
         self.logger.debug("Reading version info from {}", self.path)
-        with open(self.path) as metadata_file:
-            self.metadata = json.load(metadata_file)
-            self.version = Version(logger=self.logger)
-            self.version.update_from_string(self.metadata['release'])
+        self.metadata = pydon.load_file(self.path)
+        self.version = Version(logger=self.logger)
+        self.version.update_from_string(self.metadata['release'])
         self.logger.debug("Current version is {}", self.version)
 
         self.git_manager = GitManager(path=self.path, logger=self.logger)
@@ -205,8 +204,7 @@ class VersionManager:
         self.logger.debug("Saving current version to {}", self.path)
         self.metadata['release'] = repr(self.version)
         self.metadata['version'] = self.version.major_minor()
-        with open(self.path, 'w') as metadata_file:
-            json.dump(self.metadata, metadata_file, sort_keys=True, indent=4)
+        pydon.dump_file(self.metadata, self.path, indent=4, width=1)
         self.logger.debug("Version saved")
 
     def tag_version(self, comment=None, bump_type=None):

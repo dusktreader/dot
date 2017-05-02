@@ -76,6 +76,7 @@ function! PostWrite()
             let config_file = config_dir . '/' .  'src-style-config.ini'
         endif
         if filereadable(config_file)
+            echom "config file selected as " . config_file
             let g:flake8_config_file = config_file
         else
             echom "config_file isn't readable"
@@ -98,8 +99,11 @@ set number
 " Tells vim to always show a status line
 set laststatus=2
 
-" Enables smart indentation for newlines
-set smartindent
+" Enables smart indentation for newlines (without dedenting # lines)
+" see: http://vim.wikia.com/wiki/Restoring_indent_after_typing_hash
+set cindent
+set cinkeys-=0#
+set indentkeys-=0#
 
 " Makes vim uses the right number of spaces instead of a tab
 set tabstop=4
@@ -149,6 +153,9 @@ let NERDTreeQuitOnOpen=1
 
 " Automatically delete the buffere when I delete or remanem a file
 let NERDTreeAutoDeleteBuffer=1
+
+" Set the default size of the NERDTree window
+let NERDTreeWinSize=80
 
 " Map ,e to open nerdtree on the current file
 nnoremap <leader>e :NERDTreeFind<CR>
