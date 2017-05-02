@@ -275,7 +275,7 @@ then
     debug_out "Did not detect virtualenvwrapper. Skipping"
 else
     debug_out "Found virtualenvwrapper. Sourcing with python3"
-    export VIRTUALENVWRAPPER_PYTHON=$(which python3)
+    export VIRTUALENVWRAPPER_PYTHON=$python3_path
     export VIRTUALENV_PYTHON=$VIRTUALENVWRAPPER_PYTHON
     source $(which virtualenvwrapper.sh)
 fi
