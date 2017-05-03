@@ -41,6 +41,15 @@ then
     fi
 fi
 
+debug_out "Finding virtualenv"
+# For the rtk machines...they make executables for virtualenv this way
+virtualenv_path=$(which virtualenv34 || which virtualenv)
+debug_out "found virtualenv path at $virtualenv_path"
+if [[ -n $virtualenv_path ]]
+then
+    debug_out "Detected virtualenv at $virtualenv_path"
+fi
+
 # alias vim='/Applications/MacVim.app/Contents/MacOS/Vim -O'
 alias vim='vim -O'
 alias vi='vim'
@@ -267,15 +276,18 @@ else
     export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
 fi
 
-# TODO: do this right
-debug_out "Detecting virtualenvwrapper"
-which virtualenvwrapper.sh > /dev/null 2>&1
-if (( $? ))
+if [[ -n $virtualenv_path ]]
 then
-    debug_out "Did not detect virtualenvwrapper. Skipping"
-else
-    debug_out "Found virtualenvwrapper. Sourcing with python3"
-    export VIRTUALENVWRAPPER_PYTHON=$python3_path
-    export VIRTUALENV_PYTHON=$VIRTUALENVWRAPPER_PYTHON
-    source $(which virtualenvwrapper.sh)
+    debug_out "Detecting virtualenvwrapper"
+    which virtualenvwrapper.sh > /dev/null 2>&1
+    if (( $? ))
+    then
+        debug_out "Did not detect virtualenvwrapper. Skipping"
+    else
+        debug_out "Found virtualenvwrapper. Sourcing with python3"
+        export VIRTUALENVWRAPPER_PYTHON=$python3_path
+        export VIRTUALENVWRAPPER_VIRTUALENV=$virtualenv_path
+        export VIRTUALENV_PYTHON=$VIRTUALENVWRAPPER_PYTHON
+        source $(which virtualenvwrapper.sh)
+    fi
 fi
