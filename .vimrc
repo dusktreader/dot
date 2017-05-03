@@ -157,6 +157,9 @@ let NERDTreeAutoDeleteBuffer=1
 " Set the default size of the NERDTree window
 let NERDTreeWinSize=80
 
+" Map <TAB> to swithc windows
+nmap <TAB> <C-W>w
+
 " Map ,e to open nerdtree on the current file
 nnoremap <leader>e :NERDTreeFind<CR>
 
