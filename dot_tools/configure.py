@@ -15,7 +15,7 @@ from dot_tools.misc_tools import DotError
 
 class DotInstaller:
 
-    def __init__(self, home, root, name='unnamed', logger=None):
+    def __init__(self, home, root, name='unnamed', setup_dict=None, logger=None):
         if logger is None:
             self.logger = logbook.Logger('DotInstaller')
             self.logger.level = logbook.DEBUG
@@ -32,13 +32,16 @@ class DotInstaller:
 
         self.logger.debug("Initializing configure/install for {}".format(name))
 
-        install_json_file_path = os.path.join(self.root, 'etc', 'install.json')
-        self.logger.debug(
-            "Using {} as install configuration file",
-            install_json_file_path,
-        )
-        with open(install_json_file_path) as install_json_file:
-            self.setup_dict = json.load(install_json_file)
+        if setup_dict is None:
+            install_json_file_path = os.path.join(self.root, 'etc', 'install.json')
+            self.logger.debug(
+                "Using {} as install configuration file",
+                install_json_file_path,
+            )
+            with open(install_json_file_path) as install_json_file:
+                self.setup_dict = json.load(install_json_file)
+        else:
+            self.setup_dict = setup_dict
 
         self.logger.debug(
             "Intantiated with {} as home, {} as root",

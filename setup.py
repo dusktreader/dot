@@ -1,12 +1,8 @@
-import glob
 import os
-import sys
 import re
 
 from setuptools import setup
 from setuptools import find_packages
-from setuptools.command.install import install as setuptools_install
-from distutils.command.install import install as distutils_install
 
 
 if sys.version_info < (3, 0):
