@@ -84,33 +84,39 @@ class DotInstaller:
                 path,
             )
             if os.path.lexists(link_path):
-                self.logger.debug("Link exists. Making sure it is correct")
+                self.logger.debug("Link exists. Checking target")
                 DotError.require_condition(
                     os.path.islink(link_path),
                     "Link path already exists but is not a symlink: {}",
                     link_path,
                 )
                 existing_target_path = os.readlink(link_path)
-                self.logger.debug("Existing target path: {}", existing_target_path)
-                DotError.require_condition(
-                    os.path.samefile(existing_target_path, target_path),
-                    "Link already exists but points to another target: {}",
+                self.logger.debug(
+                    "Existing target path: {}",
                     existing_target_path,
                 )
-                self.logger.debug(
-                    "Skipping symlink {}: already exists",
-                    link_path,
-                )
-            else:
-                self.logger.debug(
-                    "Creating symlink {} -> {}",
-                    link_path, target_path,
-                )
-                symlink_dir = os.path.dirname(link_path)
-                if not os.path.exists(symlink_dir):
-                    self.logger.debug("Creating parent dirs for symlink")
-                    os.makedirs(symlink_dir)
-                os.symlink(target_path, link_path)
+                if not os.path.samefile(existing_target_path, target_path):
+                    self.logger.warn(
+                        "Link already exists but points to another target: {}",
+                        existing_target_path,
+                    )
+                    self.logger.debug("unlinking existing link")
+                    os.unlink(link_path)
+                else:
+                    self.logger.debug(
+                        "Skipping symlink {}: already exists and is corret",
+                        link_path,
+                    )
+                    continue
+            self.logger.debug(
+                "Creating symlink {} -> {}",
+                link_path, target_path,
+            )
+            symlink_dir = os.path.dirname(link_path)
+            if not os.path.exists(symlink_dir):
+                self.logger.debug("Creating parent dirs for symlink")
+                os.makedirs(symlink_dir)
+            os.symlink(target_path, link_path)
 
     def _make_dirs(self):
         for path in self.setup_dict.get('mkdirs', []):
@@ -233,7 +239,7 @@ class DotInstaller:
         with DotError.handle_errors('Install failed. Aborting'):
             with logbook.Processor(self.init_indent()):
                 self.logger.debug("Making sure virtualenv is not active")
-                # self._check_virtual_env()
+                self._check_virtual_env()
 
                 self.logger.debug("Create needed directories")
                 self._make_dirs()
