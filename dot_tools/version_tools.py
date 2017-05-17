@@ -1,15 +1,16 @@
-import enum
 import bidict
-import re
-import pydon
-import os
+import enum
+import json
 import logbook
+import os
+import pydon
+import re
 
 from dot_tools.misc_tools import DotException
 from dot_tools.git_tools import GitManager
 
 
-DEFAULT_METADATA_FILE = '.project_metadata.json',
+DEFAULT_METADATA_FILE = '.project_metadata.py',
 
 
 class VersionError(DotException):
@@ -204,7 +205,11 @@ class VersionManager:
         self.logger.debug("Saving current version to {}", self.path)
         self.metadata['release'] = repr(self.version)
         self.metadata['version'] = self.version.major_minor()
-        pydon.dump_file(self.metadata, self.path, indent=4, width=1)
+        if self.path.endswith('.json'):
+            with open(self.path, 'w') as json_file:
+                json.dump(json_file, self.metadata)
+        else:
+            pydon.dump_file(self.metadata, self.path, indent=4, width=1)
         self.logger.debug("Version saved")
 
     def tag_version(self, comment=None, bump_type=None):
