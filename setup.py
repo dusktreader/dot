@@ -1,12 +1,13 @@
-import glob
 import os
-import sys
 import re
+import sys
 
 from setuptools import setup
 from setuptools import find_packages
-from setuptools.command.install import install as setuptools_install
-from distutils.command.install import install as distutils_install
+
+
+if sys.version_info < (3, 0):
+    sys.exit('dot requires python 3')
 
 
 if sys.version_info < (3, 0):
