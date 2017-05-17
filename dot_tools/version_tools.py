@@ -207,7 +207,7 @@ class VersionManager:
         self.metadata['version'] = self.version.major_minor()
         if self.path.endswith('.json'):
             with open(self.path, 'w') as json_file:
-                json.dump(json_file, self.metadata)
+                json.dump(self.metadata, json_file)
         else:
             pydon.dump_file(self.metadata, self.path, indent=4, width=1)
         self.logger.debug("Version saved")
