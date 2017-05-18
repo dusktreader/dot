@@ -192,7 +192,11 @@ class VersionManager:
             self.logger = logger
 
         self.logger.debug("Reading version info from {}", self.path)
-        self.metadata = pydon.load_file(self.path)
+        if self.path.endswith('.json'):
+            with open(self.path, 'r') as json_file:
+                self.metadata = json.load(json_file)
+        else:
+            self.metadata = pydon.load_file(self.path)
         self.version = Version(logger=self.logger)
         self.version.update_from_string(self.metadata['release'])
         self.logger.debug("Current version is {}", self.version)
@@ -207,7 +211,7 @@ class VersionManager:
         self.metadata['version'] = self.version.major_minor()
         if self.path.endswith('.json'):
             with open(self.path, 'w') as json_file:
-                json.dump(self.metadata, json_file)
+                json.dump(self.metadata, json_file, indent=4)
         else:
             pydon.dump_file(self.metadata, self.path, indent=4, width=1)
         self.logger.debug("Version saved")
