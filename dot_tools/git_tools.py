@@ -71,6 +71,8 @@ class GitManager:
     def parse_repo_url(self, url=None):
         if url is None:
             url = self.remote_url()
+        if not url.endswith('.git'):
+            url += '.git'
         self.logger.debug("Attempting to parse url: {}", url)
         parsed_url = giturlparse.parse(url)
         self.logger.debug("URL parsed as: {}", parsed_url.data)
