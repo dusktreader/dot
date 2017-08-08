@@ -243,6 +243,12 @@ class GitManager:
 
     def checkout_branch_by_pattern(self, pattern):
         self.logger.debug("Searching for branch matching: {}", pattern)
+        self.logger.debug("branches? {}", self.gitter.branch())
+        self.logger.debug("remotes? {}", self.repo.remotes)
+        for remote in self.repo.remotes:
+            self.logger.debug(type(remote))
+            self.logger.debug(dir(remote))
+            self.logger.debug(remote.repo.branches)
         matching_branches = [
             b for b
             in self.repo.branches

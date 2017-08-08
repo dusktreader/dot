@@ -21,6 +21,9 @@ set nocompatible
 " Explicitly activate plugins
 filetype plugin indent on
 
+" disable bracketed paste mode
+set t_BE=
+
 " Add .pydon files to python syntax highlighting
 au BufNewFile,BufRead *.pydon set filetype=python
 
