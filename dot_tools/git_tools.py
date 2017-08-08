@@ -242,12 +242,20 @@ class GitManager:
         return match.group(1)
 
     def checkout_branch_by_pattern(self, pattern):
-        self.logger.debug("Searching for branch matching: {}", pattern)
+        checkout_kwargs = {}
         matching_branches = [
             b for b
             in self.repo.branches
             if re.search(pattern, str(b), re.IGNORECASE)
         ]
+        if len(matching_branches) == 0:
+            checkout_kwargs['track'] = True
+            for remote in self.repo.remotes:
+                matching_branches += [
+                    b for b
+                    in remote.refs
+                    if re.search(pattern, str(b), re.IGNORECASE)
+                ]
         GitError.require_condition(
             len(matching_branches) == 1,
             "Couldn't find one branch matching {}: matches: {}",
@@ -256,7 +264,7 @@ class GitManager:
         )
         branch = matching_branches.pop()
         self.logger.debug("Checking out matching branch: {}", branch)
-        branch.checkout()
+        branch.checkout(**checkout_kwargs)
         self.logger.debug("Branch {} checked out", branch)
 
     def pushup(self):
