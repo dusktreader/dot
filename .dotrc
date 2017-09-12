@@ -94,7 +94,7 @@ alias activate='source $(ls | grep env)/bin/activate'
 
 alias gti='git'
 
-alias nofail='py.test test --maxfail=1'
+alias nofail='pytest test* --maxfail=1'
 
 debug_out "Detecting which ack"
 which ack > /dev/null 2>&1
