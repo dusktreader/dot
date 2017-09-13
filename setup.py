@@ -46,8 +46,6 @@ setup(
         'flake8',
         'gitdb',
         'giturlparse.py',
-        'hjson',
-        'inflection',
         'inflection',
         'jira',
         'logbook',
