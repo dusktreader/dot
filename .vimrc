@@ -160,6 +160,9 @@ let NERDTreeAutoDeleteBuffer=1
 " Set the default size of the NERDTree window
 let NERDTreeWinSize=80
 
+" Let me edit crontab on osx without whining about backups
+autocmd filetype crontab setlocal nobackup nowritebackup
+
 " Map <TAB> to swithc windows
 nmap <TAB> <C-W>w
 
