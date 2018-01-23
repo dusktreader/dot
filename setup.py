@@ -28,6 +28,9 @@ def find_console_scripts():
             dashed = module.replace('_', '-')
             script = '{dashed} = {package}.{module}:main'.format(**locals())
             scripts.append(script)
+    print("found console scripts:")
+    for script in scripts:
+        print("    ", script)
     return scripts
 
 
@@ -60,7 +63,7 @@ setup(
         'sh',
         'smmap',
         'virtualenvwrapper',
-        ],
+    ],
     packages=find_packages(exclude=["tests"]),
     data_files=[('etc', ['etc/install.json'])],
     tests_require=['pytest'],
