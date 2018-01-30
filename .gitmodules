@@ -128,3 +128,6 @@
 [submodule ".vim/bundle/nerdtree-ack"]
 	path = .vim/bundle/nerdtree-ack
 	url = https://github.com/tyok/nerdtree-ack.git
+[submodule ".vim/bundle/vim-bookmarks"]
+	path = .vim/bundle/vim-bookmarks
+	url = https://github.com/MattesGroeger/vim-bookmarks.git
