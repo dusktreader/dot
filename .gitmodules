@@ -131,3 +131,6 @@
 [submodule ".vim/bundle/vim-bookmarks"]
 	path = .vim/bundle/vim-bookmarks
 	url = https://github.com/MattesGroeger/vim-bookmarks.git
+[submodule ".vim/bundle/vim-ember-hbs"]
+	path = .vim/bundle/vim-ember-hbs
+	url = https://github.com/joukevandermaas/vim-ember-hbs.git
