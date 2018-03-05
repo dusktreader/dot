@@ -62,6 +62,7 @@ setup(
         'sh',
         'sh',
         'smmap',
+        'virtualenv',
         'virtualenvwrapper',
     ],
     packages=find_packages(exclude=["tests"]),
