@@ -117,8 +117,8 @@ class GitManager:
         ref = None
         with DotError.handle_errors("Couldn't find a ref for that base"):
             if base is None:
-                base = self.repo.active_branch
-                ref = self.repo.active_branch
+                base = self.current_branch
+                ref = self.current_branch
             else:
                 self.logger.debug("Evaluating ref from base {}".format(base))
                 ref = self.repo.refs[base]
@@ -221,6 +221,10 @@ class GitManager:
         self.logger.debug("branch name built as {}".format(branch_name))
         self.checkout_new_branch(branch_name, base=base)
 
+    @property
+    def current_branch(self):
+        return self.repo.active_branch
+
     def jira_key(self):
         current_branch = self.repo.active_branch
         GitError.require_condition(
@@ -269,5 +273,5 @@ class GitManager:
 
     def pushup(self):
         self.logger.debug("Pushing branch to origin for first time")
-        self.gitter.push('origin', self.repo.active_branch, set_upstream=True)
+        self.gitter.push('origin', self.current_branch, set_upstream=True)
         self.logger.debug("Pushed branch to origin")

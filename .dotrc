@@ -93,10 +93,18 @@ alias gti='git'
 alias nofail='py.test test* --maxfail=1 -m "not slow"'
 alias nofailall='py.test test --maxfail=1'
 
-eval "$(nodenv init -)"
+debug_out "Initializing nodenv"
+which -s nodenv
+if (( $? ))
+then
+    debug_out "Did not detect nodenv. Skipping"
+else
+    eval "$(nodenv init -)"
+    debug_out "Finished initializing nodenv"
+fi
 
 debug_out "Detecting which ack"
-which ack > /dev/null 2>&1
+which -s ack
 if (( $? ))
 then
     alias ack='ack-grep --color'
@@ -279,7 +287,7 @@ ps1_prefix="$C3// $C6[\h:\w]$C11[\D{%F %T}]$C4"
 ps1_suffix="\n$C8${VENV_INFO}$P\$ "
 
 debug_out "Detecting git"
-which git > /dev/null 2>&1
+which -s git
 if (( $? ))
 then
     debug_out "Did not detect git. Using default prompt"
@@ -293,7 +301,7 @@ fi
 if [[ -n $virtualenv_path && -n $python3_path ]]
 then
     debug_out "Detecting virtualenvwrapper"
-    which virtualenvwrapper.sh > /dev/null 2>&1
+    which -s virtualenvwrapper.sh
     if (( $? ))
     then
         debug_out "Did not detect virtualenvwrapper. Skipping"
