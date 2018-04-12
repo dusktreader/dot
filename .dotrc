@@ -93,6 +93,7 @@ alias gti='git'
 alias nofail='py.test test* --maxfail=1 -m "not slow"'
 alias nofailall='py.test test --maxfail=1'
 
+export PATH="$HOME/.nodenv/bin:$PATH"
 eval "$(nodenv init -)"
 
 debug_out "Detecting which ack"
