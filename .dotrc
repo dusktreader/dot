@@ -96,7 +96,7 @@ alias nofailall='py.test test --maxfail=1'
 
 export PATH="$HOME/.nodenv/bin:$PATH"
 debug_out "Initializing nodenv"
-which -s nodenv
+which nodenv > /dev/null 2>&1
 if (( $? ))
 then
     debug_out "Did not detect nodenv. Skipping"
@@ -106,7 +106,7 @@ else
 fi
 
 debug_out "Detecting which ack"
-which -s ack
+which ack > /dev/null 2>&1
 if (( $? ))
 then
     alias ack='ack-grep --color'
@@ -114,24 +114,14 @@ else
     alias ack='ack --color'
 fi
 
-SSH_ENV="$HOME/.ssh/environment"
-function start_agent {
-    debug_out "Initialising new SSH agent..."
-    /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
-    debug_out succeeded
-    chmod 600 "${SSH_ENV}"
-    . "${SSH_ENV}" > /dev/null
-    /usr/bin/ssh-add;
-}
-# Source SSH settings, if applicable
-if [ -f "${SSH_ENV}" ]; then
-    . "${SSH_ENV}" > /dev/null
-    #ps ${SSH_AGENT_PID} doesn't work under cywgin
-    ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
-        start_agent;
-    }
+
+# Start agent if it is not already started
+if [[ -n "$VIRTUAL_ENV" ]]
+then
+    debug_out "Agent already initialized. Skipping..."
 else
-    start_agent;
+    debug_out "Initialising new SSH agent..."
+    eval "$(ssh-agent)"
 fi
 
 rentrak_rsa_key="tbeck_rentrak_id_rsa"
@@ -309,7 +299,8 @@ ps1_prefix="$C3// $C6[\h:\w]$C11[\D{%F %T}]$C4"
 ps1_suffix="\n$C8${VENV_INFO}$P\$ "
 
 debug_out "Detecting git"
-which -s git
+which git > /dev/null 2>&1
+
 if (( $? ))
 then
     debug_out "Did not detect git. Using default prompt"
@@ -323,7 +314,7 @@ fi
 if [[ -n $virtualenv_path && -n $python3_path ]]
 then
     debug_out "Detecting virtualenvwrapper"
-    which -s virtualenvwrapper.sh
+    which virtualenvwrapper.sh > /dev/null 2>&1
     if (( $? ))
     then
         debug_out "Did not detect virtualenvwrapper. Skipping"
