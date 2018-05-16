@@ -137,9 +137,3 @@
 [submodule ".vim/bundle/vim-jinja"]
 	path = .vim/bundle/vim-jinja
 	url = https://github.com/lepture/vim-jinja.git
-[submodule ".vim/bundle/vim-qf"]
-	path = .vim/bundle/vim-qf
-	url = https://github.com/romainl/vim-qf.git
-[submodule ".vim/bundle/jedi-vim"]
-	path = .vim/bundle/jedi-vim
-	url = https://github.com/davidhalter/jedi-vim.git
