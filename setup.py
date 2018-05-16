@@ -50,6 +50,7 @@ setup(
         'gitdb',
         'giturlparse.py',
         'inflection',
+        'jedi',
         'jira',
         'logbook',
         'ordereddict',
