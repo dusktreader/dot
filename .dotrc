@@ -25,6 +25,7 @@ export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 
 # Initialize pyenv
 debug_out "Initializing pyenv"
+export PATH="~/.pyenv/bin/:$PATH"
 which pyenv > /dev/null 2>&1
 if (( $? ))
 then
