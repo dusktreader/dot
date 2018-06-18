@@ -94,6 +94,11 @@
     url = git@github.com:jmcantrell/vim-virtualenv.git
     ignore = dirty
 
+[submodule ".vim/bundle/vim-pyenv"]
+    path = .vim/pack/dusktreader/start/vim-pyenv
+    url = https://github.com/lambdalisue/vim-pyenv.git
+    ignore = dirty
+
 # Wishlist
 # * ctrlp
 
@@ -137,6 +142,3 @@
 [submodule ".vim/bundle/vim-jinja"]
 	path = .vim/pack/dusktreader/start/vim-jinja
 	url = https://github.com/lepture/vim-jinja.git
-[submodule ".vim/bundle/vim-pyenv"]
-	path = .vim/pack/dusktreader/start/vim-pyenv
-	url = https://github.com/lambdalisue/vim-pyenv.git

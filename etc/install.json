@@ -5,7 +5,7 @@
         ".gitconfig",
         ".vim/after",
         ".vim/autoload",
-        ".vim/bundle",
+        ".vim/pack",
         ".vim/fonts",
         ".vim/config",
         ".config/terminator"

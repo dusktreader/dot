@@ -6,6 +6,7 @@ import os
 import platform
 import sh
 import shutil
+import sys
 import traceback
 
 from textwrap import dedent
@@ -190,9 +191,11 @@ class DotInstaller:
                     print(entry, file=dotfile_list_file)
 
     def _check_virtual_env(self):
+        print('prefix: ', sys.prefix)
+        print('base_prefix: ', sys.base_prefix)
         DotError.require_condition(
-            'env' not in sh.which("python"),
-            "You must deactivate the virtual environment to install",
+                sys.prefix == sys.base_prefix,
+                "You must deactivate the virtual environment to install",
         )
 
     def _scrub_extra_dotfiles_block(self):

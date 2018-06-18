@@ -1,9 +1,3 @@
-execute pathogen#infect()
-execute pathogen#helptags()
-
-" Let virtualenv auto activate if a virtual env is available
-let g:virtualenv_auto_activate=1
-
 " Enable powerline fonts for airline
 let g:airline_powerline_fonts=1
 
