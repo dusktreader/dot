@@ -61,11 +61,28 @@ then
 fi
 
 # alias vim='/Applications/MacVim.app/Contents/MacOS/Vim -O'
-alias vim='vim -O'
-alias vi='vim'
+if [[ $(uname) == "Darwin" ]]
+then
+    raw_vim_command='/usr/local/bin/vim -O'
+else
+    raw_vim_command='vim -0'
+fi
+
+custom_vim () {
+    ls Pipfile > /dev/null 2>&1
+    if (( $? ))
+    then
+        $raw_vim_command $@
+    else
+        pipenv run $raw_vim_command $@
+    fi
+}
+
+alias vim=custom_vim
+alias vi=cutom_vim
 alias evim='$EDITOR ~/dot/.vimrc'
-export EDITOR='vim'
-export VISUAL='vim'
+export EDITOR=$raw_vim_command
+export VISUAL=$raw_vim_command
 
 alias egit='$EDITOR ~/dot/.gitconfig'
 
@@ -90,7 +107,6 @@ then
     alias ln='gln'
     alias cp='gcp'
     alias touch='gtouch'
-    alias vim='/usr/local/bin/vim -O'
     alias ps='pstree -wg3 | less'
 else
     alias ls='ls --color=tty'
