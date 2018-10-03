@@ -133,9 +133,6 @@
 [submodule ".vim/bundle/nerdtree-ack"]
 	path = .vim/pack/dusktreader/start/nerdtree-ack
 	url = https://github.com/tyok/nerdtree-ack.git
-[submodule ".vim/bundle/vim-bookmarks"]
-	path = .vim/pack/dusktreader/start/vim-bookmarks
-	url = https://github.com/MattesGroeger/vim-bookmarks.git
 [submodule ".vim/bundle/vim-ember-hbs"]
 	path = .vim/pack/dusktreader/start/vim-ember-hbs
 	url = https://github.com/joukevandermaas/vim-ember-hbs.git
