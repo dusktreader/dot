@@ -35,31 +35,6 @@ else
     eval "$(pyenv virtualenv-init -)"
 fi
 
-# debug_out "Detecting which python3"
-# # For the rtk machines...they make executables for python3.4 this way
-# python3_path=$(which python34 || which python3)
-# if [[ -n $python3_path ]]
-# then
-#     debug_out "Detected python3 at $python3_path"
-#     user_base=$($python3_path -c 'import site;print(site.USER_BASE)')
-#     if (( $? ))
-#     then
-#         debug_out "Python3 is not yet installed. Not modifying PATH"
-#     else
-#         export PATH="$PATH:$user_base/bin"
-#         alias python3=$python3_path
-#         debug_out "Added python3 user base to PATH"
-#     fi
-# fi
-
-debug_out "Finding virtualenv"
-# For the rtk machines...they make executables for virtualenv this way
-virtualenv_path=$(which virtualenv34 || which virtualenv)
-if [[ -n $virtualenv_path ]]
-then
-    debug_out "Detected virtualenv at $virtualenv_path"
-fi
-
 # alias vim='/Applications/MacVim.app/Contents/MacOS/Vim -O'
 if [[ $(uname) == "Darwin" ]]
 then
@@ -337,21 +312,4 @@ else
     debug_out "Detected git. Embedding git branch propmt"
     source ~/dot/.git-prompt
     export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
-fi
-
-if [[ -n $virtualenv_path && -n $python3_path ]]
-then
-    debug_out "Detecting virtualenvwrapper"
-    # which virtualenvwrapper.sh > /dev/null 2>&1
-    # if (( $? ))
-    # then
-    #     debug_out "Did not detect virtualenvwrapper. Skipping"
-    # else
-    #     debug_out "Found virtualenvwrapper. Sourcing with python3"
-    #     export VIRTUALENVWRAPPER_PYTHON=$python3_path
-    #     export VIRTUALENVWRAPPER_VIRTUALENV=$virtualenv_path
-    #     export VIRTUALENV_PYTHON=$VIRTUALENVWRAPPER_PYTHON
-    #     source $(which virtualenvwrapper.sh)
-    #     debug_out "Finished sourcing virtualenvwrapper"
-    # fi
 fi
