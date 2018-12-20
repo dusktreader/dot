@@ -36,6 +36,10 @@ set nowrap
 " Map ,W to toggle wrapping
 nnoremap <leader>W :set nowrap!<CR>
 
+" Maintain undo history between sessions
+set undofile
+set undodir=~/.vim/undodir
+
 " Remaps F5 to open the gundo graph
 nnoremap <leader>G :GundoToggle<CR>
 

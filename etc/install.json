@@ -22,7 +22,8 @@
     ],
     "mkdirs": [
         ".vim/local/backup",
-        ".vim/local/swap"
+        ".vim/local/swap",
+        ".vim/undodir"
     ],
     "scripts": [
         ".vim/fonts/powerline/install.sh"
