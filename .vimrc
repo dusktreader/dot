@@ -188,11 +188,13 @@ endfun
 call SetupCommandAlias("E","e")
 
 " Mappings for vim-test
-nmap <silent> <leader>t :w<CR> :TestNearest<CR>
-nmap <silent> <leader>tv :w<CR> :TestNearest --verbose<CR>
-nmap <silent> <leader>tvv :w<CR> :TestNearest --verbose --verbose<CR>
-nmap <silent> <leader>T :w<CR> :TestFile --maxfail=1<CR>
-nmap <silent> <leader>l :w<CR> :TestLast<CR>
+nmap <silent> <leader>t :w<CR> :TestNearest --color=yes<CR>
+nmap <silent> <leader>tv :w<CR> :TestNearest --color=yes --verbose<CR>
+nmap <silent> <leader>tvv :w<CR> :TestNearest --color=yes --verbose --verbose<CR>
+nmap <silent> <leader>T :w<CR> :TestFile --color=yes --maxfail=1<CR>
+nmap <silent> <leader>l :w<CR> :TestLast --color=yes<CR>
+nmap <silent> <leader>lv :w<CR> :TestLast --color=yes --verbose<CR>
+nmap <silent> <leader>lvv :w<CR> :TestLast --color=yes --verbose --verbose<CR>
 let test#strategy = "dispatch"
 let test#python#runner = 'pytest'
 
