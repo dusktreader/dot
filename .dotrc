@@ -35,6 +35,12 @@ else
     eval "$(pyenv virtualenv-init -)"
 fi
 
+# Add yarn binaries to the path
+export PATH="~/.yarn/bin/:$PATH"
+
+# Add go binaries to the path
+export PATH="/usr/local/go/bin:$PATH"
+
 # alias vim='/Applications/MacVim.app/Contents/MacOS/Vim -O'
 if [[ $(uname) == "Darwin" ]]
 then
