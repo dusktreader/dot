@@ -40,9 +40,6 @@ nnoremap <leader>W :set nowrap!<CR>
 set undofile
 set undodir=~/.vim/undodir
 
-" Remaps F5 to open the gundo graph
-nnoremap <leader>G :GundoToggle<CR>
-
 " Puts in column markers for 80, 100, and 120 characters
 set colorcolumn=80
 set colorcolumn+=100

@@ -52,11 +52,6 @@
     url = git@github.com:airblade/vim-gitgutter.git
 
 # Navigate undo trees in sidebar
-[submodule ".vim/bundle/gundo"]
-	path = .vim/pack/dusktreader/start/gundo
-    url = http://github.com/sjl/gundo.vim.git
-
-# Json syntax highlighting and syntax checking
 [submodule ".vim/bundle/vim-json"]
 	path = .vim/pack/dusktreader/start/vim-json
     url = https://github.com/elzr/vim-json.git
