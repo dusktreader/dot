@@ -28,12 +28,6 @@
     url = https://github.com/chrisbra/csv.vim.git
     ignore = dirty
 
-# Flake8 checks and lint highlighting
-[submodule ".vim/bundle/vim-flake8"]
-	path = .vim/pack/dusktreader/start/vim-flake8
-    url = git@github.com:dusktreader/vim-flake8.git
-    ignore = dirty
-
 # prettyness
 [submodule ".vim/bundle/vim-airline"]
 	path = .vim/pack/dusktreader/start/vim-airline
@@ -60,12 +54,6 @@
 [submodule ".vim/bundle/vim-test"]
 	path = .vim/pack/dusktreader/start/vim-test
     url = https://github.com/janko-m/vim-test.git
-    ignore = dirty
-
-# Used for running vim-tests in a pane
-[submodule ".vim/bundle/vim-dispatch"]
-	path = .vim/pack/dusktreader/start/vim-dispatch
-    url = https://github.com/tpope/vim-dispatch.git
     ignore = dirty
 
 # Candy for git commits
@@ -123,9 +111,6 @@
 [submodule ".vim/bundle/nerdtree-ack"]
 	path = .vim/pack/dusktreader/start/nerdtree-ack
 	url = https://github.com/tyok/nerdtree-ack.git
-[submodule ".vim/bundle/vim-ember-hbs"]
-	path = .vim/pack/dusktreader/start/vim-ember-hbs
-	url = https://github.com/joukevandermaas/vim-ember-hbs.git
 [submodule ".vim/bundle/vim-jinja"]
 	path = .vim/pack/dusktreader/start/vim-jinja
 	url = https://github.com/lepture/vim-jinja.git
@@ -141,6 +126,3 @@
 [submodule ".vim/pack/dusktreader/start/completor.vim"]
 	path = .vim/pack/dusktreader/start/completor.vim
 	url = https://github.com/maralla/completor.vim.git
-[submodule ".vim/pack/dusktreader/start/youcompleteme-vim"]
-	path = .vim/pack/dusktreader/start/youcompleteme-vim
-	url = https://github.com/Valloric/YouCompleteMe.git
