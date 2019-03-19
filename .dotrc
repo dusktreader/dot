@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-debug_out() {
-    if [[ $- == *i* && $DOT_DEBUG ]]
-    then
-        echo $@
-    fi
-}
-
 debug_out "Processing main dot configuration"
 
 export PAGER='less -R'
@@ -41,39 +34,31 @@ export PATH="~/.yarn/bin/:$PATH"
 # Add go binaries to the path
 export PATH="/usr/local/go/bin:$PATH"
 
-# alias vim='/Applications/MacVim.app/Contents/MacOS/Vim -O'
-if [[ $(uname) == "Darwin" ]]
+vim.gtk3 --version > /dev/null 2>&1
+if (( $? ))
 then
-    raw_vim_command='/usr/local/bin/vim -O'
+    alias vim='vim -O'
+    raw_vim_command='vim'
 else
-    raw_vim_command='vim -O'
+    alias vim='vim.gtk3 -O'
+    raw_vim_command='vim.gtk3'
 fi
 
-custom_vim () {
-    ls Pipfile > /dev/null 2>&1
-    if (( $? ))
-    then
-        $raw_vim_command $@
-    else
-        pipenv run $raw_vim_command $@
-    fi
-}
-
-alias vim=custom_vim
-alias vi=cutom_vim
-alias evim='$EDITOR ~/dot/.vimrc'
+alias vi='vim'
+alias evim='$EDITOR ~/git-repos/dot/.vimrc'
 export EDITOR=$raw_vim_command
 export VISUAL=$raw_vim_command
 
-alias egit='$EDITOR ~/dot/.gitconfig'
+alias egit='$EDITOR ~/git-repos/dot/.gitconfig'
 
 alias ebash="$EDITOR ~/.bashrc"
 alias sbash='source ~/.bashrc'
 
-alias edot="$EDITOR ~/dot/.dotrc"
-alias sdot='source ~/dot/.dotrc'
+# TODO: this should have a configurable dot location based on dot-configure root
+alias edot="$EDITOR ~/git-repos/dot/.dotrc"
+alias sdot='source ~/git-repos/dot/.dotrc'
 alias idot='install_dot'
-alias cdot='cd ~/dot'
+alias cdot='cd ~/git-repos/dot'
 
 alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
@@ -125,7 +110,7 @@ fi
 
 
 # Start agent if it is not already started
-if [[ -n "$VIRTUAL_ENV" ]]
+if [[ -n "$SSH_AGENT_PID" ]]
 then
     debug_out "Agent already initialized. Skipping..."
 else
@@ -152,6 +137,17 @@ then
     then
         debug_out "$dusktreader_rsa_key key not found in active ssh identities not found.  Setting it up:"
         ssh-add $dusktreader_rsa_path
+    fi
+fi
+
+office_ally_rsa_key="tucker.beck.oa.id_rsa"
+office_ally_rsa_path="$HOME/.ssh/$office_ally_rsa_key"
+if [[ -e $office_ally_rsa_path ]]
+then
+    if [[ -z "$(ssh-add -l | grep $office_ally_rsa_key)" ]]
+    then
+        debug_out "$office_ally_rsa_key key not found in active ssh identities not found.  Setting it up:"
+        ssh-add $office_ally_rsa_path
     fi
 fi
 
@@ -316,6 +312,6 @@ then
     export PS1="$ps1_prefix $ps1_suffix"
 else
     debug_out "Detected git. Embedding git branch propmt"
-    source ~/dot/.git-prompt
+    source ~/git-repos/dot/.git-prompt
     export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
 fi

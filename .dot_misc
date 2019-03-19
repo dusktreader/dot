@@ -1,5 +1,12 @@
 #!/bin/bash
 
+debug_out() {
+    if [[ $- == *i* && $DOT_DEBUG ]]
+    then
+        echo $@
+    fi
+}
+
 debug_out "Processing configuration for Miscellaneous Tools"
 
 umask 0002

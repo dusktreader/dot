@@ -129,3 +129,6 @@
 [submodule ".vim/bundle/vim-jinja"]
 	path = .vim/pack/dusktreader/start/vim-jinja
 	url = https://github.com/lepture/vim-jinja.git
+[submodule ".vim/pack/dusktreader/start/jedi-vim"]
+	path = .vim/pack/dusktreader/start/jedi-vim
+	url = https://github.com/davidhalter/jedi-vim.git

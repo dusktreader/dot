@@ -155,14 +155,11 @@ let NERDTreeAutoDeleteBuffer=1
 " Set the default size of the NERDTree window
 let NERDTreeWinSize=80
 
-" Let me edit crontab on osx without whining about backups
-autocmd filetype crontab setlocal nobackup nowritebackup
-
 " Set indentation for javascript and html files
 autocmd filetype html setlocal tabstop=2 shiftwidth=2
 autocmd filetype javascript setlocal tabstop=2 shiftwidth=2
 
-" Map <TAB> to swithc windows
+" Map <TAB> to switch windows
 nmap <TAB> <C-W>w
 
 " Map ,e to open nerdtree on the current file
