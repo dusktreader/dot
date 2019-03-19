@@ -132,3 +132,15 @@
 [submodule ".vim/pack/dusktreader/start/jedi-vim"]
 	path = .vim/pack/dusktreader/start/jedi-vim
 	url = https://github.com/davidhalter/jedi-vim.git
+[submodule ".vim/pack/dusktreader/start/vim-pyenv"]
+	path = .vim/pack/dusktreader/start/vim-pyenv
+	url = https://github.com/lambdalisue/vim-pyenv.git
+[submodule ".vim/pack/dusktreader/start/ale"]
+	path = .vim/pack/dusktreader/start/ale
+	url = https://github.com/w0rp/ale.git
+[submodule ".vim/pack/dusktreader/start/completor.vim"]
+	path = .vim/pack/dusktreader/start/completor.vim
+	url = https://github.com/maralla/completor.vim.git
+[submodule ".vim/pack/dusktreader/start/youcompleteme-vim"]
+	path = .vim/pack/dusktreader/start/youcompleteme-vim
+	url = https://github.com/Valloric/YouCompleteMe.git

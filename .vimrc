@@ -49,48 +49,6 @@ highlight ColorColumn ctermbg=4
 " remove trailing whitespace right before writing file
 autocmd bufwritepre  * :%s/\s\+$//e
 
-" Strips leading and tailing whitespace from a string
-function! Strip(input_string)
-    " Shamelessly copied from http://stackoverflow.com/a/4479072/642511
-    return substitute(a:input_string, '^\s*\(.\{-}\)\s*\n*$', '\1', '')
-endfunction
-
-" shows flake8 indicators in the gutter
-let g:flake8_show_in_gutter=1
-
-" hook for behaviors following writes
-function! PostWrite()
-    let current_file = expand('%:t')
-
-    " For python, run flake8 against the current file
-    if &filetype == 'python'
-        " Set up flake8 to use appropriate config
-        let toplevel = Strip(system('git rev-parse --show-toplevel'))
-        let config_dir = toplevel . '/etc/flake8'
-        let config_file = ''
-        if match(current_file, "^test_") != -1
-            let config_file = config_dir . '/' .  'test-style-config.ini'
-        else
-            let config_file = config_dir . '/' .  'src-style-config.ini'
-        endif
-        if filereadable(config_file)
-            echom "config file selected as " . config_file
-            let g:flake8_config_file = config_file
-        else
-            echom "config_file isn't readable"
-            let g:flake8_config_file = ''
-        endif
-        call Flake8()
-    endif
-
-endfunction
-
-" Execute flake8 against python files on save
-augroup dotautocommands
-    autocmd!
-    autocmd BufWritePost * call PostWrite()
-augroup END
-
 " Shows line numbers
 set number
 
