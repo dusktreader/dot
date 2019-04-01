@@ -71,12 +71,6 @@
 	path = .vim/pack/dusktreader/start/vim-python-pep8-indent
     url = https://github.com/hynek/vim-python-pep8-indent.git
 
-# Uses currently active virtual environment
-[submodule ".vim/bundle/vim-pyenv"]
-    path = .vim/pack/dusktreader/start/vim-pyenv
-    url = https://github.com/lambdalisue/vim-pyenv.git
-    ignore = dirty
-
 # Wishlist
 # * ctrlp
 
@@ -114,12 +108,6 @@
 [submodule ".vim/bundle/vim-jinja"]
 	path = .vim/pack/dusktreader/start/vim-jinja
 	url = https://github.com/lepture/vim-jinja.git
-[submodule ".vim/pack/dusktreader/start/vim-pyenv"]
-	path = .vim/pack/dusktreader/start/vim-pyenv
-	url = https://github.com/lambdalisue/vim-pyenv.git
 [submodule ".vim/pack/dusktreader/start/ale"]
 	path = .vim/pack/dusktreader/start/ale
 	url = https://github.com/w0rp/ale.git
-[submodule ".vim/pack/dusktreader/start/completor.vim"]
-	path = .vim/pack/dusktreader/start/completor.vim
-	url = https://github.com/maralla/completor.vim.git
