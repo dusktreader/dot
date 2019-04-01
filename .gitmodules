@@ -111,3 +111,6 @@
 [submodule ".vim/pack/dusktreader/start/ale"]
 	path = .vim/pack/dusktreader/start/ale
 	url = https://github.com/w0rp/ale.git
+[submodule ".vim/pack/dusktreader/start/vim-python-pep8-indent"]
+	path = .vim/pack/dusktreader/start/vim-python-pep8-indent
+	url = https://github.com/Vimjas/vim-python-pep8-indent.git

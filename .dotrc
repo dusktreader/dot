@@ -34,15 +34,8 @@ export PATH="~/.yarn/bin/:$PATH"
 # Add go binaries to the path
 export PATH="/usr/local/go/bin:$PATH"
 
-vim.gtk3 --version > /dev/null 2>&1
-if (( $? ))
-then
-    alias vim='vim -O'
-    raw_vim_command='vim'
-else
-    alias vim='vim.gtk3 -O'
-    raw_vim_command='vim.gtk3'
-fi
+alias vim='vim -O'
+raw_vim_command='vim'
 
 alias vi='vim'
 alias evim='$EDITOR ~/git-repos/dot/.vimrc'
