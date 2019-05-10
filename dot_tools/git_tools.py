@@ -75,8 +75,8 @@ class GitManager:
             url += '.git'
         self.logger.debug("Attempting to parse url: {}", url)
         parsed_url = giturlparse.parse(url)
-        self.logger.debug("URL parsed as: {}", parsed_url.data)
-        DotError.require_condition(parsed_url.valid, "Couldn't parse url {}", url)
+        DotError.require_condition(parsed_url, "Couldn't parse url {}", url)
+        self.logger.debug("URL parsed as: {}", parsed_url.href)
         return parsed_url
 
     def toplevel(self, start_path=None, relative=False):
@@ -92,7 +92,7 @@ class GitManager:
 
     def is_github_repo(self):
         parsed_url = self.parse_repo_url()
-        return parsed_url.domain == 'github.com'
+        return parsed_url.resource == 'github.com'
 
     def find_source_path(self, top=None):
         if top is None:
@@ -163,14 +163,14 @@ class GitManager:
         return dict(
             key=key,
             user=getpass.getuser(),
-            prefix='personal/',
+            prefix='',
             desc=issue.fields.summary,
         )
 
     def get_issue_from_github(self, key):
         parsed_url = self.parse_repo_url()
         owner = parsed_url.owner
-        repo_name = parsed_url.repo
+        repo_name = parsed_url.name
 
         self.logger.debug("Building github api url to fetch issue")
         api_url = os.path.join(
