@@ -117,6 +117,10 @@ let NERDTreeWinSize=80
 autocmd filetype html setlocal tabstop=2 shiftwidth=2
 autocmd filetype javascript setlocal tabstop=2 shiftwidth=2
 
+" Set indentation for yaml files
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+autocmd FileType yml setlocal ts=2 sts=2 sw=2 expandtab
+
 " Map <TAB> to switch windows
 nmap <TAB> <C-W>w
 

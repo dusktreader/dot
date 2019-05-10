@@ -1,6 +1,6 @@
 [user]
 	name = Tucker Beck
-	email = tbeck@comscore.com
+	email = tucker.beck@officeally.com
 [alias]
     lg  = "log --pretty=format:'%C(yellow)%h%C(reset) %s %C(cyan)%cr%C(reset) %C(blue)%an%C(reset) %C(green)%d%C(reset)' --graph"
     st  = status

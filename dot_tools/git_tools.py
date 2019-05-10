@@ -195,7 +195,7 @@ class GitManager:
         reader = self.repo.config_reader()
         try:
             user = reader.get_value('github', 'user')
-        except:
+        except Exception:
             with DotError.handle_error("couldn't determine a username"):
                 user = reader.get_value('user', 'name')
 
