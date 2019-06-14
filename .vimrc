@@ -178,7 +178,7 @@ nmap <leader>aa :Tab /,\zs<CR>
 vmap <leader>aa :Tab /,\zs<CR>
 nmap <leader>aad :Tab /:\zs<CR>
 vmap <leader>aad :Tab /:\zs<CR>
-"
+
 " map ,tt to transpose
 vmap <leader>tt :!transpose<CR>
 vmap <leader>ttd :!transpose --to-dict<CR>
@@ -189,18 +189,18 @@ vmap <leader>AA :ArrangeColumn<CR>
 nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
 
-" Set ALE highlight colors
-highlight ALEWarning ctermbg=DarkGreen
-highlight ALEError ctermbg=DarkRed
-
 " typescript-vim settings
 let g:typescript_indent_disable = 1
 
-" vim-prettier config
-nmap <Leader>, <Plug>(AsyncPrettier)
+" ALE Settings
+highlight ALEWarning ctermbg=DarkGreen
+highlight ALEError ctermbg=DarkRed
+nmap <Leader>p :ALEFix
 let g:ale_fixers = {
     \'javascript': ['prettier'],
     \'typescript': ['prettier'],
-    \'css': ['prettier']
+    \'css': ['prettier'],
+    \'html': ['prettier']
 \}
-let g:ale_javascript_prettier_options = '--single-quote'
+let g:ale_javascript_prettier_options = '--single-quote --trailing-comma=all'
+let g:ale_fix_on_save = 1
