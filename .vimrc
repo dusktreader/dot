@@ -188,3 +188,19 @@ nmap <leader>AA :%ArrangeColumn<CR>
 vmap <leader>AA :ArrangeColumn<CR>
 nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
+
+" Set ALE highlight colors
+highlight ALEWarning ctermbg=DarkGreen
+highlight ALEError ctermbg=DarkRed
+
+" typescript-vim settings
+let g:typescript_indent_disable = 1
+
+" vim-prettier config
+nmap <Leader>, <Plug>(AsyncPrettier)
+let g:ale_fixers = {
+    \'javascript': ['prettier'],
+    \'typescript': ['prettier'],
+    \'css': ['prettier']
+\}
+let g:ale_javascript_prettier_options = '--single-quote'
