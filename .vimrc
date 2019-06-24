@@ -66,6 +66,11 @@ set tabstop=4
 set shiftwidth=4
 set expandtab
 set smarttab
+autocmd FileType html setlocal tabstop=2 softtabstop=2 shiftwidth=2
+autocmd FileType javascript setlocal tabstop=2 softtabstop=2 shiftwidth=2
+autocmd FileType typescript setlocal tabstop=2 softtabstop=2 shiftwidth=2
+autocmd FileType yaml       setlocal tabstop=2 softtabstop=2 shiftwidth=2
+autocmd FileType yml        setlocal tabstop=2 softtabstop=2 shiftwidth=2
 
 " Makes backspace behave the way you would expect
 set backspace=indent,eol,start
@@ -112,14 +117,6 @@ let NERDTreeAutoDeleteBuffer=1
 
 " Set the default size of the NERDTree window
 let NERDTreeWinSize=80
-
-" Set indentation for javascript and html files
-autocmd filetype html setlocal tabstop=2 shiftwidth=2
-autocmd filetype javascript setlocal tabstop=2 shiftwidth=2
-
-" Set indentation for yaml files
-autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
-autocmd FileType yml setlocal ts=2 sts=2 sw=2 expandtab
 
 " Map <TAB> to switch windows
 nmap <TAB> <C-W>w
@@ -190,7 +187,7 @@ nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
 
 " typescript-vim settings
-let g:typescript_indent_disable = 1
+" let g:typescript_indent_disable = 1
 
 " ALE Settings
 highlight ALEWarning ctermbg=DarkGreen

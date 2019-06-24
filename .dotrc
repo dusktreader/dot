@@ -122,6 +122,13 @@ then
     fi
 fi
 
+poetry_env_path=$HOME/.poetry/env
+if [[ -e $poetry_env_path ]]
+then
+    source $poetry_env_path
+    debug_out "Initialized poetry"
+fi
+
 dusktreader_rsa_key="dusktreader_id_rsa"
 dusktreader_rsa_path="$HOME/.ssh/$dusktreader_rsa_key"
 if [[ -e $dusktreader_rsa_path ]]
