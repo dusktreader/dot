@@ -1,3 +1,7 @@
+" Some dumb-shit stuff that makes python indentation work
+let vim_path=fnamemodify(resolve(expand('<sfile>:p')), ':h') . '/.vim'
+let &runtimepath=vim_path.',$VIMRUNTIME'
+
 " Enable powerline fonts for airline
 let g:airline_powerline_fonts=1
 

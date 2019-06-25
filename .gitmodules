@@ -107,3 +107,6 @@
 [submodule ".vim/pack/dusktreader/start/vim-typescript"]
 	path = .vim/pack/dusktreader/start/vim-typescript
 	url = https://github.com/leafgarland/typescript-vim.git
+[submodule ".vim/pack/dusktreader/start/vim-python-pep8-indent"]
+	path = .vim/pack/dusktreader/start/vim-python-pep8-indent
+	url = https://github.com/Vimjas/vim-python-pep8-indent.git
