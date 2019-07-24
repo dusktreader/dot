@@ -48,7 +48,7 @@ setup(
         'cmdline',
         'flake8',
         'gitdb',
-        'giturlparse.py',
+        'git-url-parse',
         'inflection',
         'jedi',
         'jira',
