@@ -190,10 +190,17 @@ vmap <leader>AA :ArrangeColumn<CR>
 nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
 
-" Tsuquyomi Settings (typescript)
-vmap <leader>gd :TsuquyomiDefinition
-vmap <leader>gtd :TsuquyomiTypeDefinition
-vmap <leader>gb :TsuquyomiGoBack
+" ALE Navigation Settings
+function! MarkAndGo()
+    execute ":Mark " . expand('<cword>')
+    execute ":ALEGoToDefinition"
+endfunction
+nmap <leader>d :call MarkAndGo()<CR>
+function! MarkAndGoSplit()
+    execute ":Mark " . expand('<cword>')
+    execute ":ALEGoToDefinitionInVSplit"
+endfunction
+nmap <leader>ds :all MarkAndGoSplit()<CR>
 
 " typescript-vim settings
 " let g:typescript_indent_disable = 1
