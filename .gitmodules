@@ -110,3 +110,6 @@
 [submodule ".vim/pack/dusktreader/start/vim-python-pep8-indent"]
 	path = .vim/pack/dusktreader/start/vim-python-pep8-indent
 	url = https://github.com/Vimjas/vim-python-pep8-indent.git
+[submodule ".vim/pack/dusktreader/start/tsuquyomi"]
+	path = .vim/pack/dusktreader/start/tsuquyomi
+	url = https://github.com/Quramy/tsuquyomi.git

@@ -190,6 +190,11 @@ vmap <leader>AA :ArrangeColumn<CR>
 nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
 
+" Tsuquyomi Settings (typescript)
+vmap <leader>gd :TsuquyomiDefinition
+vmap <leader>gtd :TsuquyomiTypeDefinition
+vmap <leader>gb :TsuquyomiGoBack
+
 " typescript-vim settings
 " let g:typescript_indent_disable = 1
 
@@ -199,7 +204,7 @@ highlight ALEError ctermbg=DarkRed
 nmap <Leader>p :ALEFix
 let g:ale_fixers = {
     \'javascript': ['prettier'],
-    \'typescript': ['prettier'],
+    \'typescript': ['tslint', 'prettier'],
     \'css': ['prettier'],
     \'html': ['prettier'],
 \}
