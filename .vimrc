@@ -1,6 +1,6 @@
 " Some dumb-shit stuff that makes python indentation work
-let vim_path=fnamemodify(resolve(expand('<sfile>:p')), ':h') . '/.vim'
-let &runtimepath=vim_path.',$VIMRUNTIME'
+" let vim_path=fnamemodify(resolve(expand('<sfile>:p')), ':h') . '/.vim'
+" let &runtimepath=vim_path.',$VIMRUNTIME'
 
 " Enable powerline fonts for airline
 let g:airline_powerline_fonts=1
@@ -210,11 +210,13 @@ highlight ALEWarning ctermbg=DarkGreen
 highlight ALEError ctermbg=DarkRed
 nmap <Leader>p :ALEFix
 let g:ale_fixers = {
-    \'javascript': ['prettier'],
-    \'typescript': ['tslint', 'prettier'],
+    \'typescript': ['tslint'],
     \'css': ['prettier'],
-    \'html': ['prettier'],
+    \'python': ['black'],
 \}
+"    \'typescript': ['tslint', 'prettier'],
+"    \'javascript': ['prettier'],
+"    \'html': ['prettier'],
 let g:ale_javascript_prettier_options = '--single-quote --trailing-comma=all'
 let g:ale_fix_on_save = 1
-let g:ale_python_flake8_options = '--max-line-length=100'
+" let g:ale_python_flake8_options = '--max-line-length=100'

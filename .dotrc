@@ -140,7 +140,7 @@ then
     fi
 fi
 
-office_ally_rsa_key="tucker.beck.oa.id_rsa"
+office_ally_rsa_key="tucker.beck.officeally.rsa"
 office_ally_rsa_path="$HOME/.ssh/$office_ally_rsa_key"
 if [[ -e $office_ally_rsa_path ]]
 then
