@@ -166,10 +166,10 @@ endfunction
 nmap <leader>gt :call JumpToTest()<CR>
 
 " Shortcut for navigating to the source file for a particular test file
-function! JumpToSource()
-    execute ":edit " . system('find-source-file ' . expand('%'))
-endfunction
-nmap <leader>gi :call JumpToSource()<CR>
+" function! JumpToSource()
+"     execute ":edit " . system('find-source-file ' . expand('%'))
+" endfunction
+" nmap <leader>gi :call JumpToSource()<CR>
 
 " Starts sphinx-view for the current file
 nmap <leader>v :Start! sphinx-view %<CR>
@@ -219,4 +219,31 @@ let g:ale_fixers = {
 "    \'html': ['prettier'],
 let g:ale_javascript_prettier_options = '--single-quote --trailing-comma=all'
 let g:ale_fix_on_save = 1
-" let g:ale_python_flake8_options = '--max-line-length=100'
+let g:ale_python_flake8_options='--max-line-length=1000'
+nmap <leader>lll :let g:ale_python_flake8_options='--max-line-length=120'<CR>
+nmap <leader>ll :let g:ale_python_flake8_options='--max-line-length=100'<CR>
+nmap <leader>ls :let g:ale_python_flake8_options='--max-line-length=80'<CR>
+nmap <leader>ff :let g:ale_fix_on_save=0<CR>
+
+
+" CoC Settings
+
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
+" Use tab for trigger completion with characters ahead and navigate.
+" NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
+" other plugin before putting this into your config.
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+
+" GoTo code navigation.
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)

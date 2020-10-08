@@ -116,3 +116,6 @@
 [submodule ".vim/pack/dusktreader/start/vim-ingo-library"]
 	path = .vim/pack/dusktreader/start/vim-ingo-library
 	url = https://github.com/inkarkat/vim-ingo-library.git
+[submodule ".vim/pack/dusktreader/start/coc.nvim"]
+	path = .vim/pack/dusktreader/start/coc.nvim
+	url = git@github.com:neoclide/coc.nvim.git

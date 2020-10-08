@@ -4,12 +4,11 @@ import giturlparse
 import inflection
 import jira.client
 import json
-import logbook
 import os
 import re
 import requests
 import setuptools
-
+from loguru import logger
 
 from dot_tools.misc_tools import DotError
 
@@ -19,8 +18,7 @@ class GitError(DotError):
 
 
 class GitManager:
-
-    def __init__(self, path=None, logger=None):
+    def __init__(self, path=None):
         if path is None:
             self.path = os.getcwd()
         else:
@@ -29,12 +27,6 @@ class GitManager:
             os.path.exists(self.path),
             "Can't initialize GitManger with nonextant path",
         )
-
-        if logger is None:
-            self.logger = logbook.Logger('GitManager')
-            self.logger.level = logbook.DEBUG
-        else:
-            self.logger = logger
 
         with GitError.handle_errors("Couldn't initialize git manager"):
             self.repo = None
@@ -46,14 +38,12 @@ class GitManager:
                 except git.InvalidGitRepositoryError:
                     temp_path = os.path.dirname(temp_path)
             GitError.require_condition(
-                self.repo is not None,
-                "Path {} was not in a git repository",
-                self.path
+                self.repo is not None, "Path {} was not in a git repository", self.path
             )
             self.gitter = self.repo.git
-            self.logger.debug("Initialized GitManger for {}", self.repo)
+            logger.debug("Initialized GitManger for {}", self.repo)
 
-    def remote(self, remote_name='origin'):
+    def remote(self, remote_name="origin"):
         return self.repo.remote(name=remote_name)
 
     def remote_url(self, remote=None):
@@ -71,42 +61,42 @@ class GitManager:
     def parse_repo_url(self, url=None):
         if url is None:
             url = self.remote_url()
-        if not url.endswith('.git'):
-            url += '.git'
-        self.logger.debug("Attempting to parse url: {}", url)
+        if not url.endswith(".git"):
+            url += ".git"
+        logger.debug("Attempting to parse url: {}", url)
         parsed_url = giturlparse.parse(url)
         DotError.require_condition(parsed_url, "Couldn't parse url {}", url)
-        self.logger.debug("URL parsed as: {}", parsed_url.href)
+        logger.debug("URL parsed as: {}", parsed_url.href)
         return parsed_url
 
     def toplevel(self, start_path=None, relative=False):
         path = self.repo.working_dir
         if start_path is None:
             start_path = path
-        self.logger.debug("Toplevel path is {}", path)
+        logger.debug("Toplevel path is {}", path)
         if relative:
-            self.logger.debug("Finding relative path from {}", start_path)
+            logger.debug("Finding relative path from {}", start_path)
             path = os.path.relpath(path, start_path)
-        self.logger.debug("Toplevel path is {}", path)
+        logger.debug("Toplevel path is {}", path)
         return path
 
     def is_github_repo(self):
         parsed_url = self.parse_repo_url()
-        return parsed_url.resource == 'github.com'
+        return parsed_url.resource == "github.com"
 
     def find_source_path(self, top=None):
         if top is None:
             top = self.toplevel()
-        self.logger.debug("Looking for 'source' path from {}", top)
+        logger.debug("Looking for 'source' path from {}", top)
 
-        packages = setuptools.find_packages(where=top, exclude=['test*'])
-        unique_roots = set([p.split('.')[0] for p in packages])
+        packages = setuptools.find_packages(where=top, exclude=["test*"])
+        unique_roots = set([p.split(".")[0] for p in packages])
         GitError.require_condition(
             len(unique_roots) == 1,
             "Could not find one and only one source package",
         )
         source_path = os.path.join(top, unique_roots.pop())
-        self.logger.debug("Source path found at {}", source_path)
+        logger.debug("Source path found at {}", source_path)
         return source_path
 
     def count_changes(self):
@@ -120,50 +110,50 @@ class GitManager:
                 base = self.current_branch
                 ref = self.current_branch
             else:
-                self.logger.debug("Evaluating ref from base {}".format(base))
+                logger.debug("Evaluating ref from base {}".format(base))
                 ref = self.repo.refs[base]
 
-        if 'origin' in str(base):
-            self.logger.debug("Fetching")
+        if "origin" in str(base):
+            logger.debug("Fetching")
             self.remote().fetch()
 
-        self.logger.debug("Creating new branch named {} based on {}".format(
-            branch_name,
-            base
-        ))
+        logger.debug(
+            "Creating new branch named {} based on {}".format(branch_name, base)
+        )
         self.repo.create_head(branch_name, ref)
 
-        self.logger.debug("Checking out new branch")
+        logger.debug("Checking out new branch")
         self.repo.git.checkout(branch_name)
 
     def get_issue_from_jira(self, key):
         GitError.require_condition(
-            re.match(r'^[A-Z]+-\d+$', key),
+            re.match(r"^[A-Z]+-\d+$", key),
             "Invalid JIRA key: {}",
             key,
         )
 
         issue = None
-        self.logger.debug("Fetching issue from JIRA using '{}'".format(key))
+        logger.debug("Fetching issue from JIRA using '{}'".format(key))
         with GitError.handle_errors("Couldn't get description from JIRA api"):
 
-            cred_path = os.path.expanduser('~/.jira.json')
+            cred_path = os.path.expanduser("~/.jira.json")
 
-            self.logger.debug("Loading JIRA creds from {}".format(cred_path))
+            logger.debug("Loading JIRA creds from {}".format(cred_path))
             with open(cred_path) as cred_file:
                 creds = json.load(cred_file)
 
-            self.logger.debug("Fetching JIRA issue data from API")
+            logger.debug("Fetching JIRA issue data from API")
             jira_server = jira.client.JIRA(
-                basic_auth=(creds['username'], creds['password']),
-                options={'server': creds['url_base']},
+                basic_auth=(creds["username"], creds["password"]),
+                options={"server": creds["url_base"]},
+                verify=False,
             )
             issue = jira_server.issue(key)
 
         return dict(
             key=key,
             user=getpass.getuser(),
-            prefix='',
+            prefix="",
             desc=issue.fields.summary,
         )
 
@@ -172,17 +162,17 @@ class GitManager:
         owner = parsed_url.owner
         repo_name = parsed_url.name
 
-        self.logger.debug("Building github api url to fetch issue")
+        logger.debug("Building github api url to fetch issue")
         api_url = os.path.join(
-            'https://api.github.com/repos',
+            "https://api.github.com/repos",
             owner,
             repo_name,
-            'issues',
+            "issues",
             str(key),
         )
-        self.logger.debug("url built as {}".format(api_url))
+        logger.debug("url built as {}".format(api_url))
 
-        self.logger.debug("Getting github issue details from api")
+        logger.debug("Getting github issue details from api")
         response = requests.get(api_url)
         DotError.require_condition(
             response.status_code == 200,
@@ -191,34 +181,34 @@ class GitManager:
         )
         issue = response.json()
 
-        self.logger.debug("Finding current git user")
+        logger.debug("Finding current git user")
         reader = self.repo.config_reader()
         try:
-            user = reader.get_value('github', 'user')
+            user = reader.get_value("github", "user")
         except Exception:
             with DotError.handle_error("couldn't determine a username"):
-                user = reader.get_value('user', 'name')
+                user = reader.get_value("user", "name")
 
         return dict(
             key=key,
             user=user,
-            prefix='',
-            desc=issue['title'],
+            prefix="",
+            desc=issue["title"],
         )
 
     def make_branch(self, key, base=None):
         key = str(key).upper()
         issue_fetcher = None
         if not self.is_github_repo():
-            self.logger.debug("repo is not a github repo")
+            logger.debug("repo is not a github repo")
             issue_fetcher = self.get_issue_from_jira
         else:
-            self.logger.debug("repo is a github repo")
+            logger.debug("repo is a github repo")
             issue_fetcher = self.get_issue_from_github
         branch_parts = issue_fetcher(key)
-        branch_parts['desc'] = inflection.parameterize(branch_parts['desc'])
-        branch_name = '{prefix}{user}/{key}--{desc}'.format(**branch_parts)
-        self.logger.debug("branch name built as {}".format(branch_name))
+        branch_parts["desc"] = inflection.parameterize(branch_parts["desc"])
+        branch_name = "{prefix}{user}/{key}--{desc}".format(**branch_parts)
+        logger.debug("branch name built as {}".format(branch_name))
         self.checkout_new_branch(branch_name, base=base)
 
     @property
@@ -228,15 +218,15 @@ class GitManager:
     def jira_key(self):
         current_branch = self.repo.active_branch
         GitError.require_condition(
-            current_branch != 'master',
+            current_branch != "master",
             "Can't extract a JIRA key from master branch",
         )
 
         match = re.match(
-            r'(?:.*/)?([a-z]+-\d+).*',
+            r"(?:.*/)?([a-z]+-\d+).*",
             str(current_branch),
             flags=re.IGNORECASE,
-            )
+        )
         GitError.require_condition(
             match is not None,
             "Can't extract a JIRA key from {}",
@@ -248,17 +238,13 @@ class GitManager:
     def checkout_branch_by_pattern(self, pattern):
         checkout_kwargs = {}
         matching_branches = [
-            b for b
-            in self.repo.branches
-            if re.search(pattern, str(b), re.IGNORECASE)
+            b for b in self.repo.branches if re.search(pattern, str(b), re.IGNORECASE)
         ]
         if len(matching_branches) == 0:
-            checkout_kwargs['track'] = True
+            checkout_kwargs["track"] = True
             for remote in self.repo.remotes:
                 matching_branches += [
-                    b for b
-                    in remote.refs
-                    if re.search(pattern, str(b), re.IGNORECASE)
+                    b for b in remote.refs if re.search(pattern, str(b), re.IGNORECASE)
                 ]
         GitError.require_condition(
             len(matching_branches) == 1,
@@ -267,11 +253,6 @@ class GitManager:
             [str(b) for b in matching_branches],
         )
         branch = matching_branches.pop()
-        self.logger.debug("Checking out matching branch: {}", branch)
+        logger.debug("Checking out matching branch: {}", branch)
         branch.checkout(**checkout_kwargs)
-        self.logger.debug("Branch {} checked out", branch)
-
-    def pushup(self):
-        self.logger.debug("Pushing branch to origin for first time")
-        self.gitter.push('origin', self.current_branch, set_upstream=True)
-        self.logger.debug("Pushed branch to origin")
+        logger.debug("Branch {} checked out", branch)

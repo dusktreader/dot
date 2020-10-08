@@ -5,14 +5,16 @@ from dot_tools.misc_tools import setup_logging
 
 
 @click.command()
-def main():
+@click.option(
+    "-v/-q",
+    "--verbose/--quiet",
+    default=False,
+    help="control verbosity of status messages",
+)
+def main(verbose):
     """
     Get the name of the current branch
     """
+    setup_logging(verbose=verbose)
     git_man = GitManager()
-
     print(git_man.current_branch)
-
-
-if __name__ == '__main__':
-    main()

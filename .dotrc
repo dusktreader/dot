@@ -185,8 +185,9 @@ pyclean () {
 
 install_dot() {
     rm -rf .wheels/dot*
-    pip3 wheel -w .wheels .
-    pip3 install -U .wheels/dot*
+    python -m pip install wheel
+    python -m pip wheel -w .wheels .
+    python -m pip install -U .wheels/dot*
 }
 
 pip_install_save() {
@@ -197,6 +198,33 @@ pip_install_save() {
         requirements_file='./etc/setuptools/requirements.txt'
     fi
     pip install $package_name && pip freeze | grep -i "^$package_name==" >> $requirements_file
+}
+
+envo() {
+    env_file=$1
+    verbose=$2
+    if [[ -z $env_file ]]
+    then
+        echo "You must supply an environment file as the first arg"
+        return 1
+    fi
+    if [[ ! -e $env_file ]]
+    then
+        echo "The supplied env file doesn't exist"
+        return 1
+    fi
+    if [[ -n $verbose ]]
+    then
+        echo "Setting environment variables..."
+    fi
+    while IFS='' read -r LINE || [ -n "${LINE}" ]; do
+        if [[ -n $verbose ]]
+        then
+            echo "${LINE}"
+        fi
+        export $LINE
+    done < $1
+    # export $(grep -v '^#' $env_file | xargs -0)
 }
 
 count_files_in_subdirs() {

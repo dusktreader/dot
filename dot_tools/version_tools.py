@@ -1,16 +1,16 @@
 import bidict
 import enum
 import json
-import logbook
 import os
 import pydon
 import re
+from loguru import logger
 
 from dot_tools.misc_tools import DotException
 from dot_tools.git_tools import GitManager
 
 
-DEFAULT_METADATA_FILE = '.project_metadata.py',
+DEFAULT_METADATA_FILE = (".project_metadata.py",)
 
 
 class VersionError(DotException):
@@ -51,17 +51,11 @@ class VersionType(enum.IntEnum):
     @classmethod
     def lookup(cls, key):
         key = key.lower()
-        return (cls.short_dict().get(key) or getattr(cls, key))
+        return cls.short_dict().get(key) or getattr(cls, key)
 
 
 class Version:
-
     def __init__(self, *args, **kwargs):
-        if 'logger' in kwargs:
-            self.logger = kwargs.pop('logger')
-        else:
-            self.logger = logbook.Logger('Version')
-            self.logger.level = logbook.DEBUG
         if len(args) > 0 or len(kwargs) > 0:
             self.set_version(*args, **kwargs)
         else:
@@ -69,7 +63,7 @@ class Version:
 
     def update_from_string(self, text):
         match = re.match(
-            r'^v?(\d+)\.(\d+)\.(\d+)(?:-(\w+)(\d+))?$',
+            r"^v?(\d+)\.(\d+)\.(\d+)(?:-(\w+)(\d+))?$",
             text,
         )
         VersionError.require_condition(
@@ -79,13 +73,13 @@ class Version:
         self.set_version(*match.groups())
 
     def __repr__(self):
-        text = '{}.{}.{}'.format(
+        text = "{}.{}.{}".format(
             self.d[VersionType.major],
             self.d[VersionType.minor],
             self.d[VersionType.patch],
         )
         if self.current_special_type is not None:
-            text = '{}-{}{}'.format(
+            text = "{}-{}{}".format(
                 text,
                 VersionType.short_dict().inv[self.current_special_type],
                 self.d[self.current_special_type],
@@ -93,10 +87,10 @@ class Version:
         return text
 
     def __str__(self):
-        return 'v' + repr(self)
+        return "v" + repr(self)
 
     def major_minor(self):
-        return '{}.{}'.format(
+        return "{}.{}".format(
             self.d[VersionType.major],
             self.d[VersionType.minor],
         )
@@ -109,8 +103,7 @@ class Version:
         return None
 
     def set_version(
-        self, major_num, minor_num, patch_num,
-        extra_type=None, extra_num=None
+        self, major_num, minor_num, patch_num, extra_type=None, extra_num=None
     ):
         self.d = {
             VersionType.major: int(major_num),
@@ -125,7 +118,7 @@ class Version:
                 self.d[extra_type] = int(extra_num)
 
     def bump(self, bump_type=VersionType.patch):
-        self.logger.debug("Bumping version with type {}", bump_type)
+        logger.debug("Bumping version with type {}", bump_type)
         if not isinstance(bump_type, VersionType):
             bump_type = VersionType.lookup(bump_type)
 
@@ -134,9 +127,7 @@ class Version:
 
         elif bump_type is VersionType.minor:
             self.set_version(
-                self.d[VersionType.major],
-                self.d[VersionType.minor] + 1,
-                0
+                self.d[VersionType.major], self.d[VersionType.minor] + 1, 0
             )
 
         elif bump_type is VersionType.patch:
@@ -170,14 +161,13 @@ class Version:
             else:
                 del self.d[current_type]
                 self.d[bump_type] = 1
-        self.logger.debug("Version bumped to {}", self)
+        logger.debug("Version bumped to {}", self)
 
 
 class VersionManager:
-
-    def __init__(self, path=None, logger=None):
+    def __init__(self, path=None):
         if path is None:
-            path = os.path.join('.', DEFAULT_METADATA_FILE)
+            path = os.path.join(".", DEFAULT_METADATA_FILE)
         self.path = os.path.abspath(os.path.expanduser(path))
 
         VersionError.require_condition(
@@ -185,40 +175,34 @@ class VersionManager:
             "Can't initialize VersionManager with nonextant path",
         )
 
-        if logger is None:
-            self.logger = logbook.Logger('VersionManager')
-            self.logger.level = logbook.DEBUG
-        else:
-            self.logger = logger
-
-        self.logger.debug("Reading version info from {}", self.path)
-        if self.path.endswith('.json'):
-            with open(self.path, 'r') as json_file:
+        logger.debug("Reading version info from {}", self.path)
+        if self.path.endswith(".json"):
+            with open(self.path, "r") as json_file:
                 self.metadata = json.load(json_file)
         else:
             self.metadata = pydon.load_file(self.path)
-        self.version = Version(logger=self.logger)
-        self.version.update_from_string(self.metadata['release'])
-        self.logger.debug("Current version is {}", self.version)
+        self.version = Version()
+        self.version.update_from_string(self.metadata["release"])
+        logger.debug("Current version is {}", self.version)
 
-        self.git_manager = GitManager(path=self.path, logger=self.logger)
+        self.git_manager = GitManager(path=self.path)
 
-        self.logger.debug("Initialized VersionManger for {}", self.path)
+        logger.debug("Initialized VersionManger for {}", self.path)
 
     def save_version(self):
-        self.logger.debug("Saving current version to {}", self.path)
-        self.metadata['release'] = repr(self.version)
-        self.metadata['version'] = self.version.major_minor()
-        if self.path.endswith('.json'):
-            with open(self.path, 'w') as json_file:
+        logger.debug("Saving current version to {}", self.path)
+        self.metadata["release"] = repr(self.version)
+        self.metadata["version"] = self.version.major_minor()
+        if self.path.endswith(".json"):
+            with open(self.path, "w") as json_file:
                 json.dump(self.metadata, json_file, indent=4)
         else:
             pydon.dump_file(self.metadata, self.path, indent=4, width=1)
-        self.logger.debug("Version saved")
+        logger.debug("Version saved")
 
     def tag_version(self, comment=None, bump_type=None):
         with DotException.handle_errors("Couldn't tag version"):
-            self.logger.debug("Started tagging version")
+            logger.debug("Started tagging version")
             DotException.require_condition(
                 self.git_manager.count_changes() == 0,
                 "There must be no staged files before the tag can be made",
@@ -231,40 +215,42 @@ class VersionManager:
                 self.save_version()
                 self.git_manager.gitter.add(self.path)
 
-                self.logger.debug("Attempting to edit changelog")
+                logger.debug("Attempting to edit changelog")
                 top = self.git_manager.toplevel()
                 changelog_files = [
                     os.path.join(top, f)
                     for f in os.listdir(top)
-                    if re.search(r'(CHANGELOG|HISTORY|RELEASE|CHANGES)', f)
+                    if re.search(r"(CHANGELOG|HISTORY|RELEASE|CHANGES)", f)
                 ]
                 if len(changelog_files) == 1:
                     changelog = changelog_files.pop()
-                    os.system('$EDITOR {}'.format(changelog))
+                    os.system("$EDITOR {}".format(changelog))
                     self.git_manager.gitter.add(changelog)
                 else:
-                    self.logger.warning("Didn't find 1 changelog. Skipping edit")
+                    logger.warning("Didn't find 1 changelog. Skipping edit")
 
-                self.logger.debug("Commiting changes")
-                self.git_manager.gitter.commit(m="Version bumped to {}".format(self.version))
-                self.logger.debug("Pushing changes")
+                logger.debug("Commiting changes")
+                self.git_manager.gitter.commit(
+                    m="Version bumped to {}".format(self.version)
+                )
+                logger.debug("Pushing changes")
                 self.git_manager.gitter.push()
 
             if comment is None:
                 comment = "{name} version {release}"
-            self.logger.debug("Formatting comment '{}' with metadata".format(comment))
+            logger.debug("Formatting comment '{}' with metadata".format(comment))
             comment = comment.format(**self.metadata)
 
-            self.logger.debug("Tag name (message) is '{}'".format(comment))
+            logger.debug("Tag name (message) is '{}'".format(comment))
 
-            self.logger.debug("Creating tag")
+            logger.debug("Creating tag")
             self.git_manager.gitter.tag(
                 str(self.version),
                 annotate=True,
                 message=comment,
             )
 
-            self.logger.debug("Pushing tags")
+            logger.debug("Pushing tags")
             self.git_manager.gitter.push(tags=True)
 
-            self.logger.debug("Finished tagging version")
+            logger.debug("Finished tagging version")
