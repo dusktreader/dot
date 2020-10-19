@@ -212,8 +212,8 @@ nmap <Leader>p :ALEFix
 let g:ale_fixers = {
     \'typescript': ['tslint'],
     \'css': ['prettier'],
-    \'python': ['black'],
 \}
+"    \'python': ['black'],
 "    \'typescript': ['tslint', 'prettier'],
 "    \'javascript': ['prettier'],
 "    \'html': ['prettier'],
