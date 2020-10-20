@@ -24,6 +24,7 @@ sh = "^1.14.0"
 jira = "^2.0.0"
 keyring = "^21.4.0"
 addict = "^2.3.0"
+toml = "^0.10.1"
 
 [tool.poetry.dev-dependencies]
 
@@ -42,6 +43,8 @@ tag-version = 'dot_tools.bin.tag_version:main'
 transpose = 'dot_tools.bin.transpose:main'
 underlined-header = 'dot_tools.bin.underlined_header:main'
 save-jira-password = 'dot_tools.bin.save_jira_password:main'
+find-pyproject-toml = 'dot_tools.bin.find_pyproject_toml:main'
+get-black-line-length = 'dot_tools.bin.get_black_line_length:main'
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

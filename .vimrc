@@ -45,10 +45,10 @@ set undofile
 set undodir=~/.vim/undodir
 
 " Puts in column markers for 80, 100, and 120 characters
-set colorcolumn=80
-set colorcolumn+=100
-set colorcolumn+=120
-highlight ColorColumn ctermbg=4
+set termguicolors
+let g:line_length=trim(system('get-black-line-length'))
+execute "set colorcolumn=" . join(range(g:line_length + 1,335), ',')
+highlight ColorColumn ctermbg=0 guibg=#333333
 
 " remove trailing whitespace right before writing file
 autocmd bufwritepre  * :%s/\s\+$//e
@@ -190,40 +190,16 @@ vmap <leader>AA :ArrangeColumn<CR>
 nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
 
-" ALE Navigation Settings
-function! MarkAndGo()
-    execute ":Mark " . expand('<cword>')
-    execute ":ALEGoToDefinition"
-endfunction
-nmap <leader>d :call MarkAndGo()<CR>
-function! MarkAndGoSplit()
-    execute ":Mark " . expand('<cword>')
-    execute ":ALEGoToDefinitionInVSplit"
-endfunction
-nmap <leader>ds :all MarkAndGoSplit()<CR>
-
 " typescript-vim settings
 " let g:typescript_indent_disable = 1
 
 " ALE Settings
 highlight ALEWarning ctermbg=DarkGreen
 highlight ALEError ctermbg=DarkRed
-nmap <Leader>p :ALEFix
-let g:ale_fixers = {
-    \'typescript': ['tslint'],
-    \'css': ['prettier'],
-\}
-"    \'python': ['black'],
-"    \'typescript': ['tslint', 'prettier'],
-"    \'javascript': ['prettier'],
-"    \'html': ['prettier'],
-let g:ale_javascript_prettier_options = '--single-quote --trailing-comma=all'
-let g:ale_fix_on_save = 1
-let g:ale_python_flake8_options='--max-line-length=1000'
-nmap <leader>lll :let g:ale_python_flake8_options='--max-line-length=120'<CR>
-nmap <leader>ll :let g:ale_python_flake8_options='--max-line-length=100'<CR>
-nmap <leader>ls :let g:ale_python_flake8_options='--max-line-length=80'<CR>
-nmap <leader>ff :let g:ale_fix_on_save=0<CR>
+let g:ale_fix_on_save = 0
+let g:ale_python_flake8_options="--max-line-length=" . g:line_length
+" nmap <leader>ff :let g:ale_fix_on_save=0<CR>
+let g:ale_disable_lsp = 1
 
 
 " CoC Settings

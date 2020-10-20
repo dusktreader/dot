@@ -1,13 +1,17 @@
 import ast
 import inspect
 import os
+import pathlib
 import pendulum
 import pprintpp
 import re
 import sys
+import toml
 from loguru import logger
 
 from buzz import Buzz
+
+DEFAULT_BLACK_LINE_LENGTH = 88
 
 
 class DotException(Buzz):
@@ -99,3 +103,36 @@ def print_var(value, print_fn=print):
         print_fn("Couldn't interpret variable. Basic regex failed")
     var_name = match.group(1)
     print_fn("{}={}".format(var_name, value))
+
+
+def find_pyproject_toml():
+    path = pathlib.Path.cwd()
+    logger.debug(f"Looking in {path}")
+    while True:
+        possible_path = path / "pyproject.toml"
+        if possible_path.exists():
+            logger.debug(f"Found pyproject.toml at {possible_path}")
+            return possible_path
+        if path == path.parent:
+            logger.debug(f"Bottomed out at {path}. pyproject.toml not found")
+            return None
+        path = path.parent
+
+
+def get_black_line_length():
+    try:
+        logger.debug("Finding pyproject.toml")
+        pyproject_toml = find_pyproject_toml()
+        logger.debug(f"Found at {pyproject_toml}")
+        config = toml.load(pyproject_toml)
+        logger.debug(f"Config extracted as {config}")
+        tool_config = config["tool"]
+        logger.debug(f"Tool config extracted as {tool_config}")
+        black_config = tool_config["black"]
+        logger.debug(f"Black config extracted as {black_config}")
+        line_length = black_config["line-length"]
+        logger.debug(f"Line length extracted as {line_length}")
+        return line_length
+    except Exception as err:
+        logger.debug(f"Couldn't find line length: {repr(err)}")
+        return DEFAULT_BLACK_LINE_LENGTH

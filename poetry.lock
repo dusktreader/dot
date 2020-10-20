@@ -552,7 +552,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "42c30a7c5e8ce888a7c2cb2867e422c445e013de52ddfa46808be901cefe195b"
+content-hash = "45288ae9c1ce9d706ccc216874ae4827478f0d4d986402c8e4ac7c965dd8fb32"
 
 [metadata.files]
 addict = [
