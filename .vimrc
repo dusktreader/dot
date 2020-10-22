@@ -49,6 +49,9 @@ set termguicolors
 let g:line_length=trim(system('get-black-line-length'))
 execute "set colorcolumn=" . join(range(g:line_length + 1,335), ',')
 highlight ColorColumn ctermbg=0 guibg=#333333
+highlight EndOfBuffer ctermbg=0 guibg=#333333
+highlight PMenu ctermbg=0 guibg=DarkSlateGray
+highlight PMenuSel ctermbg=0 guibg=DarkBlue
 
 " remove trailing whitespace right before writing file
 autocmd bufwritepre  * :%s/\s\+$//e
@@ -198,12 +201,11 @@ highlight ALEWarning ctermbg=DarkGreen
 highlight ALEError ctermbg=DarkRed
 let g:ale_fix_on_save = 0
 let g:ale_python_flake8_options="--max-line-length=" . g:line_length
-" nmap <leader>ff :let g:ale_fix_on_save=0<CR>
 let g:ale_disable_lsp = 1
 
 
 " CoC Settings
-
+nmap <leader>ff :CocConfig<CR>
 function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'

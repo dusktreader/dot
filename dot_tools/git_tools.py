@@ -221,7 +221,7 @@ class GitManager:
             issue_fetcher = self.get_issue_from_github
         branch_parts = issue_fetcher(key)
         branch_parts["desc"] = inflection.parameterize(branch_parts["desc"])
-        branch_name = "{prefix}{user}/{key}--{desc}".format(**branch_parts)
+        branch_name = "{prefix}{user}/{key}--{desc}".format(**branch_parts)[:60]
         logger.debug(f"branch name built as {branch_name}")
         self.checkout_new_branch(branch_name, base=base)
 
