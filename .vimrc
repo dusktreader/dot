@@ -13,6 +13,9 @@ if filereadable("etc/vim/vimrc.local")
     source etc/vim/vimrc.local
 endif
 
+" make bell visual only
+se visualbell
+
 " Turn off vi compatibility mode
 set nocompatible
 
@@ -134,7 +137,7 @@ nnoremap <leader>e :NERDTreeFind<CR>
 " Map ,RR to reload vimrc
 nnoremap <leader>RR :source $MYVIMRC <CR>
 
-" Put yanked text in the 'clipboard' buffer.  Will not fucking work!!!
+" Put yanked text in the 'clipboard' buffer.
 if has('clipboard')
     set clipboard=unnamed
     if has('xterm_clipboard')
@@ -160,7 +163,7 @@ nmap <silent> <leader>l :w<CR> :TestLast --color=yes<CR>
 nmap <silent> <leader>lv :w<CR> :TestLast --color=yes --verbose<CR>
 nmap <silent> <leader>lvv :w<CR> :TestLast --color=yes --verbose --verbose<CR>
 let test#strategy = "dispatch"
-let test#python#runner = 'pytest'
+let test#python#runner = 'poetry run pytest'
 
 " Shortcut for navigating to the test file for a particular source file
 function! JumpToTest()

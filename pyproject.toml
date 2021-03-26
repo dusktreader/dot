@@ -18,13 +18,14 @@ loguru = "^0.5.3"
 pprintpp = "^0.4.0"
 py-buzz = "^2.0.0"
 pydon = "^0.1.0"
-pytest = "^6.1.1"
+upytest = "^6.1.1"
 requests = "^2.24.0"
 sh = "^1.14.0"
 jira = "^2.0.0"
 keyring = "^21.4.0"
 addict = "^2.3.0"
 toml = "^0.10.1"
+pylint = "^2.6.0"
 
 [tool.poetry.dev-dependencies]
 
