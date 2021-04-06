@@ -133,6 +133,9 @@ nnoremap <leader>e :NERDTreeFind<CR>
 
 " Map ,RR to reload vimrc
 nnoremap <leader>RR :source $MYVIMRC <CR>
+"
+" Map ,NN to clear search pattern hilight
+nnoremap <leader>NN :noh <CR>
 
 " Put yanked text in the 'clipboard' buffer.  Will not fucking work!!!
 if has('clipboard')
