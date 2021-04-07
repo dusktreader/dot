@@ -133,17 +133,41 @@ nnoremap <leader>e :NERDTreeFind<CR>
 
 " Map ,RR to reload vimrc
 nnoremap <leader>RR :source $MYVIMRC <CR>
-"
+
+" Map ,EE to edit vim config
+nnoremap <leader>EE :e $MYVIMRC <CR>
+
 " Map ,NN to clear search pattern hilight
 nnoremap <leader>NN :noh <CR>
 
-" Put yanked text in the 'clipboard' buffer.  Will not fucking work!!!
+" Put yanked text in the 'clipboard' buffer for linux systems.
 if has('clipboard')
     set clipboard=unnamed
     if has('xterm_clipboard')
         set clipboard+=unnamedplus
     endif
 endif
+
+" Map ,pp to paste from windows clipboard in WSL
+nnoremap <silent> <leader>pp :r !powershell.exe -Command Get-Clipboard<CR>
+
+" Copy yank to windows clipboard in WSL
+let s:clip = '/mnt/c/Windows/System32/clip.exe'
+if executable(s:clip)
+    augroup WSLYank
+        autocmd!
+        autocmd TextYankPost * call system('echo '.shellescape(join(v:event.regcontents, "\<CR>")).' | '.s:clip)
+    augroup END
+end
+
+" Cursor settings for windows terminal
+if &term =~ '^xterm'
+    " normal mode
+    let &t_EI .= "\<Esc>[0 q"
+    " insert mode
+    let &t_SI .= "\<Esc>[6 q"
+endif
+
 
 " Replaces commonly mistyped commands with the correct one
 " See: http://stackoverflow.com/questions/3878692/aliasing-a-command-in-vim/3879737#3879737

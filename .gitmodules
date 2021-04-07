@@ -114,3 +114,6 @@
 [submodule ".vim/pack/dusktreader/start/coc.nvim"]
 	path = .vim/pack/dusktreader/start/coc.nvim
 	url = git@github.com:neoclide/coc.nvim.git
+[submodule ".vim/pack/dusktreader/start/vim-wordmotion"]
+	path = .vim/pack/dusktreader/start/vim-wordmotion
+	url = https://github.com/chaoren/vim-wordmotion.git
