@@ -137,7 +137,6 @@ nnoremap <leader>e :NERDTreeFind<CR>
 " Map ,RR to reload vimrc
 nnoremap <leader>RR :source $MYVIMRC <CR>
 
-<<<<<<< HEAD
 " Map ,EE to edit vim config
 nnoremap <leader>EE :e $MYVIMRC <CR>
 
