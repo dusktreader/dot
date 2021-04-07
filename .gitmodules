@@ -117,3 +117,6 @@
 [submodule ".vim/pack/dusktreader/start/vim-wordmotion"]
 	path = .vim/pack/dusktreader/start/vim-wordmotion
 	url = https://github.com/chaoren/vim-wordmotion.git
+[submodule ".vim/pack/dusktreader/start/terminus"]
+	path = .vim/pack/dusktreader/start/terminus
+	url = https://github.com/wincent/terminus.git
