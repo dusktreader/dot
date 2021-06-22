@@ -42,6 +42,8 @@ alias evim='$EDITOR ~/git-repos/dot/.vimrc'
 export EDITOR=$raw_vim_command
 export VISUAL=$raw_vim_command
 
+alias eack='$EDITOR ~/git-repos/dot/.ackrc'
+
 alias egit='$EDITOR ~/git-repos/dot/.gitconfig'
 
 alias ebash="$EDITOR ~/.bashrc"
@@ -96,9 +98,7 @@ debug_out "Detecting which ack"
 which ack > /dev/null 2>&1
 if (( $? ))
 then
-    alias ack='ack-grep --color'
-else
-    alias ack='ack --color'
+    alias ack='ack-grep'
 fi
 
 
