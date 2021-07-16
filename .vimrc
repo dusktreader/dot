@@ -202,8 +202,13 @@ vmap <leader>UA :UnArrangeColumn<CR>
 " ALE Settings
 highlight ALEWarning ctermbg=DarkGreen
 highlight ALEError ctermbg=DarkRed
+let g:ale_linters = {
+\  'python': ['flake8']
+\}
 let g:ale_fix_on_save = 0
 let g:ale_python_flake8_options="--max-line-length=" . g:line_length
+" let g:ale_python_pylint_executable="poetry"
+" let g:ale_python_pylint_options="run pylint --max-line-length=" . g:line_length . " --no-docstring-rgx=.*"
 let g:ale_disable_lsp = 1
 
 

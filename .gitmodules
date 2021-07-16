@@ -117,3 +117,9 @@
 [submodule ".vim/pack/dusktreader/start/terminus"]
 	path = .vim/pack/dusktreader/start/terminus
 	url = https://github.com/wincent/terminus.git
+[submodule ".vim/pack/dusktreader/start/vim-venom"]
+	path = .vim/pack/dusktreader/start/vim-venom
+	url = https://github.com/rafi/vim-venom.git
+[submodule ".vim/pack/dusktreader/start/poet-v"]
+	path = .vim/pack/dusktreader/start/poet-v
+	url = https://github.com/petobens/poet-v.git

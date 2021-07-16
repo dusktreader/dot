@@ -26,6 +26,7 @@ then
 else
     eval "$(pyenv init -)"
     eval "$(pyenv virtualenv-init -)"
+    export PATH=$PATH:$(pyenv prefix)/bin
 fi
 
 # Add yarn binaries to the path

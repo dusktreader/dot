@@ -261,6 +261,18 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pytest-black (>=0.3.7)", "pytest-cov", "pytest-mypy"]
 
 [[package]]
+name = "keyrings.alt"
+version = "4.0.2"
+description = "Alternate keyring implementations"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
+testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pytest-cov", "jaraco.test (>=3.2.0)", "backports.unittest-mock", "keyring (>=20)", "fs (>=0.5,<2)", "pycryptodomex", "pytest-black (>=0.3.7)", "pytest-mypy", "gdata", "python-keyczar"]
+
+[[package]]
 name = "lazy-object-proxy"
 version = "1.4.3"
 description = "A fast and thorough lazy object proxy."
@@ -610,7 +622,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "2b0988024304bb43c058b0b5025119dd471f1f931b1c880ff248ce326f83f354"
+content-hash = "132b581639b3c50f2542211ada6dc32dd0fe519380dacda87ba5678c37794856"
 
 [metadata.files]
 addict = [
@@ -759,6 +771,10 @@ jira = [
 keyring = [
     {file = "keyring-21.4.0-py3-none-any.whl", hash = "sha256:4e34ea2fdec90c1c43d6610b5a5fafa1b9097db1802948e90caf5763974b8f8d"},
     {file = "keyring-21.4.0.tar.gz", hash = "sha256:9aeadd006a852b78f4b4ef7c7556c2774d2432bbef8ee538a3e9089ac8b11466"},
+]
+"keyrings.alt" = [
+    {file = "keyrings.alt-4.0.2-py3-none-any.whl", hash = "sha256:49ab586d0610e5f73e874fb3dcfc6b94f222d30a8457ef324f4124c34b3ea2f5"},
+    {file = "keyrings.alt-4.0.2.tar.gz", hash = "sha256:cc475635099d6edd7e475c5a479e5b4da5e811a3af04495a1e9ada488d16fe25"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.4.3.tar.gz", hash = "sha256:f3900e8a5de27447acbf900b4750b0ddfd7ec1ea7fbaf11dfa911141bc522af0"},
