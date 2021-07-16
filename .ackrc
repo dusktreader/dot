@@ -1,0 +1,2 @@
+--color
+--type-set=spec:match:.*\.spec\.ts
