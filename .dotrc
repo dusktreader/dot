@@ -18,13 +18,14 @@ export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 
 # Initialize pyenv
 debug_out "Initializing pyenv"
-export PATH="~/.pyenv/bin/:$PATH"
-pyenv commands > /dev/null 2>&1
+$HOME/.pyenv/bin/pyenv commands > /dev/null 2>&1
 if (( $? ))
 then
     debug_out "Did not detect pyenv. Skipping"
 else
-    eval "$(pyenv init -)"
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
     eval "$(pyenv virtualenv-init -)"
     export PATH=$PATH:$(pyenv prefix)/bin
 fi
@@ -119,6 +120,7 @@ then
     debug_out "Initialized poetry"
 fi
 
+debug_out "Adding ssh keys to agent"
 tbeck_rsa_key="tbeck.rsa.secret"
 tbeck_rsa_path="$HOME/.ssh/$tbeck_rsa_key"
 if [[ -e $tbeck_rsa_path ]]
@@ -127,7 +129,11 @@ then
     then
         debug_out "$tbeck_rsa_key key not found in active ssh identities not found.  Setting it up:"
         ssh-add $tbeck_rsa_path
+    else
+        debug_out "$tbeck_rsa_key already added. Skipping..."
     fi
+else
+    debug_out "Didn't find any ssh key to add"
 fi
 
 nuke () {
