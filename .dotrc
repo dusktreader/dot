@@ -85,6 +85,8 @@ alias gti='git'
 alias nofail='py.test test* --maxfail=1 -m "not slow"'
 alias nofailall='py.test test --maxfail=1'
 
+alias tfm='terraform'
+
 export PATH="$HOME/.nodenv/bin:$PATH"
 debug_out "Initializing nodenv"
 which nodenv > /dev/null 2>&1
@@ -121,16 +123,16 @@ then
 fi
 
 debug_out "Adding ssh keys to agent"
-tbeck_rsa_key="tbeck.rsa.secret"
-tbeck_rsa_path="$HOME/.ssh/$tbeck_rsa_key"
-if [[ -e $tbeck_rsa_path ]]
+dusktreader_ed25519_key="dusktreader.ed25519.secret"
+dusktreader_ed25519_path="$HOME/.ssh/$dusktreader_ed25519_key"
+if [[ -e $dusktreader_ed25519_path ]]
 then
-    if [[ -z "$(ssh-add -l | grep $tbeck_rsa_key)" ]]
+    if [[ -z "$(ssh-add -l | grep $dusktreader_ed25519_key)" ]]
     then
-        debug_out "$tbeck_rsa_key key not found in active ssh identities not found.  Setting it up:"
-        ssh-add $tbeck_rsa_path
+        debug_out "$dusktreader_ed25519_key key not found in active ssh identities not found.  Setting it up:"
+        ssh-add $dusktreader_ed25519_path
     else
-        debug_out "$tbeck_rsa_key already added. Skipping..."
+        debug_out "$dusktreader_ed25519_key already added. Skipping..."
     fi
 else
     debug_out "Didn't find any ssh key to add"

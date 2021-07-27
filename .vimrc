@@ -14,7 +14,7 @@ if filereadable("etc/vim/vimrc.local")
 endif
 
 " make bell visual only
-se visualbell
+set visualbell
 
 " Turn off vi compatibility mode
 set nocompatible
