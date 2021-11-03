@@ -126,3 +126,6 @@
 [submodule ".vim/pack/dusktreader/start/poet-v"]
 	path = .vim/pack/dusktreader/start/poet-v
 	url = https://github.com/petobens/poet-v.git
+[submodule ".vim/pack/dusktreader/start/vim-coc"]
+	path = .vim/pack/dusktreader/start/vim-coc
+	url = git@github.com:neoclide/coc.nvim.git

@@ -15,6 +15,7 @@ export DIFF_COLOR_DO_HORIZONTAL=1
 export DIFF_COLOR_MERGE_ONE_LINERS=1
 
 export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
+export PATH=$PATH:~/git-repos/dot/bin
 
 # Initialize pyenv
 debug_out "Initializing pyenv"
@@ -35,6 +36,9 @@ export PATH="~/.yarn/bin/:$PATH"
 
 # Add go binaries to the path
 export PATH="/usr/local/go/bin:$PATH"
+
+# Add generic binaries to the path
+export PATH="~/bin:$PATH"
 
 alias vim='vim -O'
 raw_vim_command='vim'
@@ -272,36 +276,6 @@ abs_path() {
     python -c "import os; print(os.path.realpath('$path'))"
 }
 
-install_local_python() {
-    log_file=$1
-    redirect=''
-    if [[ ! -z $log_file ]]
-    then
-        redirect=">>$log_file 2>&1"
-    fi
-
-    command cd ~
-    commands=(
-        "wget http://www.python.org/ftp/python/3.4/Python-3.4.tgz"
-        "tar xzf Python-3.4.tgz"
-        "command cd Python-3.4/"
-        "./configure --prefix=/home/tbeck/"
-        "make"
-        "make install"
-        "rm -rf Python-3.4*"
-    )
-    for command in "${commands[@]}"
-    do
-        eval "$command $redirect"
-        if (( $? ))
-        then
-            message="Command failed: $command"
-            return 0
-        fi
-    done
-    return 1
-}
-
 debug_out "Overriding virtualenv PS1 settings"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 
@@ -330,3 +304,5 @@ else
     source ~/git-repos/dot/.git-prompt
     export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
 fi
+# Use oh-my-posh instead
+# eval "$(oh-my-posh --init --shell bash --config ~/.poshthemes/dusktreader.omp.json)"

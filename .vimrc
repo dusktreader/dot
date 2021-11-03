@@ -147,21 +147,28 @@ nnoremap <leader>NN :noh <CR>
 if has('clipboard')
     set clipboard=unnamed
     if has('xterm_clipboard')
-        set clipboard+=unnamedplus
+        set clipboard=unnamedplus
     endif
+endif
+
+if has('wsl')
+    echo "SETTING UP THE CLIPBOARD BOMB"
+    let g:clipboard = {
+         \   'name': 'wslclipboard',
+         \   'copy': {
+         \      '+': '$HOME/.vim/win32yank.exe -i --crlf',
+         \      '*': '$HOME/.vim/win32yank.exe -i --crlf',
+         \    },
+         \   'paste': {
+         \      '+': '$HOME/.vim/win32yank.exe -o --lf',
+         \      '*': '$HOME/.vim/win32yank.exe -o --lf',
+         \   },
+         \   'cache_enabled': 1,
+         \ }
 endif
 
 " Map ,pp to paste from windows clipboard in WSL
 nnoremap <silent> <leader>pp :r !powershell.exe -Command Get-Clipboard<CR>
-
-" Copy yank to windows clipboard in WSL
-let s:clip = '/mnt/c/Windows/System32/clip.exe'
-if executable(s:clip)
-    augroup WSLYank
-        autocmd!
-        autocmd TextYankPost * call system('echo '.shellescape(join(v:event.regcontents, "\<CR>")).' | '.s:clip)
-    augroup END
-end
 
 " Cursor settings for windows terminal
 if &term =~ '^xterm'
@@ -226,25 +233,14 @@ vmap <leader>UA :UnArrangeColumn<CR>
 " typescript-vim settings
 " let g:typescript_indent_disable = 1
 
-" ALE Settings
-highlight ALEWarning ctermbg=DarkGreen
-highlight ALEError ctermbg=DarkRed
-let g:ale_linters = {
-\  'python': ['flake8']
-\}
-let g:ale_fix_on_save = 0
-let g:ale_python_flake8_options="--max-line-length=" . g:line_length
-" let g:ale_python_pylint_executable="poetry"
-" let g:ale_python_pylint_options="run pylint --max-line-length=" . g:line_length . " --no-docstring-rgx=.*"
-let g:ale_disable_lsp = 1
-
-
 " CoC Settings
 nmap <leader>ff :CocConfig<CR>
 function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
+let g:coc_global_config="$HOME/.coc-settings.json"
+autocmd FileType python let b:coc_root_patterns = ["pyproject.toml"]
 
 " Use tab for trigger completion with characters ahead and navigate.
 " NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by

@@ -8,8 +8,10 @@
         ".vim/autoload",
         ".vim/pack",
         ".vim/fonts",
-        ".vim/config",
-        ".config/terminator"
+        ".coc-settings.json",
+        ".config/terminator",
+        ".vim/win32yank.exe",
+        ".poshthemes"
     ],
     "copy": [
         ".ssh/config",

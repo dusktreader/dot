@@ -1,4 +1,0 @@
-Host nutcracker
-    HostName 107.170.239.190
-    User dusktreader
-    IdentityFile /Users/tbeck/.ssh/dusktreader_id_rsa.pub
