@@ -10,6 +10,8 @@
         ".vim/fonts",
         ".coc-settings.json",
         ".config/terminator",
+        ".config/nvim/init.vim",
+        ".config/nvim/plugins.vim",
         ".vim/win32yank.exe",
         ".poshthemes"
     ],
