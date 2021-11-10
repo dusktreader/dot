@@ -40,11 +40,11 @@ export PATH="/usr/local/go/bin:$PATH"
 # Add generic binaries to the path
 export PATH="~/bin:$PATH"
 
-alias vim='vim -O'
-raw_vim_command='vim'
+alias vim='nvim -O'
+raw_vim_command='nvim'
 
-alias vi='vim'
-alias evim='$EDITOR ~/git-repos/dot/.vimrc'
+alias vi='nvim'
+alias evim='$EDITOR ~/.config/nvim/init.vim'
 export EDITOR=$raw_vim_command
 export VISUAL=$raw_vim_command
 

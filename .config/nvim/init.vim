@@ -175,6 +175,9 @@ let NERDTreeWinSize=80
 " Use compressed buffer-tree-explorer
 let g:buffer_tree_explorer_compress=1
 
+" Close buffer-tree-explorer when buffer is selected
+let g:buffertree_close_on_enter=1
+
 " Mappings for vim-test
 nmap <silent> <leader>t :w<CR> :TestNearest --color=yes<CR>
 nmap <silent> <leader>tv :w<CR> :TestNearest --color=yes --verbose<CR>
