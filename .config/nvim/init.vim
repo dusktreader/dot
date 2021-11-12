@@ -1,5 +1,12 @@
 source ~/.config/nvim/plugins.vim
 
+" Make sure the backup directory exists correctly
+let g:backupdir=expand(stdpath('data') . '/backup')
+if !isdirectory(g:backupdir)
+   call mkdir(g:backupdir, "p")
+endif
+let &backupdir=g:backupdir
+
 " Sets the leader character for commands
 let mapleader=","
 
@@ -204,4 +211,28 @@ nmap <leader>AA :%ArrangeColumn<CR>
 vmap <leader>AA :ArrangeColumn<CR>
 nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
+"
+" CoC Settings
+nmap <leader>ff :CocConfig<CR>
+function! s:check_back_space() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+let g:coc_global_config="$HOME/.coc-settings.json"
+autocmd FileType python let b:coc_root_patterns = ["pyproject.toml"]
+
+" For CoC, use tab for trigger completion with characters ahead and navigate.
+" NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
+" other plugin before putting this into your config.
+inoremap <silent><expr> <TAB>
+      \ pumvisible() ? "\<C-n>" :
+      \ <SID>check_back_space() ? "\<TAB>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+"
+" CoC GoTo code navigation.
+nmap <silent> gd <Plug>(coc-definition)
+nmap <silent> gy <Plug>(coc-type-definition)
+nmap <silent> gi <Plug>(coc-implementation)
+nmap <silent> gr <Plug>(coc-references)
 

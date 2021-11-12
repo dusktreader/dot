@@ -45,6 +45,7 @@ raw_vim_command='nvim'
 
 alias vi='nvim'
 alias evim='$EDITOR ~/.config/nvim/init.vim'
+alias eplug='$EDITOR ~/.config/nvim/plugins.vim'
 export EDITOR=$raw_vim_command
 export VISUAL=$raw_vim_command
 
