@@ -5,5 +5,9 @@ Plug 'preservim/nerdtree'
 Plug 'el-iot/buffer-tree-explorer'
 Plug 'cespare/vim-toml'
 Plug 'chaoren/vim-wordmotion'
+Plug 'rhysd/committia.vim'
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'Vimjas/vim-python-pep8-indent'
 
 call plug#end()

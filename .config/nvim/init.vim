@@ -10,6 +10,9 @@ let &backupdir=g:backupdir
 " Sets the leader character for commands
 let mapleader=","
 
+" Tells vim to use indentation based on filetype
+filetype indent on
+
 " make bell visual only
 set visualbell
 
@@ -218,7 +221,7 @@ function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
-let g:coc_global_config="$HOME/.coc-settings.json"
+let g:coc_global_config="$HOME/.config/coc/settings.json"
 autocmd FileType python let b:coc_root_patterns = ["pyproject.toml"]
 
 " For CoC, use tab for trigger completion with characters ahead and navigate.
@@ -229,10 +232,9 @@ inoremap <silent><expr> <TAB>
       \ <SID>check_back_space() ? "\<TAB>" :
       \ coc#refresh()
 inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
-"
+
 " CoC GoTo code navigation.
 nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
-
