@@ -92,6 +92,10 @@ alias nofailall='py.test test --maxfail=1'
 
 alias tfm='terraform'
 
+function wisdom {
+    curl -s -X GET -H "Content-Type: application/json" https://zenquotes.io/api/random | jq -r '" " as $space | .[0] | .q + "\n\n\($space * ((.q |length)-(.a |length) - 2))--" + .a' | cowsay -nsf $(cowsay -l | tail -n +2  | tr ' ' '\n' | shuf -n1) | lolcat
+}
+
 export PATH="$HOME/.nodenv/bin:$PATH"
 debug_out "Initializing nodenv"
 which nodenv > /dev/null 2>&1
