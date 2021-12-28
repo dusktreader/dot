@@ -126,16 +126,15 @@ if has('clipboard')
 endif
 
 if has('wsl')
-    echo "SETTING UP THE CLIPBOARD BOMB"
     let g:clipboard = {
          \   'name': 'wslclipboard',
          \   'copy': {
-         \      '+': '$HOME/.vim/win32yank.exe -i --crlf',
-         \      '*': '$HOME/.vim/win32yank.exe -i --crlf',
+         \      '+': '$HOME/.local/share/nvim/win32yank.exe -i --crlf',
+         \      '*': '$HOME/.local/share/nvim/win32yank.exe -i --crlf',
          \    },
          \   'paste': {
-         \      '+': '$HOME/.vim/win32yank.exe -o --lf',
-         \      '*': '$HOME/.vim/win32yank.exe -o --lf',
+         \      '+': '$HOME/.local/share/nvim/win32yank.exe -o --lf',
+         \      '*': '$HOME/.local/share/nvim/win32yank.exe -o --lf',
          \   },
          \   'cache_enabled': 1,
          \ }
@@ -196,8 +195,9 @@ nmap <silent> <leader>T :w<CR> :TestFile --color=yes --maxfail=1<CR>
 nmap <silent> <leader>l :w<CR> :TestLast --color=yes<CR>
 nmap <silent> <leader>lv :w<CR> :TestLast --color=yes --verbose<CR>
 nmap <silent> <leader>lvv :w<CR> :TestLast --color=yes --verbose --verbose<CR>
-let test#strategy = "dispatch"
-let test#python#runner = 'poetry run pytest'
+let test#python#runner = 'pytest'
+let test#python#pytest#options = { 'file': '--no-cov', 'nearest': '--no-cov' }
+let test#strategy = "neovim"
 
 " Map ,aa to Tabularize on space after comma (or colon for dicts)
 nmap <leader>aa :Tab /,\zs<CR>

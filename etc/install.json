@@ -13,7 +13,8 @@
         ".config/nvim/init.vim",
         ".config/nvim/plugins.vim",
         ".config/coc/settings.json",
-        ".vim/win32yank.exe",
+        ".config/dot/install-pyenv.sh",
+        ".local/share/nvim/win32yank.exe",
         ".poshthemes"
     ],
     "copy": [
@@ -32,6 +33,7 @@
         ".vim/undodir"
     ],
     "scripts": [
-        ".vim/fonts/powerline/install.sh"
+        ".vim/fonts/powerline/install.sh",
+        ".config/dot/install-pyenv.sh"
     ]
 }
