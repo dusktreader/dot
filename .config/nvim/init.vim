@@ -21,7 +21,7 @@ set nocompatible
 "
 " Turn on syntax highlighting
 syntax enable
-"
+
 " Disable wrapping by default
 set nowrap
 
@@ -117,27 +117,31 @@ endif
 
 " ---Clipboard Settings---
 
-" Put yanked text in the 'clipboard' buffer for linux systems.
-if has('clipboard')
-    set clipboard=unnamed
-    if has('xterm_clipboard')
-        set clipboard=unnamedplus
-    endif
-endif
-
-if has('wsl')
+let has_wsl=eval(trim(system("cat /proc/version | grep -qi wsl2 && echo 1 || echo 0")))
+if(has_wsl)
+    " If in wsl, do NOT check has('clipboard') and just set things
+    " See: https://github.com/neovim/neovim/issues/8017
+    set clipboard+=unnamedplus
     let g:clipboard = {
-         \   'name': 'wslclipboard',
-         \   'copy': {
-         \      '+': '$HOME/.local/share/nvim/win32yank.exe -i --crlf',
-         \      '*': '$HOME/.local/share/nvim/win32yank.exe -i --crlf',
-         \    },
-         \   'paste': {
-         \      '+': '$HOME/.local/share/nvim/win32yank.exe -o --lf',
-         \      '*': '$HOME/.local/share/nvim/win32yank.exe -o --lf',
-         \   },
-         \   'cache_enabled': 1,
-         \ }
+          \   'name': 'win32yank-wsl',
+          \   'copy': {
+          \      '+': 'win32yank.exe -i --crlf',
+          \      '*': 'win32yank.exe -i --crlf',
+          \    },
+          \   'paste': {
+          \      '+': 'win32yank.exe -o --lf',
+          \      '*': 'win32yank.exe -o --lf',
+          \   },
+          \   'cache_enabled': 0,
+          \ }
+else
+    " On non WSL systems, check for clipboard availability
+    if has('clipboard')
+        set clipboard=unnamed
+        if has('xterm_clipboard')
+            set clipboard=unnamedplus
+        endif
+    endif
 endif
 
 " ---Key Mappings---

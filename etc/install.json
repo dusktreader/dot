@@ -14,7 +14,7 @@
         ".config/nvim/plugins.vim",
         ".config/coc/settings.json",
         ".config/dot/install-pyenv.sh",
-        ".local/share/nvim/win32yank.exe",
+        ".local/bin/win32yank.exe",
         ".poshthemes"
     ],
     "copy": [
