@@ -31,6 +31,5 @@
         ".vim/undodir"
     ],
     "scripts": [
-        ".vim/fonts/powerline/install.sh"
     ]
 }
