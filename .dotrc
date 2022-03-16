@@ -306,7 +306,8 @@ then
     export PS1="$ps1_prefix $ps1_suffix"
 else
     debug_out "Detected git. Embedding git branch propmt"
-    source ~/git-repos/dot/.git-prompt
+    dot_root=$(dirname -- "${BASH_SOURCE[0]}")
+    source $dot_root/.git-prompt
     export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
 fi
 # Use oh-my-posh instead

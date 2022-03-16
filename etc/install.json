@@ -8,12 +8,10 @@
         ".vim/autoload",
         ".vim/pack",
         ".vim/fonts",
-        ".coc-settings.json",
         ".config/terminator",
         ".config/nvim/init.vim",
         ".config/nvim/plugins.vim",
         ".config/coc/settings.json",
-        ".config/dot/install-pyenv.sh",
         ".local/bin/win32yank.exe",
         ".poshthemes"
     ],
@@ -33,7 +31,6 @@
         ".vim/undodir"
     ],
     "scripts": [
-        ".vim/fonts/powerline/install.sh",
-        ".config/dot/install-pyenv.sh"
+        ".vim/fonts/powerline/install.sh"
     ]
 }

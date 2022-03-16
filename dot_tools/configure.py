@@ -78,8 +78,15 @@ class DotInstaller:
                     "Existing target path: {}",
                     existing_target_path,
                 )
-                if not os.path.samefile(existing_target_path, target_path):
-                    logger.warn(
+                if not os.path.exists(existing_target_path):
+                    logger.warning(
+                        "Link exists target is missing: {}",
+                        existing_target_path,
+                    )
+                    logger.debug("unlinking existing link")
+                    os.unlink(link_path)
+                elif not os.path.samefile(existing_target_path, target_path):
+                    logger.warning(
                         "Link already exists but points to another target: {}",
                         existing_target_path,
                     )

@@ -10,5 +10,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'airblade/vim-gitgutter'
 Plug 'Vimjas/vim-python-pep8-indent'
 Plug 'vim-test/vim-test'
+Plug 'MattesGroeger/vim-bookmarks'
+Plug 'FooSoft/vim-argwrap'
 
 call plug#end()
