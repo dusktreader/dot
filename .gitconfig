@@ -11,6 +11,7 @@
     tagup = "!git tag v$(poetry version -s) && git push origin v$(poetry version s)"
     crack = "!target=$(git st -s | grep -m1 '^U.*' | cut -d' ' -f2) && $EDITOR $target && git add $target"
     now = "rev-parse --abbrev-ref HEAD"
+    jam = "!git commit -am 'interim commit' && git push"
 [push]
     default = simple
 [diff]
