@@ -206,10 +206,14 @@ class DotInstaller:
                 # EXTRA DOTFILES START
                 if [[ -e {extra} ]]
                 then
+                    export DOT_HOME={root}
                     source {extra}
                 fi
                 # EXTRA DOTFILES END
-                """.format(extra=extra_dotfiles_path)
+                """.format(
+                    root=self.root,
+                    extra=extra_dotfiles_path,
+                )
             ).strip())
 
     def _startup(self):

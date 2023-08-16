@@ -187,7 +187,7 @@ fun! SetupCommandAlias(from, to)
         \ .'? ("'.a:to.'") : ("'.a:from.'"))'
 endfun
 call SetupCommandAlias("E","e")
-
+"
 " Mappings for vim-test
 nmap <silent> <leader>t :w<CR> :TestNearest --color=yes<CR>
 nmap <silent> <leader>tv :w<CR> :TestNearest --color=yes --verbose<CR>
@@ -196,7 +196,8 @@ nmap <silent> <leader>T :w<CR> :TestFile --color=yes --maxfail=1<CR>
 nmap <silent> <leader>l :w<CR> :TestLast --color=yes<CR>
 nmap <silent> <leader>lv :w<CR> :TestLast --color=yes --verbose<CR>
 nmap <silent> <leader>lvv :w<CR> :TestLast --color=yes --verbose --verbose<CR>
-let test#strategy = "dispatch"
+" let test#strategy = "dispatch"
+let test#strategy = "neovim"
 let test#python#runner = 'poetry run pytest'
 
 " Shortcut for navigating to the test file for a particular source file
@@ -238,6 +239,7 @@ nmap <leader>ff :CocConfig<CR>
 function! s:check_back_space() abort
   let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
+    OIDC_MAX_POLL_TIME: int = 5 * 60  # 5 Minutes
 endfunction
 let g:coc_global_config="$HOME/.coc-settings.json"
 autocmd FileType python let b:coc_root_patterns = ["pyproject.toml"]

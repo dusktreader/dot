@@ -11,7 +11,7 @@
         ".config/terminator",
         ".config/nvim/init.vim",
         ".config/nvim/plugins.vim",
-        ".config/coc/settings.json",
+        ".config/nvim/coc-settings.json",
         ".local/bin/win32yank.exe",
         ".poshthemes"
     ],

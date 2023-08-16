@@ -3,7 +3,7 @@
 	email = tucker.beck@gmail.com
 	signingkey = 8AB369CEEAEB6E9A317DE739E0E8F7B4D99E8ABF
 [alias]
-    lg  = "log --pretty=format:'%C(yellow)%h%C(reset) %s %C(cyan)%cr%C(reset) %C(blue)%an%C(reset) %C(green)%d%C(reset)' --graph"
+    lg  = "log --pretty=format:'%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(cyan)%cr (%cs)%C(reset) %s %C(green)%d%C(reset)' --graph"
     st  = status
     df  = "difftool origin/master"
     sup = "submodule update"
@@ -12,6 +12,8 @@
     crack = "!target=$(git st -s | grep -m1 '^U.*' | cut -d' ' -f2) && $EDITOR $target && git add $target"
     now = "rev-parse --abbrev-ref HEAD"
     jam = "!git commit -am 'interim commit' && git push"
+    branches = "!printf '%15s %-77s %s\n' 'MODIFIED' 'BRANCH NAME' 'LAST COMMIT MESSAGE' && git branch --sort=-authordate --format=\"%(align:right,width=18)%(color:yellow)(%(authordate:relative))%(end) %(align:width=80)%(color:green)%(refname:short)%(end) %(color:magenta)%(subject)\""
+
 [push]
     default = simple
 [diff]

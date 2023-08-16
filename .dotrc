@@ -50,18 +50,20 @@ alias eplug='$EDITOR ~/.config/nvim/plugins.vim'
 export EDITOR=$raw_vim_command
 export VISUAL=$raw_vim_command
 
-alias eack='$EDITOR ~/git-repos/dot/.ackrc'
+alias eack='$EDITOR $DOT_HOME/.ackrc'
 
-alias egit='$EDITOR ~/git-repos/dot/.gitconfig'
+alias egit='$EDITOR $DOT_HOME/.gitconfig'
 
 alias ebash="$EDITOR ~/.bashrc"
 alias sbash='source ~/.bashrc'
 
 # TODO: this should have a configurable dot location based on dot-configure root
-alias edot="$EDITOR ~/git-repos/dot/.dotrc"
-alias sdot='source ~/git-repos/dot/.dotrc'
+alias edot="$EDITOR $DOT_HOME/.dotrc"
+alias sdot='source $DOT_HOME/.dotrc'
 alias idot='install_dot'
-alias cdot='cd ~/git-repos/dot'
+alias cdot='cd $DOT_HOME'
+
+alias ecoc="$EDITOR $DOT_HOME/.config/nvim/coc-settings.json"
 
 alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
