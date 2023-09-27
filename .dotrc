@@ -37,6 +37,7 @@ export PATH="~/.yarn/bin/:$PATH"
 
 # Add go binaries to the path
 export PATH="/usr/local/go/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
 
 # Add generic binaries to the path
 export PATH="~/bin:$PATH"
