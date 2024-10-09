@@ -130,17 +130,29 @@ if(has_wsl)
     " See: https://github.com/neovim/neovim/issues/8017
     set clipboard+=unnamedplus
     let g:clipboard = {
-          \   'name': 'win32yank-wsl',
+          \   'name': 'WslClipboard',
           \   'copy': {
-          \      '+': 'win32yank.exe -i --crlf',
-          \      '*': 'win32yank.exe -i --crlf',
+          \      '+': 'clip.exe',
+          \      '*': 'clip.exe',
           \    },
           \   'paste': {
-          \      '+': 'win32yank.exe -o --lf',
-          \      '*': 'win32yank.exe -o --lf',
+          \      '+': 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
+          \      '*': 'powershell.exe -c [Console]::Out.Write($(Get-Clipboard -Raw).tostring().replace("`r", ""))',
           \   },
           \   'cache_enabled': 0,
           \ }
+    " let g:clipboard = {
+    "       \   'name': 'win32yank-wsl',
+    "       \   'copy': {
+    "       \      '+': 'win32yank.exe -i --crlf',
+    "       \      '*': 'win32yank.exe -i --crlf',
+    "       \    },
+    "       \   'paste': {
+    "       \      '+': 'win32yank.exe -o --lf',
+    "       \      '*': 'win32yank.exe -o --lf',
+    "       \   },
+    "       \   'cache_enabled': 0,
+    "       \ }
 else
     " On non WSL systems, check for clipboard availability
     if has('clipboard')

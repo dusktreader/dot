@@ -96,6 +96,8 @@ alias nofailall='py.test test --maxfail=1'
 
 alias tfm='terraform'
 
+alias k='kubectl'
+
 function wisdom {
     curl -s -X GET -H "Content-Type: application/json" https://zenquotes.io/api/random | jq -r '" " as $space | .[0] | .q + "\n\n\($space * ((.q |length)-(.a |length) - 2))--" + .a' | cowsay -nsf $(cowsay -l | tail -n +2  | tr ' ' '\n' | shuf -n1) | lolcat
 }

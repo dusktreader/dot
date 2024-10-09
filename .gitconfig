@@ -13,6 +13,7 @@
     now = "rev-parse --abbrev-ref HEAD"
     jam = "!git commit -am 'interim commit' && git push"
     branches = "!printf '%15s %-77s %s\n' 'MODIFIED' 'BRANCH NAME' 'LAST COMMIT MESSAGE' && git branch --sort=-authordate --format=\"%(align:right,width=18)%(color:yellow)(%(authordate:relative))%(end) %(align:width=80)%(color:green)%(refname:short)%(end) %(color:magenta)%(subject)\""
+    irk = "!git rebase -i HEAD~\"{$1:-2}\" #"
 
 [push]
     default = simple
