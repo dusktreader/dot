@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
 then
@@ -10,6 +8,7 @@ then
 fi
 
 
+# Once UV has the option to set a global python, we can remove the pyenv dependency
 echo "Checking if pyenv is installed"
 pyenv_root=$HOME/.pyenv
 if [[ -e $pyenv_root ]]
@@ -38,6 +37,7 @@ then
     curl -LsSf https://astral.sh/uv/install.sh | sh
 else
     echo "uv is already installed. Skipping"
+    source $HOME/.cargo/env
 fi
 
 echo "Checking if python 3.11 is installed"
@@ -53,15 +53,30 @@ else
     echo "python 3.11 is already available through pyenv"
 fi
 
+# Once UV has the option to set a global python, we can use uv to install python 3.11
+#echo "Checking if python 3.11 is installed"
+#uv python list | grep "3\.11" > /dev/null 2>&1
+#if (( $? ))
+#then
+#    echo "Installing python 3.11 via pyenv"
+#    uv python install 3.11
+#
+#    # echo "Setting python 3.11 as default"
+#    # pyenv global 3.11
+#else
+#    echo "python 3.11 is already available through uv"
+#fi
+
 
 echo "Checking if poetry is installed"
-if [[ -e $HOME/.config/pypoetry ]]
+poetry --version > /dev/null 2>&1
+if (( $? ))
 then
-    echo "poetry is already installed. Skipping"
-else
     echo "Installing poetry"
-    curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-    source $HOME/.poetry/env
+    uv tool install poetry
+    export PATH="/home/dusktreader/.local/bin:$PATH"
+else
+    echo "poetry is already installed. Skipping"
 fi
 
 echo "Checking if nvim is installed"

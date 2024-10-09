@@ -15,7 +15,7 @@ export DIFF_COLOR_DO_HORIZONTAL=1
 export DIFF_COLOR_MERGE_ONE_LINERS=1
 
 export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
-export PATH=$PATH:~/git-repos/dot/bin
+export PATH=$PATH:~/.local/bin
 
 
 # Initialize pyenv
