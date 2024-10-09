@@ -7,7 +7,7 @@ license = "MIT"
 packages = [ { include = "dot_tools" } ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.11"
 GitPython = "^3.1.8"
 pendulum = "^2.1.2"
 bidict = "^0.21.2"
@@ -16,7 +16,7 @@ git-url-parse = "^1.2.2"
 inflection = "^0.5.1"
 loguru = "^0.5.3"
 pprintpp = "^0.4.0"
-py-buzz = "^2.0.0"
+py-buzz = "^4.2"
 pydon = "^0.1.0"
 pytest = "^6.1.1"
 requests = "^2.24.0"
@@ -46,8 +46,11 @@ transpose = 'dot_tools.bin.transpose:main'
 underlined-header = 'dot_tools.bin.underlined_header:main'
 save-jira-password = 'dot_tools.bin.save_jira_password:main'
 find-pyproject-toml = 'dot_tools.bin.find_pyproject_toml:main'
-get-black-line-length = 'dot_tools.bin.get_black_line_length:main'
+get-config-line-length = 'dot_tools.bin.get_config_line_length:main'
+
+[tool.ruff]
+line-length = 120
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

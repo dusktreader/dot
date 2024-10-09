@@ -1,7 +1,6 @@
 {
     "links": [
         ".ackrc",
-        ".vimrc",
         ".psqlrc",
         ".gitconfig",
         ".vim/after",

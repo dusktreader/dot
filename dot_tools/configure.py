@@ -6,7 +6,6 @@ import platform
 import sh
 import shutil
 import sys
-import traceback
 
 from textwrap import dedent
 
@@ -47,7 +46,7 @@ class DotInstaller:
             self.setup_dict = setup_dict
 
         logger.debug(
-            "Intantiated with {} as home, {} as root",
+            "Instantiated with {} as home, {} as root",
             self.home, self.root,
         )
         logger.debug(
@@ -234,7 +233,7 @@ class DotInstaller:
         logger.info("Started Installing dot")
         with DotError.handle_errors('Install failed. Aborting'):
             logger.debug("Making sure virtualenv is not active")
-            # self._check_virtual_env()
+            self._check_virtual_env()
 
             logger.debug("Create needed directories")
             self._make_dirs()

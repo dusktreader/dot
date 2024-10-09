@@ -1,6 +1,6 @@
 import click
 
-from dot_tools.misc_tools import setup_logging, get_black_line_length
+from dot_tools.misc_tools import setup_logging, get_config_line_length
 
 
 @click.command()
@@ -12,4 +12,4 @@ from dot_tools.misc_tools import setup_logging, get_black_line_length
 )
 def main(verbose):
     setup_logging(verbose=verbose)
-    print(get_black_line_length())
+    print(get_config_line_length())

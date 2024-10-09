@@ -4,7 +4,7 @@ import os
 import requests
 from loguru import logger
 
-from misc_tools import setup_logging
+from dot_tools.misc_tools import setup_logging
 
 
 @click.command()

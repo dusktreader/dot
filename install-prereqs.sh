@@ -10,6 +10,7 @@ then
 fi
 
 
+echo "Checking if pyenv is installed"
 pyenv_root=$HOME/.pyenv
 if [[ -e $pyenv_root ]]
 then
@@ -29,24 +30,46 @@ else
     eval "$(pyenv init --path)"
 fi
 
-echo "Installing python 3.6.12 via pyenv"
-pyenv install 3.6.15
+echo "Checking if uv is installed"
+uv version > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Installing uv"
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+else
+    echo "uv is already installed. Skipping"
+fi
 
-echo "Installing python 3.8.12 via pyenv"
-pyenv install 3.8.12
+echo "Checking if python 3.11 is installed"
+pyenv versions | grep "3\.11" > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Installing python 3.11 via pyenv"
+    pyenv install 3.11
 
-echo "Setting python 3.8.12 as default"
-pyenv global 3.8.12
+    echo "Setting python 3.11 as default"
+    pyenv global 3.11
+else
+    echo "python 3.11 is already available through pyenv"
+fi
 
 
+echo "Checking if poetry is installed"
 if [[ -e $HOME/.config/pypoetry ]]
 then
-    debug_out "poetry is already installed. Skipping"
+    echo "poetry is already installed. Skipping"
 else
     echo "Installing poetry"
     curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
     source $HOME/.poetry/env
 fi
 
-echo "Setting up neovim"
-sudo apt install neovim
+echo "Checking if nvim is installed"
+nvim --version > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Setting up neovim"
+    sudo snap install nvim --classic
+else
+    echo "nvim is already installed. Skipping"
+fi

@@ -119,20 +119,40 @@ def find_pyproject_toml():
         path = path.parent
 
 
-def get_black_line_length():
-    try:
+def get_config_line_length():
+
+    with DotException.handle_errors(
+        "Failed to extract line length from config",
+        re_raise=False,
+        do_except=lambda p: logger.error(p.final_message),
+    ):
         logger.debug("Finding pyproject.toml")
         pyproject_toml = find_pyproject_toml()
+        if not pyproject_toml:
+            logger.debug("No pyproject.toml found. Using default of {DEFAULT_BLACK_LINE_LENGTH}")
+            return DEFAULT_BLACK_LINE_LENGTH
         logger.debug(f"Found at {pyproject_toml}")
+
         config = toml.load(pyproject_toml)
         logger.debug(f"Config extracted as {config}")
+
         tool_config = config["tool"]
         logger.debug(f"Tool config extracted as {tool_config}")
-        black_config = tool_config["black"]
-        logger.debug(f"Black config extracted as {black_config}")
-        line_length = black_config["line-length"]
-        logger.debug(f"Line length extracted as {line_length}")
-        return line_length
-    except Exception as err:
-        logger.debug(f"Couldn't find line length: {repr(err)}")
-        return DEFAULT_BLACK_LINE_LENGTH
+
+        logger.debug("Looking for ruff line length")
+        ruff_config = tool_config.get("ruff")
+        if ruff_config:
+            logger.debug(f"Found and extracted ruff config as {ruff_config=}")
+            line_length = ruff_config["line-length"]
+            logger.debug(f"Line length extracted as {line_length}")
+            return line_length
+
+        logger.debug("Looking for black line length")
+        black_config = tool_config.get("black")
+        if black_config:
+            logger.debug(f"Found and extracted black config as {black_config=}")
+            line_length = black_config["line-length"]
+            logger.debug(f"Line length extracted as {line_length}")
+            return line_length
+
+    return DEFAULT_BLACK_LINE_LENGTH
