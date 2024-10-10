@@ -171,14 +171,6 @@ class DotInstaller:
                     )
                     print(entry, file=dotfile_list_file)
 
-    def _check_virtual_env(self):
-        print('prefix: ', sys.prefix)
-        print('base_prefix: ', sys.base_prefix)
-        DotError.require_condition(
-            sys.prefix == sys.base_prefix,
-            "You must deactivate the virtual environment to install",
-        )
-
     def _scrub_extra_dotfiles_block(self):
         logger.debug(
             "Scrubbing extra dotfiles block from {}",
@@ -232,9 +224,6 @@ class DotInstaller:
     def install_dot(self):
         logger.info("Started Installing dot")
         with DotError.handle_errors('Install failed. Aborting'):
-            logger.debug("Making sure virtualenv is not active")
-            self._check_virtual_env()
-
             logger.debug("Create needed directories")
             self._make_dirs()
 
