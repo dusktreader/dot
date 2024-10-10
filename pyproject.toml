@@ -9,7 +9,7 @@ packages = [ { include = "dot_tools" } ]
 [tool.poetry.dependencies]
 python = "^3.11"
 GitPython = "^3.1.8"
-pendulum = "^2.1.2"
+pendulum = "^3.0"
 bidict = "^0.21.2"
 click = "^7.1.2"
 git-url-parse = "^1.2.2"
