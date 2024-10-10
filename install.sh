@@ -92,13 +92,13 @@ else
 fi
 
 echo "Making parent directories for dot"
-mkdir -p $home/git-repos/dot
+mkdir -p $home/git-repos/personal
 
 echo "Cloning dot repository"
 git clone git@github.com:dusktreader/dot.git $home/git-repos/personal/dot
 
 echo "Installing dot via uv"
-uv tool install . --force
+uv tool install $home/git-repos/personal/dot --force
 
 echo "Configuring dot"
 configure-dot --root=$home/git-repos/personal/dot
