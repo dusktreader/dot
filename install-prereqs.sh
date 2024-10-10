@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+home=$(echo "$HOME" | sed 's:/*$::')
+
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
 then
@@ -10,7 +12,7 @@ fi
 
 # Once UV has the option to set a global python, we can remove the pyenv dependency
 echo "Checking if pyenv is installed"
-pyenv_root=$HOME/.pyenv
+pyenv_root=$home/.pyenv
 if [[ -e $pyenv_root ]]
 then
     echo "pyenv is already installed. Skipping"
@@ -24,7 +26,7 @@ else
     echo "Installing pyenv"
     curl https://pyenv.run | bash
 
-    export PYENV_ROOT="$HOME/.pyenv"
+    export PYENV_ROOT="$home/.pyenv"
     export PATH="$PYENV_ROOT/bin:$PATH"
     eval "$(pyenv init --path)"
 fi
@@ -37,7 +39,7 @@ then
     curl -LsSf https://astral.sh/uv/install.sh | sh
 else
     echo "uv is already installed. Skipping"
-    source $HOME/.cargo/env
+    source $home/.cargo/env
 fi
 
 echo "Checking if python 3.11 is installed"
@@ -88,3 +90,15 @@ then
 else
     echo "nvim is already installed. Skipping"
 fi
+
+echo "Making parent directories for dot"
+mkdir -p $home/git-repos/dot
+
+echo "Cloning dot repository"
+git clone git@github.com:dusktreader/dot.git $home/git-repos/personal/dot
+
+echo "Installing dot via uv"
+uv tool install . --force
+
+echo "Configuring dot"
+configure-dot --root=$home/git-repos/personal/dot

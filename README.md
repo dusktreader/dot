@@ -1,10 +1,3 @@
-* First install prerequisites
+Install with:
 
-```bash
-$ sudo ./install-prereqs.sh
-```
-
-* Then, install globally
-```bash
-$ uv tool install .
-```
+curl https://raw.githubusercontent.com/dusktreader/dot/refs/heads/master/install-prereqs.sh | bash
