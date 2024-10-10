@@ -1,34 +1,18 @@
 #!/usr/bin/env bash
 
 home=$(echo "$HOME" | sed 's:/*$::')
+python_version="3.11"
 
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
 then
     echo "Making passwordless sudo"
-    echo "$USER ALL=(ALL) NOPASSWD: ALL" | (sudo su -c 'EDITOR="tee" visudo')
-fi
-
-
-# Once UV has the option to set a global python, we can remove the pyenv dependency
-echo "Checking if pyenv is installed"
-pyenv_root=$home/.pyenv
-if [[ -e $pyenv_root ]]
-then
-    echo "pyenv is already installed. Skipping"
-else
-    echo "Installing needed libs"
-    sudo apt-get update -y
-    sudo apt-get install -y make build-essential libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
-    libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-
-    echo "Installing pyenv"
-    curl https://pyenv.run | bash
-
-    export PYENV_ROOT="$home/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)"
+    echo "$USER ALL=(ALL) NOPASSWD: ALL" | (sudo su -c 'EDITOR="tee -a" visudo')
+    if (( $? ))
+    then
+        echo "Failed to configure sudo! Aborting..."
+        exit 1
+    fi
 fi
 
 echo "Checking if uv is installed"
@@ -37,38 +21,31 @@ if (( $? ))
 then
     echo "Installing uv"
     curl -LsSf https://astral.sh/uv/install.sh | sh
+    if (( $? ))
+    then
+        echo "Failed to install uv! Aborting..."
+        exit 1
+    fi
+    source $home/.cargo/env
 else
     echo "uv is already installed. Skipping"
     source $home/.cargo/env
 fi
 
-echo "Checking if python 3.11 is installed"
-pyenv versions | grep "3\.11" > /dev/null 2>&1
+echo "Checking if python $python_version is installed"
+uv python list | grep $python_version > /dev/null 2>&1
 if (( $? ))
 then
-    echo "Installing python 3.11 via pyenv"
-    pyenv install 3.11
-
-    echo "Setting python 3.11 as default"
-    pyenv global 3.11
+    echo "Installing python $python_version via uv"
+    uv python install $python_version
+    if (( $? ))
+    then
+        echo "Failed to install python $python_version! Aborting..."
+        exit 1
+    fi
 else
-    echo "python 3.11 is already available through pyenv"
+    echo "python $python_version is already available through uv"
 fi
-
-# Once UV has the option to set a global python, we can use uv to install python 3.11
-#echo "Checking if python 3.11 is installed"
-#uv python list | grep "3\.11" > /dev/null 2>&1
-#if (( $? ))
-#then
-#    echo "Installing python 3.11 via pyenv"
-#    uv python install 3.11
-#
-#    # echo "Setting python 3.11 as default"
-#    # pyenv global 3.11
-#else
-#    echo "python 3.11 is already available through uv"
-#fi
-
 
 echo "Checking if poetry is installed"
 poetry --version > /dev/null 2>&1
@@ -76,7 +53,12 @@ if (( $? ))
 then
     echo "Installing poetry"
     uv tool install poetry
-    export PATH="/home/dusktreader/.local/bin:$PATH"
+    if (( $? ))
+    then
+        echo "Failed to install poetry! Aborting..."
+        exit 1
+    fi
+    export PATH="$home/.local/bin:$PATH"
 else
     echo "poetry is already installed. Skipping"
 fi
@@ -90,6 +72,11 @@ if (( $? ))
 then
     echo "Setting up neovim"
     sudo snap install nvim --classic
+    if (( $? ))
+    then
+        echo "Failed to install neovim! Aborting..."
+        exit 1
+    fi
 else
     echo "nvim is already installed. Skipping"
 fi
@@ -97,11 +84,33 @@ fi
 echo "Making parent directories for dot"
 mkdir -p $home/git-repos/personal
 
-echo "Cloning dot repository"
-git clone git@github.com:dusktreader/dot.git $home/git-repos/personal/dot
+if [[ ! -d "$home/git-repos/personal/dot" ]]
+then
+    echo "Cloning dot repository"
+    git clone git@github.com:dusktreader/dot.git $home/git-repos/personal/dot
+    if (( $? ))
+    then
+        echo "Failed to clone dot repository! Aborting..."
+        exit 1
+    fi
+fi
 
-echo "Installing dot via uv"
-uv tool install $home/git-repos/personal/dot --force
+now > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Installing dot via uv"
+    uv tool install $home/git-repos/personal/dot --force --python=3.11
+    if (( $? ))
+    then
+        echo "Failed to clone dot repository! Aborting..."
+        exit 1
+    fi
+fi
 
 echo "Configuring dot"
 configure-dot --root=$home/git-repos/personal/dot
+if (( $? ))
+then
+    echo "Failed to configure dot! Aborting..."
+    exit 1
+fi
