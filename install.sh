@@ -99,7 +99,7 @@ now > /dev/null 2>&1
 if (( $? ))
 then
     echo "Installing dot via uv"
-    uv tool install $home/git-repos/personal/dot --force --python=3.11
+    uv tool install $home/git-repos/personal/dot --force --python=$python_version
     if (( $? ))
     then
         echo "Failed to clone dot repository! Aborting..."
