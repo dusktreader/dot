@@ -7,7 +7,7 @@ license = "MIT"
 packages = [ { include = "dot_tools" } ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 GitPython = "^3.1.8"
 pendulum = "^3.0"
 bidict = "^0.21.2"
@@ -21,7 +21,7 @@ pydon = "^0.1.0"
 pytest = "^6.1.1"
 requests = "^2.24.0"
 sh = "^1.14.0"
-jira = "^2.0.0"
+jira = "^3.8.0"
 keyring = "^21.4.0"
 addict = "^2.3.0"
 toml = "^0.10.1"

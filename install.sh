@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 home=$(echo "$HOME" | sed 's:/*$::')
-python_version="3.11"
+python_version="3.12"
 
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
