@@ -63,8 +63,20 @@ else
     echo "poetry is already installed. Skipping"
 fi
 
-echo "Installing node, because it's needed by the coc plugin for neovim"
-curl -sL install-node.vercel.app/lts | sudo bash
+echo "Checking if node is installed"
+nvim --version > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Installing node, because it's needed by the coc plugin for neovim"
+    curl -sL install-node.vercel.app/lts | sudo bash
+    if (( $? ))
+    then
+        echo "Failed to install node! Aborting..."
+        exit 1
+    fi
+else
+    echo "node is already installed. Skipping"
+fi
 
 echo "Checking if nvim is installed"
 nvim --version > /dev/null 2>&1
