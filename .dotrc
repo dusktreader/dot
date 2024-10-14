@@ -65,6 +65,8 @@ alias cdot='cd $DOT_HOME'
 
 alias ecoc="$EDITOR $DOT_HOME/.config/nvim/coc-settings.json"
 
+alias einstall="$EDITOR $DOT_HOME/install.sh"
+
 alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
 

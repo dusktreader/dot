@@ -52,7 +52,7 @@ poetry --version > /dev/null 2>&1
 if (( $? ))
 then
     echo "Installing poetry"
-    uv tool install poetry
+    uv tool install poetry --python=$python_version
     if (( $? ))
     then
         echo "Failed to install poetry! Aborting..."
