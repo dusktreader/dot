@@ -11,14 +11,18 @@ Plug 'airblade/vim-gitgutter'
 Plug 'Vimjas/vim-python-pep8-indent'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 'FooSoft/vim-argwrap'
+
+Plug 'nvim-treesitter/nvim-treesitter'
+
+Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', {'tag': '0.1.8'}
+
 Plug 'nvim-lualine/lualine.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
 
 Plug 'vim-test/vim-test'
+
 "All for neotest...I hope it's worth all this
-" Plug 'nvim-lua/plenary.nvim'
-" Plug 'nvim-treesitter/nvim-treesitter'
 " Plug 'antoinemadec/FixCursorHold.nvim'
 " Plug 'nvim-neotest/neotest'
 " Plug 'nvim-neotest/neotest-plenary'

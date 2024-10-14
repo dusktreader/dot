@@ -236,8 +236,13 @@ vmap <leader>AA :ArrangeColumn<CR>
 nmap <leader>UA :%UnArrangeColumn<CR>
 vmap <leader>UA :UnArrangeColumn<CR>
 
+" Telescope mappings
+nnoremap <leader>ff <cmd>Telescope find_files<cr>
+nnoremap <leader>fg <cmd>Telescope live_grep<cr>
+nnoremap <leader>fb <cmd>Telescope buffers<cr>
+nnoremap <leader>fh <cmd>Telescope help_tags<cr>
+
 " CoC Settings
-nmap <leader>ff :CocConfig<CR>
 autocmd FileType python let b:coc_root_patterns = ["pyproject.toml"]
 " For CoC, use tab for trigger completion with characters ahead and navigate.
 " NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by

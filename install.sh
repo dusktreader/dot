@@ -63,7 +63,7 @@ else
     echo "poetry is already installed. Skipping"
 fi
 
-echo "Checking if node is installed"
+echo "Checking if node is installed (Needed by a neovim plugin)"
 nvim --version > /dev/null 2>&1
 if (( $? ))
 then
@@ -77,6 +77,39 @@ then
 else
     echo "node is already installed. Skipping"
 fi
+
+echo "Checking if ripgrep is installed. (Needed by a neovim plugin)"
+rg -v > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Installing ripgrep"
+    sudo apt install ripgrep
+    if (( $? ))
+    then
+        echo "Failed to install ripgrep! Aborting..."
+        exit 1
+    fi
+    source $home/.cargo/env
+else
+    echo "ripgrep is already installed. Skipping"
+fi
+
+echo "Checking if fd is installed. (Needed by a neovim plugin)"
+fd -v > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Installing fd"
+    sudo apt install fd-find
+    if (( $? ))
+    then
+        echo "Failed to install fd! Aborting..."
+        exit 1
+    fi
+    source $home/.cargo/env
+else
+    echo "fd is already installed. Skipping"
+fi
+
 
 echo "Checking if nvim is installed"
 nvim --version > /dev/null 2>&1
