@@ -1,4 +1,5 @@
 " Auto install plug-vim if not installed
+" TODO: Figure out how to get this fucking thing working
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
 if empty(glob(data_dir . '/autoload/plug.vim'))
   silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
@@ -6,6 +7,7 @@ if empty(glob(data_dir . '/autoload/plug.vim'))
 endif
 
 source ~/.config/nvim/plugins.vim
+source ~/.config/nvim/lualine.lua
 
 " Make sure the backup directory exists correctly
 let g:backupdir=expand(stdpath('data') . '/backup')

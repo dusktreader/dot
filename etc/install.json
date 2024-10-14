@@ -5,12 +5,12 @@
         ".gitconfig",
         ".vim/after",
         ".vim/autoload",
-        ".vim/pack",
         ".vim/fonts",
         ".config/terminator",
         ".config/nvim/init.vim",
         ".config/nvim/plugins.vim",
         ".config/nvim/coc-settings.json",
+        ".config/nvim/lualine.lua",
         ".local/bin/win32yank.exe",
         ".poshthemes"
     ],

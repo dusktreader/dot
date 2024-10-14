@@ -12,6 +12,8 @@ Plug 'Vimjas/vim-python-pep8-indent'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 'FooSoft/vim-argwrap'
 Plug 'nvim-telescope/telescope.nvim', {'tag': '0.1.8'}
+Plug 'nvim-lualine/lualine.nvim'
+Plug 'nvim-tree/nvim-web-devicons'
 
 Plug 'vim-test/vim-test'
 "All for neotest...I hope it's worth all this
