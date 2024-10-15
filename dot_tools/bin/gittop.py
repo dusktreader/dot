@@ -7,7 +7,7 @@ from dot_tools.misc_tools import setup_logging
 @click.command()
 @click.option(
     "-r/-a",
-    "--relative/--absolulte",
+    "--relative/--absolute",
     default=False,
     help="How to represent the found path",
 )

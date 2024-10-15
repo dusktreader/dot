@@ -96,9 +96,9 @@ set writebackup
 set backupdir=~/.local/share/nvim/backup/
 set directory=~/.local/share/nvim/swap/
 
-" Puts in column markers based on black config (if exists)
+" Puts in column markers based on project's config (if exists)
 set termguicolors
-let g:line_length=trim(system('get-black-line-length'))
+let g:line_length=trim(system('get-config-line-length'))
 execute "set colorcolumn=" . join(range(g:line_length + 1,335), ',')
 highlight ColorColumn ctermbg=0 guibg=#333333
 highlight EndOfBuffer ctermbg=0 guibg=#333333
@@ -167,7 +167,7 @@ nnoremap <leader>RR :source $MYVIMRC <CR>
 " Map ,EE to edit vim config
 nnoremap <leader>EE :e $MYVIMRC <CR>
 
-" Map ,NN to clear search pattern hilight
+" Map ,NN to clear search pattern highlight
 nnoremap <leader>NN :noh <CR>
 
 " Map ,pp to paste from windows clipboard in WSL
@@ -188,7 +188,7 @@ nnoremap <leader>be :Tree<CR>
 " Have NERDTree close when I open a file
 let NERDTreeQuitOnOpen=1
 
-" Automatically delete the buffere when I delete or remanem a file
+" Automatically delete the buffer when I delete or rename a file
 let NERDTreeAutoDeleteBuffer=1
 
 " Set the default size of the NERDTree window

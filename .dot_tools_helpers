@@ -2,11 +2,9 @@
 
 debug_out "Processing configuration for DotTools helper aliases and functions"
 
-export PYTHONPATH=$PYTHONPATH:~/lib/python:~/.local/lib/python
-
 # Changest to the top level of a git clone
 cdup(){
-    toplevel=$(gittop --relative)
+    toplevel=$(gittop --relative .)
     if (( $? == 0 ))
     then
         command cd $toplevel
