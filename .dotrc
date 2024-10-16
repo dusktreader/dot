@@ -17,20 +17,6 @@ export DIFF_COLOR_MERGE_ONE_LINERS=1
 export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 export PATH=$PATH:~/.local/bin
 
-# Initialize pyenv
-debug_out "Initializing pyenv"
-$HOME/.pyenv/bin/pyenv commands > /dev/null 2>&1
-if (( $? ))
-then
-    debug_out "Did not detect pyenv. Skipping"
-else
-    export PYENV_ROOT="$HOME/.pyenv"
-    export PATH="$PYENV_ROOT/bin:$PATH"
-    eval "$(pyenv init --path)"
-    eval "$(pyenv virtualenv-init -)"
-    export PATH=$PATH:$(pyenv prefix)/bin
-fi
-
 # Add yarn binaries to the path
 export PATH="~/.yarn/bin/:$PATH"
 
