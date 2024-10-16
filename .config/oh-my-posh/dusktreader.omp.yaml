@@ -8,7 +8,7 @@ blocks:
     properties:
       macos: mac
     style: diamond
-    template: " {{.Icon}}{{ if .WSL }} on WSL {{ end }}"
+    template: " {{.Icon}} {{ if .WSL }}on WSL {{ end }}"
     trailing_diamond: "\ue0b0"
     type: os
   - background: "#545c7e"
