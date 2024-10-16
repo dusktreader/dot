@@ -13,6 +13,8 @@ Plug 'MattesGroeger/vim-bookmarks'
 Plug 'FooSoft/vim-argwrap'
 
 Plug 'nvim-treesitter/nvim-treesitter'
+" Plug 'ellisonleao/gruvbox.nvim'
+Plug 'folke/tokyonight.nvim'
 
 Plug 'nvim-lua/plenary.nvim'
 Plug 'nvim-telescope/telescope.nvim', {'tag': '0.1.8'}

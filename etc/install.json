@@ -11,6 +11,7 @@
         ".config/nvim/plugins.vim",
         ".config/nvim/coc-settings.json",
         ".config/nvim/lualine.lua",
+        ".config/nvim/telescope.lua",
         ".local/bin/win32yank.exe",
         ".poshthemes"
     ],

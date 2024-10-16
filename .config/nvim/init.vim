@@ -8,6 +8,7 @@ endif
 
 source ~/.config/nvim/plugins.vim
 source ~/.config/nvim/lualine.lua
+source ~/.config/nvim/telescope.lua
 
 " Make sure the backup directory exists correctly
 let g:backupdir=expand(stdpath('data') . '/backup')
@@ -80,6 +81,9 @@ set incsearch
 
 " Make the background color dark
 set background=dark
+
+" Set the colorscheme
+colorscheme tokyonight-night
 
 " Map <TAB> to switch windows
 nmap <TAB> <C-W>w

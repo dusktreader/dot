@@ -1,7 +1,7 @@
 require('lualine').setup {
   options = {
     icons_enabled = true,
-    theme = 'solarized_dark',
+    theme = 'tokyonight-night',
     component_separators = { left = '\u{E0B1}', right = '\u{E0B3}'},
     section_separators = { left = '\u{E0B0}', right = '\u{E0B2}'},
     disabled_filetypes = {
