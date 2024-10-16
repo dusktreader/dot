@@ -54,15 +54,16 @@ blocks:
     style: diamond
     template: " \uf308 {{.Context}} :: {{if .Namespace}}{{.Namespace}}{{else}}default{{end}} "
     type: kubectl
-  - background: "#9d7cd8"
-    foreground: "#193549"
+  - background: "#545c7e"
+    foreground: "#c0caf5"
+    style: diamond
     leading_diamond: "\ue0b2"
     trailing_diamond: "<transparent,background>\ue0b2</>"
-    template: " XXX {{ .FormattedMs }} "
+    template: " \uf017 {{ .FormattedMs }} "
     properties:
-      style: houston
-      # threshold: 500
-    type: exectutiontime
+      style: austin
+      threshold: 100
+    type: executiontime
   - background: "#73daca"
     background_templates:
     - "{{ if gt .Code 0 }}#db4b4b{{ end }}"
