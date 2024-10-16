@@ -319,5 +319,6 @@ else
     source $dot_root/.git-prompt
     export PS1="$ps1_prefix \$(__git_ps1 '(%s)') $ps1_suffix"
 fi
-# Use oh-my-posh instead
-# eval "$(oh-my-posh --init --shell bash --config ~/.poshthemes/dusktreader.omp.json)"
+
+# Use oh-my-posh to configure prompt
+eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/dusktreader.omp.yaml)"

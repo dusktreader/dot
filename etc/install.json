@@ -12,8 +12,8 @@
         ".config/nvim/coc-settings.json",
         ".config/nvim/lualine.lua",
         ".config/nvim/telescope.lua",
-        ".local/bin/win32yank.exe",
-        ".poshthemes"
+        ".config/oh-my-posh/dusktreader.omp.yaml",
+        ".local/bin/win32yank.exe"
     ],
     "copy": [
         ".ssh/config",

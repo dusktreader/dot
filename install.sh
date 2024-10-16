@@ -15,6 +15,20 @@ then
     fi
 fi
 
+echo "Checking if oh-my-posh is installed"
+if (( $? ))
+then
+    echo "Installing oh-my-posh"
+    curl -s https://ohmyposh.dev/install.sh | bash -s
+    if (( $? ))
+    then
+        echo "Failed to install oh-my-posh! Aborting..."
+        exit 1
+    fi
+else
+    echo "oh-my-posh is already installed. Skipping"
+fi
+
 echo "Checking if uv is installed"
 uv version > /dev/null 2>&1
 if (( $? ))

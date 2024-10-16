@@ -1,0 +1,77 @@
+---
+"$schema": https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
+blocks:
+- alignment: left
+  segments:
+  - background: "#3d59a1"
+    foreground: "#c0caf5"
+    properties:
+      macos: mac
+    style: diamond
+    template: " {{ if .WSL }}WSL at {{ end }}{{.Icon}} ?"
+    trailing_diamond: "\ue0b0"
+    type: os
+  - background: "#545c7e"
+    foreground: "#c0caf5"
+    powerline_symbol: "\ue0b0"
+    style: powerline
+    template: " {{ .UserName }}@{{ .HostName }} "
+    type: session
+  - background: "#737aa2"
+    foreground: "#24283b"
+    powerline_symbol: "\ue0b0"
+    properties:
+      style: full
+    style: powerline
+    template: " \ue5ff {{ .Path }} "
+    type: path
+  - background: "#9d7cd8"
+    foreground: "#193549"
+    powerline_symbol: "\ue0b0"
+    properties:
+      fetch_status: true
+      fetch_stash_count: true
+      fetch_upstream_icon: true
+    style: powerline
+    background_templates:
+    - "{{ if .Working.Changed }}#73daca{{ end }}"
+    template: "
+      {{ .UpstreamIcon }}{{ .HEAD }}
+      {{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}
+      {{ if .Working.Changed }} \uf055 {{ .Working.String }}{{ end }}
+      {{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}
+      {{ if .Staging.Changed }} \uf093 {{ .Staging.String }}{{ end }}
+      {{ if gt .StashCount 0 }} \uf1c0 {{ .StashCount }}{{ end }}
+      "
+    type: git
+  type: prompt
+- alignment: right
+  segments:
+  - background: "#3d59a1"
+    foreground: "#c0caf5"
+    leading_diamond: "\ue0b2"
+    trailing_diamond: "<transparent,background>\ue0b2</>"
+    style: diamond
+    template: " \uf308 {{.Context}} :: {{if .Namespace}}{{.Namespace}}{{else}}default{{end}} "
+    type: kubectl
+  - background: "#73daca"
+    background_templates:
+    - "{{ if gt .Code 0 }}#db4b4b{{ end }}"
+    foreground: "#ffffff"
+    leading_diamond: "\ue0b2"
+    properties:
+      always_enabled: true
+    style: diamond
+    template: " {{ if gt .Code 0}}\ue315 {{.Code}}{{else}}\ue30d{{end}} "
+    type: status
+  type: prompt
+- alignment: left
+  newline: true
+  segments:
+  - foreground: "#394b70"
+    style: plain
+    template: "\ue20f "
+    type: text
+  type: prompt
+final_space: true
+version: 2
