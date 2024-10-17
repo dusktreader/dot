@@ -1,6 +1,28 @@
+function! DebugMsg(msg) abort
+    if !exists("g:DebugMessages")
+        let g:DebugMessages = []
+    endif
+    call add(g:DebugMessages, a:msg)
+endfunction
+
+function! PrintDebugMsgs() abort
+  if empty(get(g:, "DebugMessages", []))
+    echo "No debug messages."
+    return
+  endif
+  for ln in g:DebugMessages
+    echo "- " . ln
+  endfor
+endfunction
+
+command DebugStatus call PrintDebugMsgs()
+
+
 " Auto install plug-vim if not installed
 " TODO: Figure out how to get this fucking thing working
+call DebugMsg("Auto-installing plug-vim if it's not already installed...")
 let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+call DebugMsg("...got data directory as " . data_dir)
 if empty(glob(data_dir . '/autoload/plug.vim'))
   silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
