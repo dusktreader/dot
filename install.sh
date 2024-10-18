@@ -77,21 +77,6 @@ else
     echo "poetry is already installed. Skipping"
 fi
 
-echo "Checking if node is installed (Needed by a neovim plugin)"
-nvim --version > /dev/null 2>&1
-if (( $? ))
-then
-    echo "Installing node, because it's needed by the coc plugin for neovim"
-    curl -sL install-node.vercel.app/lts | sudo bash
-    if (( $? ))
-    then
-        echo "Failed to install node! Aborting..."
-        exit 1
-    fi
-else
-    echo "node is already installed. Skipping"
-fi
-
 echo "Checking if ripgrep is installed. (Needed by a neovim plugin)"
 rg -v > /dev/null 2>&1
 if (( $? ))
@@ -124,8 +109,7 @@ else
     echo "fd is already installed. Skipping"
 fi
 
-
-echo "Checking if nvim is installed"
+echo "Checking if neovim is installed"
 nvim --version > /dev/null 2>&1
 if (( $? ))
 then
@@ -143,6 +127,7 @@ fi
 echo "Making parent directories for dot"
 mkdir -p $home/git-repos/personal
 
+echo "Checking if dot is cloned to this machine yet"
 if [[ ! -d "$home/git-repos/personal/dot" ]]
 then
     echo "Cloning dot repository"
@@ -154,6 +139,7 @@ then
     fi
 fi
 
+echo "Checking if dot is installed yet"
 now > /dev/null 2>&1
 if (( $? ))
 then
