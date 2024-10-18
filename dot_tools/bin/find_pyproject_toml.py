@@ -2,7 +2,6 @@ import click
 
 from dot_tools.misc_tools import DotException, setup_logging, find_pyproject_toml
 
-
 @click.command()
 @click.option(
     "-v/-q",

@@ -7,3 +7,4 @@ dist/*
 dot.egg-info/*
 tab_s_dot_magic.egg-info/*
 .wheels/*
+lazy-lock.json

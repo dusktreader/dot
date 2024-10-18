@@ -17,20 +17,13 @@ endfunction
 
 command DebugStatus call PrintDebugMsgs()
 
-
-" Auto install plug-vim if not installed
-" TODO: Figure out how to get this fucking thing working
-call DebugMsg("Auto-installing plug-vim if it's not already installed...")
-let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
-call DebugMsg("...got data directory as " . data_dir)
-if empty(glob(data_dir . '/autoload/plug.vim'))
-  silent execute '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
-endif
-
-source ~/.config/nvim/plugins.vim
-source ~/.config/nvim/lualine.lua
-source ~/.config/nvim/telescope.lua
+lua << EOF
+  require("config.lazy")
+  require("config.lualine")
+  require("config.telescope")
+  require("config.lsp")
+  require("config.cmp")
+EOF
 
 " Make sure the backup directory exists correctly
 let g:backupdir=expand(stdpath('data') . '/backup')
@@ -57,7 +50,7 @@ syntax enable
 " Disable wrapping by default
 set nowrap
 
-" Remaps K to split lines under cursor
+" Remaps K to split lines under cursor. Basically the inverse of J
 nnoremap K i<CR><Esc>
 
 " Maintain undo history between sessions
@@ -136,11 +129,12 @@ set tabstop=4
 set shiftwidth=4
 set expandtab
 set smarttab
-autocmd FileType html setlocal tabstop=2 softtabstop=2 shiftwidth=2
-autocmd FileType javascript setlocal tabstop=2 softtabstop=2 shiftwidth=2
-autocmd FileType typescript setlocal tabstop=2 softtabstop=2 shiftwidth=2
-autocmd FileType yaml       setlocal tabstop=2 softtabstop=2 shiftwidth=2
-autocmd FileType yml        setlocal tabstop=2 softtabstop=2 shiftwidth=2
+autocmd FileType html       setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab smarttab
+autocmd FileType javascript setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab smarttab
+autocmd FileType typescript setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab smarttab
+autocmd FileType yaml       setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab smarttab
+autocmd FileType yml        setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab smarttab
+autocmd FileType lua        setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab smarttab
 
 " Cursor settings for windows terminal
 if &term =~ '^xterm'
@@ -268,36 +262,11 @@ nnoremap <leader>fg <cmd>Telescope live_grep<cr>
 nnoremap <leader>fb <cmd>Telescope buffers<cr>
 nnoremap <leader>fh <cmd>Telescope help_tags<cr>
 
-" CoC Settings
-autocmd FileType python let b:coc_root_patterns = ["pyproject.toml"]
-" For CoC, use tab for trigger completion with characters ahead and navigate.
-" NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
-" other plugin before putting this into your config.
-inoremap <silent><expr> <TAB>
-      \ coc#pum#visible() ? coc#pum#next(1) :
-      \ CheckBackspace() ? "\<Tab>" :
-      \ coc#refresh()
-inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-
-" Make <CR> to accept selected completion item or notify coc.nvim to format
-" <C-g>u breaks current undo, please make your own choice
-inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
-                              \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
-
 function! CheckBackspace() abort
  let col = col('.') - 1
   return !col || getline('.')[col - 1]  =~# '\s'
 endfunction
 
-" CoC GoTo code navigation.
-nmap <silent> gd <Plug>(coc-definition)
-nmap <silent> gy <Plug>(coc-type-definition)
-nmap <silent> gi <Plug>(coc-implementation)
-nmap <silent> gr <Plug>(coc-references)
-
 " arg-wrap settings and bindings
 let g:argwrap_tail_comma=1
 nnoremap <leader>a :ArgWrap<CR>
-
-" Add a word to the user dictionary
-nmap <leader>sp :CocCommand cSpell.addWordToUserDictionary<CR>
