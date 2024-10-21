@@ -5,12 +5,10 @@ import os
 import platform
 import sh
 import shutil
-import sys
 
 from textwrap import dedent
 
 from loguru import logger
-import pendulum
 
 from dot_tools.misc_tools import DotError
 

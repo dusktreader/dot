@@ -4,6 +4,8 @@ lua << EOF
   require("config.telescope")
   require("config.lsp")
   require("config.cmp")
+  require("config.keymap")
+  require("config.neotest")
 EOF
 
 " Make sure the backup directory exists correctly
@@ -13,27 +15,26 @@ if !isdirectory(g:backupdir)
 endif
 let &backupdir=g:backupdir
 
-" Sets the leader character for commands
-let mapleader=","
+lua << EOF
+  -- Sets the leader character for commands
+  vim.mapleader=","
 
-" Tells vim to use indentation based on filetype
-filetype indent on
+  -- Tells neovim to use indentation based on filetype
+  vim.filetype.indent = true
 
-" make bell visual only
-set visualbell
+  -- Doesn't seem to do anything any more...
+  -- make bell visual only
+  -- vim.o.visualbell = true
 
-" Turn off vi compatibility mode
-set nocompatible
+  -- Turn off vi compatibility mode
+  vim.o.compatible = false
 
-" Turn on syntax highlighting
-syntax enable
+  -- Disable wrapping by default
+  vim.o.wrap = false
 
-" Disable wrapping by default
-set nowrap
+EOF
 
-" Remaps K to split lines under cursor. Basically the inverse of J
-nnoremap K i<CR><Esc>
-
+"
 " Maintain undo history between sessions
 set undofile
 set undodir=~/.local/share/nvim/undodir
@@ -80,9 +81,6 @@ set background=dark
 
 " Set the colorscheme
 colorscheme tokyonight-night
-
-" Map <TAB> to switch windows
-nmap <TAB> <C-W>w
 
 " Enables smart indentation for newlines (without dedenting # lines)
 " see: http://vim.wikia.com/wiki/Restoring_indent_after_typing_hash
@@ -154,35 +152,6 @@ else
     endif
 endif
 
-" ---Key Mappings---
-
-" Map <TAB> to switch windows
-nmap <TAB> <C-W>w
-
-" Map ,e to open nerdtree on the current file
-nnoremap <leader>e :NERDTreeFind<CR>
-
-" Map ,RR to reload vimrc
-nnoremap <leader>RR :source $MYVIMRC <CR>
-
-" Map ,EE to edit vim config
-nnoremap <leader>EE :e $MYVIMRC <CR>
-
-" Map ,NN to clear search pattern highlight
-nnoremap <leader>NN :noh <CR>
-
-" Map ,pp to paste from windows clipboard in WSL
-nnoremap <silent> <leader>pp :r !powershell.exe -Command Get-Clipboard<CR>
-
-" Starts sphinx-view for the current file
-nmap <leader>v :Start! sphinx-view %<CR>
-
-" Map ,ss to source the current vim file
-nnoremap <leader>ss :so %<CR>
-
-" Map ,be to open buffer-tree-explorer
-nnoremap <leader>be :Tree<CR>
-
 
 " ---Plugin Settings---
 
@@ -201,53 +170,13 @@ let g:buffer_tree_explorer_compress=1
 " Close buffer-tree-explorer when buffer is selected
 let g:buffertree_close_on_enter=1
 
-" Bindings for vim-bookmark
+" Do not use default vim-bookmark key mappings
 let g:bookmark_no_default_key_mappings = 1
-nmap <leader>bb <Plug>BookmarkToggle
-nmap <leader>gb <Plug>BookmarkNext
-nmap <leader>gB <Plug>BookmarkPrev
-nmap <leader>BB <Plug>BookmarkShowAll
 
-" Mappings for vim-test/neotest?
-nmap <silent> <leader>t :w<CR> :TestNearest --color=yes<CR>
-nmap <silent> <leader>ts :w<CR> :TestNearest --color=yes --capture=no<CR>
-nmap <silent> <leader>tv :w<CR> :TestNearest --color=yes --verbose<CR>
-nmap <silent> <leader>tvv :w<CR> :TestNearest --color=yes --verbose --verbose<CR>
-nmap <silent> <leader>T :w<CR> :TestFile --color=yes --maxfail=1<CR>
-nmap <silent> <leader>l :w<CR> :TestLast --color=yes<CR>
-nmap <silent> <leader>lv :w<CR> :TestLast --color=yes --verbose<CR>
-nmap <silent> <leader>lvv :w<CR> :TestLast --color=yes --verbose --verbose<CR>
-let test#python#runner = 'pytest'
-let test#python#pytest#options = { 'file': '--no-cov', 'nearest': '--no-cov' }
-let test#strategy = "neovim"
+" Settings for vim-test/neotest
+" let test#python#runner = 'pytest'
+" let test#python#pytest#options = { 'file': '--no-cov', 'nearest': '--no-cov' }
+" let test#strategy = "neovim"
 
-" Map ,aa to Tabularize on space after comma (or colon for dicts)
-nmap <leader>aa :Tab /,\zs<CR>
-vmap <leader>aa :Tab /,\zs<CR>
-nmap <leader>aad :Tab /:\zs<CR>
-vmap <leader>aad :Tab /:\zs<CR>
-
-" map ,tt to transpose
-vmap <leader>tt :!transpose<CR>
-vmap <leader>ttd :!transpose --to-dict<CR>
-
-" Map ,AA to arrange columns
-nmap <leader>AA :%ArrangeColumn<CR>
-vmap <leader>AA :ArrangeColumn<CR>
-nmap <leader>UA :%UnArrangeColumn<CR>
-vmap <leader>UA :UnArrangeColumn<CR>
-
-" Telescope mappings
-nnoremap <leader>ff <cmd>Telescope find_files<cr>
-nnoremap <leader>fg <cmd>Telescope live_grep<cr>
-nnoremap <leader>fb <cmd>Telescope buffers<cr>
-nnoremap <leader>fh <cmd>Telescope help_tags<cr>
-
-function! CheckBackspace() abort
- let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
-endfunction
-
-" arg-wrap settings and bindings
+" arg-wrap settings
 let g:argwrap_tail_comma=1
-nnoremap <leader>a :ArgWrap<CR>

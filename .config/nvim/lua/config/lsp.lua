@@ -70,3 +70,29 @@ lspconfig.pyright.setup {
     end
   end
 }
+
+-- Yoinked from neotest-python
+-- if lib.files.exists("pyproject.toml") then
+--   print("LOOKING IN PYPROJECT.TOML")
+--   local success, exit_code, data = pcall(
+--     lib.process.run,
+--     { "poetry", "run", "poetry", "env", "info", "-p" },
+--     { stdout = true }
+--   )
+--   print("DATA: " .. data.stdout)
+--   print("SUCCESS: " .. tostring(success))
+--   print("EXIT_CODE: " .. tostring(exit_code))
+--   if success and exit_code == 0 then
+--     local venv = data.stdout:gsub("\n", "")
+--     if venv then
+--       print("LOOKING FOR PYTHON COMMAND")
+--       python_command_mem[root] = { Path:new(venv, "bin", "python").filename }
+--       print("PYTHON COMMAND: " .. Path:new(venv, "bin", "python").filename)
+--       return python_command_mem[root]
+--     end
+--   end
+-- end
+--
+--
+--
+-- local root = base.get_root(position.path) or vim.loop.cwd() or ""

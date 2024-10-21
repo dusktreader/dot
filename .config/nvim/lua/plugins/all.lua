@@ -17,7 +17,17 @@ return {
     { "nvim-lualine/lualine.nvim" },
     { "nvim-tree/nvim-web-devicons" },
 
-    { "vim-test/vim-test" },
+    --{ "vim-test/vim-test" },
+    {
+      "nvim-neotest/neotest",
+      dependencies = {
+        "nvim-neotest/nvim-nio",
+        "nvim-lua/plenary.nvim",
+        "antoinemadec/FixCursorHold.nvim",
+        "nvim-treesitter/nvim-treesitter",
+      },
+    },
+    { "nvim-neotest/neotest-python" },
 
     { "VonHeikemen/lsp-zero.nvim", branch = "v4.x" },
     { "williamboman/mason.nvim" },
@@ -25,17 +35,11 @@ return {
     { "neovim/nvim-lspconfig" },
     { "hrsh7th/cmp-nvim-lsp" },
     { "hrsh7th/nvim-cmp" },
+
+    { "mechatroner/rainbow_csv" },
+
+    { "folke/lazydev.nvim" },
 }
 
--- "Plug 'neoclide/coc.nvim', {'branch': 'release'}
 -- "
--- Plug 'cespare/vim-toml'
 -- Plug 'Vimjas/vim-python-pep8-indent'
---
---
--- "All for neotest...I hope it's worth all this
--- " Plug 'antoinemadec/FixCursorHold.nvim'
--- " Plug 'nvim-neotest/neotest'
--- " Plug 'nvim-neotest/neotest-plenary'
--- " Plug 'nvim-neotest/neotest-python'
--- " Plug 'nvim-neotest/neotest-vim-test'

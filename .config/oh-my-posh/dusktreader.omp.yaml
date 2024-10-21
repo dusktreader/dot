@@ -46,6 +46,7 @@ blocks:
     type: git
   type: prompt
 - alignment: right
+  overflow: break
   segments:
   - background: "#3d59a1"
     foreground: "#c0caf5"

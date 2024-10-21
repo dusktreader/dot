@@ -24,4 +24,12 @@ cmp.setup({
       vim.snippet.expand(args.body)
     end,
   },
+  -- Automatically select the first suggestion
+  completion = {
+    completeopt = 'menu,menuone,noinsert', -- Show menu, even when there's only one item
+  },
+  -- To enable the first suggestion to be selected automatically
+  experimental = {
+    ghost_text = true, -- Optional: for ghost text
+  },
 })
