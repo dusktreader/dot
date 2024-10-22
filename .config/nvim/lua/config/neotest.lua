@@ -3,7 +3,11 @@ require("neotest").setup({
   adapters = {
     require("neotest-python")({
       -- dap = { justMyCode = false },
-      args = { "--log-level=DEBUG" },
+      args = {
+        "--log-level=DEBUG",
+        "--verbose",
+        "--verbose",
+      },
       -- runner = "pytest",
     }),
     -- require("neotest-plenary"),
