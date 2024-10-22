@@ -36,7 +36,7 @@ blocks:
     background_templates:
     - "{{ if .Working.Changed }}#73daca{{ end }}"
     template: "
-      {{ .UpstreamIcon }}{{ .HEAD }}
+      {{ .UpstreamIcon }}{{ abbrev 30 .HEAD }}
       {{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}
       {{ if .Working.Changed }} \uf055 {{ .Working.String }}{{ end }}
       {{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}
@@ -79,10 +79,22 @@ blocks:
 - alignment: left
   newline: true
   segments:
-  - foreground: "#394b70"
+  - foreground: "#ffffff"
+    background: "#db4b4b"
+    template: "{{ if .Venv }}   {{ .Full }} {{ end }}"
+    style: diamond
+    trailing_diamond: "\ue0b0"
+    type: python
+  - foreground: "#3d59a1"
     style: plain
     template: "\ue20f "
     type: text
+    # - foreground: "#3d59a1"
+    #   background: "#c0caf5"
+    #   powerline_symbol: "\ue0b0"
+    #   style: powerline
+    #   template: "\ue20f "
+    #   type: text
   type: prompt
 final_space: true
 version: 2
