@@ -1,7 +1,9 @@
 ---
 "$schema": https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
+enable_cursor_positioning: true
 blocks:
 - alignment: left
+  newline: true
   segments:
   - background: "#3d59a1"
     foreground: "#c0caf5"
