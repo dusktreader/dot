@@ -5,7 +5,12 @@ return {
     { "rhysd/committia.vim" },
     { "tpope/vim-fugitive" },
     { "airblade/vim-gitgutter" },
-    { "MattesGroeger/vim-bookmarks" },
+    {
+      "MattesGroeger/vim-bookmarks",
+      init = function()
+        vim.g.bookmark_no_default_key_mappings = 1
+      end
+    },
     { "FooSoft/vim-argwrap" },
 
     { "nvim-treesitter/nvim-treesitter" },
