@@ -6,6 +6,8 @@ lua << EOF
   require("config.cmp")
   require("config.keymap")
   require("config.neotest")
+  require("config.treesj")
+  require("config.tokyonight")
 EOF
 
 " Make sure the backup directory exists correctly
@@ -32,6 +34,14 @@ lua << EOF
   -- Disable wrapping by default
   vim.o.wrap = false
 
+  -- Set the colorscheme
+  vim.api.nvim_cmd(
+    {
+      cmd = "colorscheme",
+      args = {"tokyonight"},
+    },
+    {}
+  )
 EOF
 
 "
@@ -78,9 +88,6 @@ set incsearch
 
 " Make the background color dark
 set background=dark
-
-" Set the colorscheme
-colorscheme tokyonight-night
 
 " Enables smart indentation for newlines (without dedenting # lines)
 " see: http://vim.wikia.com/wiki/Restoring_indent_after_typing_hash

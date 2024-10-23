@@ -50,4 +50,7 @@ vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>",    { noremap = t
 vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>",  { noremap = true })
 
 -- Mappings for arg-wrap
-vim.keymap.set("n", "<leader>a", ":ArgWrap<CR>", { noremap = true })
+-- vim.keymap.set("n", "<leader>a", ":ArgWrap<CR>", { noremap = true })
+
+-- Mappings for treesj
+vim.keymap.set('n', '<leader>a', require('treesj').toggle)

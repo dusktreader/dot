@@ -11,7 +11,8 @@ return {
         vim.g.bookmark_no_default_key_mappings = 1
       end
     },
-    { "FooSoft/vim-argwrap" },
+
+    --{ "FooSoft/vim-argwrap" },
 
     { "nvim-treesitter/nvim-treesitter" },
     { "folke/tokyonight.nvim" },
@@ -44,6 +45,13 @@ return {
     { "mechatroner/rainbow_csv" },
 
     { "folke/lazydev.nvim" },
+
+    { "RRethy/vim-illuminate" },
+
+    {
+      "Wansmer/treesj",
+      dependencies = { "nvim-treesitter/nvim-treesitter" },
+    },
 }
 
 -- "
