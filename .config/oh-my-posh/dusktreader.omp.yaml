@@ -81,22 +81,26 @@ blocks:
 - alignment: left
   newline: true
   segments:
-  - foreground: "#ffffff"
-    background: "#db4b4b"
+  - foreground: "#3d59a1"
+    template: "\u2503"
+    type: text
+  type: prompt
+- alignment: left
+  newline: true
+  segments:
+  - foreground: "#3d59a1"
+    template: "\u2517\u2501"
+    type: text
+  - foreground: "#c0caf5"
+    background: "#3d59a1"
     template: "{{ if .Venv }}   {{ .Full }} {{ end }}"
     style: diamond
+    leading_diamond: "\ue0b2"
     trailing_diamond: "\ue0b0"
     type: python
   - foreground: "#3d59a1"
-    style: plain
-    template: "\ue20f "
+    template: "\u2501\u25ba"
     type: text
-    # - foreground: "#3d59a1"
-    #   background: "#c0caf5"
-    #   powerline_symbol: "\ue0b0"
-    #   style: powerline
-    #   template: "\ue20f "
-    #   type: text
   type: prompt
 final_space: true
 version: 2
