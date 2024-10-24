@@ -1,3 +1,4 @@
+from os.path import isdir
 import addict
 import git
 import giturlparse
@@ -6,6 +7,7 @@ import jira
 import json
 import keyring
 import os
+import pathlib
 import re
 import requests
 import setuptools
@@ -65,8 +67,8 @@ class GitManager:
         if not url.endswith(".git"):
             url += ".git"
         logger.debug(f"Attempting to parse url: {url}")
-        parsed_url = giturlparse.parse(url)
-        DotError.require_condition(parsed_url, f"Couldn't parse url {url}")
+        with DotError.handle_errors(f"Couldn't parse url {url}"):
+            parsed_url = giturlparse.parse(url)
         logger.debug(f"URL parsed as: {parsed_url.href}")
         return parsed_url
 
@@ -90,13 +92,16 @@ class GitManager:
             top = self.toplevel()
         logger.debug("Looking for 'source' path from {top}")
 
-        packages = setuptools.find_packages(where=top, exclude=["test*"])
-        unique_roots = set([p.split(".")[0] for p in packages])
+        packages = [
+            p
+            for p in pathlib.Path(top).iterdir()
+            if p.is_dir() and p.joinpath("__init__.py").exists() and p.name != "tests"
+        ]
         GitError.require_condition(
-            len(unique_roots) == 1,
-            "Could not find one and only one source package",
+            len(packages) == 1,
+            f"Could not find one and only one source package. Found {packages=}",
         )
-        source_path = os.path.join(top, unique_roots.pop())
+        source_path = os.path.join(top, str(packages.pop()))
         logger.debug(f"Source path found at {source_path}")
         return source_path
 
