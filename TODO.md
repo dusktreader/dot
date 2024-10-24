@@ -8,6 +8,7 @@
 
 # dot_tools todos
 
+* convert install.json to yaml
 * port the nuke function from .dotrc to dot_tools
 * convert dot_tools executables to use typer
 * make them all a single executable named "dot" with sub-commands
