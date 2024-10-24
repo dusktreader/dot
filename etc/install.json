@@ -7,7 +7,6 @@
         ".config/nvim/init.lua",
         ".config/nvim/lua",
         ".config/oh-my-posh/dusktreader.omp.yaml",
-        ".local/bin/win32yank.exe"
     ],
     "copy": [
         ".ssh/config",
