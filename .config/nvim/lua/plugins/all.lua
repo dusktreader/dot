@@ -1,6 +1,27 @@
 return {
-    { "preservim/nerdtree" },
-    { "el-iot/buffer-tree-explorer" },
+    {
+      "preservim/nerdtree",
+      init = function()
+        -- Have NERDTree close when I open a file
+        vim.g.NERDTreeQuitOnOpen = 1
+
+        -- Automatically delete the buffer when I delete or rename a file
+        vim.g.NERDTreeAutoDeleteBuffer = 1
+
+        -- Set the default size of the NERDTree window
+        vim.g.NERDTreeWinSize = 80
+      end
+    },
+    {
+      "el-iot/buffer-tree-explorer",
+      init = function()
+        -- Use compressed buffer-tree-explorer
+        vim.g.buffer_tree_explorer_compress = 1
+
+        -- Close buffer-tree-explorer when buffer is selected
+        vim.g.buffertree_close_on_enter = 1
+      end
+    },
     { "chaoren/vim-wordmotion" },
     { "rhysd/committia.vim" },
     { "tpope/vim-fugitive" },
