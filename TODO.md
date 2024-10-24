@@ -8,6 +8,7 @@
 
 # dot_tools todos
 
+* replace `setuptools.find_packages` in `git_tools.py`
 * convert install.json to yaml
 * port the nuke function from .dotrc to dot_tools
 * convert dot_tools executables to use typer

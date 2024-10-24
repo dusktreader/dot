@@ -6,7 +6,7 @@
         ".config/terminator",
         ".config/nvim/init.lua",
         ".config/nvim/lua",
-        ".config/oh-my-posh/dusktreader.omp.yaml",
+        ".config/oh-my-posh/dusktreader.omp.yaml"
     ],
     "copy": [
         ".ssh/config",
