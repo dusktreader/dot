@@ -10,6 +10,9 @@ require("config.tokyonight")
 require("config.ibl")
 require("config.treesitter")
 
+-- Grab the home directory for use throughout
+local home = os.getenv("HOME")
+
 -- Sets the leader character for commands
 vim.mapleader=","
 
@@ -31,7 +34,7 @@ vim.o.number = true
 
 -- Maintain undo history between sessions
 vim.o.undofile = true
-vim.o.undodir = "~/.local/share/nvim/undodir"
+vim.o.undodir = home .. "/.local/share/nvim/undodir"
 
 -- Always show a status line
 vim.opt.laststatus = 2
@@ -73,8 +76,8 @@ vim.opt.incsearch = true
 -- Put backup files and swap files in a sane place
 vim.opt.backup = true
 vim.opt.writebackup = true
-vim.opt.backupdir = "~/.local/share/nvim/backup/"
-vim.opt.directory = "~/.local/share/nvim/swap/"
+vim.opt.backupdir = home .. "/.local/share/nvim/backup/"
+vim.opt.directory = home .. "/.local/share/nvim/swap/"
 
 -- Use the right number of spaces instead of a tab
 vim.opt.tabstop = 4
