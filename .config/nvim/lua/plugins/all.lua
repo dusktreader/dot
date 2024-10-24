@@ -73,6 +73,8 @@ return {
       "Wansmer/treesj",
       dependencies = { "nvim-treesitter/nvim-treesitter" },
     },
+
+    { "lukas-reineke/indent-blankline.nvim" },
 }
 
 -- "

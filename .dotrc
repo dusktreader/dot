@@ -32,7 +32,7 @@ raw_vim_command='nvim'
 
 alias vi='nvim'
 alias evim='$EDITOR ~/.config/nvim/init.lua'
-alias eplug='$EDITOR ~/.config/nvim/plugins.vim'
+alias eplug='$EDITOR ~/.config/nvim/lua/plugins/all.lua'
 export EDITOR=$raw_vim_command
 export VISUAL=$raw_vim_command
 

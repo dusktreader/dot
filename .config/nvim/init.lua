@@ -7,6 +7,7 @@ require("config.keymap")
 require("config.neotest")
 require("config.treesj")
 require("config.tokyonight")
+require("config.ibl")
 
 -- Sets the leader character for commands
 vim.mapleader=","
