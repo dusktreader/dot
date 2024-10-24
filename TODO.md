@@ -13,6 +13,7 @@
 * make them all a single executable named "dot" with sub-commands
 * convert dot_tools to use pathlib
 * add method for creating branch from clickup id
+* modify the version tool to use pyproject.toml
 
 
 # miscellaneous todos
