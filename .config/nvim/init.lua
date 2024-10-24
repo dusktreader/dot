@@ -8,6 +8,7 @@ require("config.neotest")
 require("config.treesj")
 require("config.tokyonight")
 require("config.ibl")
+require("config.treesitter")
 
 -- Sets the leader character for commands
 vim.mapleader=","
@@ -126,23 +127,13 @@ local setLineLength = function()
 end
 setLineLength()
 
-local hasWsl = function()
-  local result = vim.system({"cat", "/proc/version"}, { text = true }):wait()
-  local version_info = string.lower(vim.trim(result["stdout"]))
-  local i, _ = string.find(version_info, "wsl2")
-  if i == nil then
-    return false
-  end
-  return true
-end
-
-if hasWsl() then
+if vim.fn.has("wsl") then
   -- If in wsl, do NOT check has('clipboard') and just set things
   -- See: https://github.com/neovim/neovim/issues/8017
-  --
+  vim.opt.clipboard:append "unnamedplus"
+
   -- This might be an interesting alternative: https://stackoverflow.com/a/76388417
 
-  vim.opt.clipboard:append "unnamedplus"
   vim.g.clipboard = {
     name = 'WslClipboard',
     copy = {
