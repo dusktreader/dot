@@ -1,4 +1,3 @@
-from os.path import isdir
 import addict
 import git
 import giturlparse
@@ -10,7 +9,6 @@ import os
 import pathlib
 import re
 import requests
-import setuptools
 from loguru import logger
 
 from dot_tools.misc_tools import DotError
