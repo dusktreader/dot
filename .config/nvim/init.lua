@@ -9,6 +9,7 @@ require("config.treesj")
 require("config.tokyonight")
 require("config.ibl")
 require("config.treesitter")
+require("config.copilot")
 
 -- Grab the home directory for use throughout
 local home = os.getenv("HOME")
@@ -100,6 +101,15 @@ vim.api.nvim_create_autocmd(
   {
     pattern = {"*"},
     command = ":%s/\\s\\+$//e",
+  }
+)
+
+-- Remove windows nelines (usually brought in from copypasta)
+vim.api.nvim_create_autocmd(
+  "BufWritePre",
+  {
+    pattern = {"*"},
+    command = ":%s/\\r//e",
   }
 )
 
