@@ -109,6 +109,21 @@ else
     echo "fd is already installed. Skipping"
 fi
 
+echo "Checking if fzf is installed. (Needed by a neovim plugin)"
+fzf -v > /dev/null 2>&1
+if (( $? ))
+then
+    echo "Installing fzf"
+    sudo apt install fzf
+    if (( $? ))
+    then
+        echo "Failed to install fzf! Aborting..."
+        exit 1
+    fi
+else
+    echo "fzf is already installed. Skipping"
+fi
+
 echo "Checking if neovim is installed"
 nvim --version > /dev/null 2>&1
 if (( $? ))

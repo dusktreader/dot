@@ -63,6 +63,8 @@ alias eposh="$EDITOR $DOT_HOME/.config/oh-my-posh/dusktreader.omp.yaml"
 alias egrep='egrep --color=auto'
 alias grep='egrep --color=auto'
 
+alias fvim='fzf --print0 | xargs -0 -o nvim'
+
 alias cojira='checkout-branch-by-pattern'
 alias cb='current-branch'
 
