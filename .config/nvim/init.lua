@@ -12,7 +12,7 @@ require("config.treesitter")
 require("config.copilot")
 
 -- Grab the home directory for use throughout
-local home = os.getenv("HOME")
+local home = vim.fn.expand("$HOME")
 
 -- Sets the leader character for commands
 vim.mapleader=","

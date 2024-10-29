@@ -5,7 +5,7 @@ telescope.setup {
     pickers = {
         find_files = {
             hidden = true,
-            cwd = utils.buffer_dir(),
+            -- cwd = utils.buffer_dir(),
         }
     }
 }

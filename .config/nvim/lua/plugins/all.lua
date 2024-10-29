@@ -123,7 +123,7 @@ return {
       cmd = "Copilot",
       event = "InsertEnter",
     },
-}
 
--- Do I still need this one?
--- Plug 'Vimjas/vim-python-pep8-indent'
+    -- Use pep8 style indentation for python
+    { "Vimjas/vim-python-pep8-indent" },
+}
