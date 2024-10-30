@@ -32,4 +32,14 @@ cmp.setup({
   experimental = {
     ghost_text = true, -- Optional: for ghost text
   },
+  window = {
+    completion = {
+      border = 'rounded',
+      scrollbar = '║',
+    },
+    documentation = {
+      border = 'rounded',
+      scrollbar = '║',
+    },
+  },
 })
