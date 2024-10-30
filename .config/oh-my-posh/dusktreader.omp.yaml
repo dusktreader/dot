@@ -15,26 +15,29 @@ blocks:
     type: os
   - background: "#545c7e"
     foreground: "#c0caf5"
-    powerline_symbol: "\ue0b0"
-    style: powerline
     template: " {{ .UserName }}@{{ .HostName }} "
+    style: diamond
+    leading_diamond: "<transparent,background>\ue0b0"
+    trailing_diamond: "\ue0b0</>"
     type: session
   - background: "#737aa2"
     foreground: "#24283b"
-    powerline_symbol: "\ue0b0"
     properties:
       style: full
-    style: powerline
+    style: diamond
+    leading_diamond: "<transparent,background>\ue0b0"
+    trailing_diamond: "\ue0b0</>"
     template: " \ue5ff {{ .Path }} "
     type: path
   - background: "#9d7cd8"
     foreground: "#193549"
-    powerline_symbol: "\ue0b0"
+    style: diamond
+    leading_diamond: "<transparent,background>\ue0b0"
+    trailing_diamond: "\ue0b0</>"
     properties:
       fetch_status: true
       fetch_stash_count: true
       fetch_upstream_icon: true
-    style: powerline
     background_templates:
     - "{{ if .Working.Changed }}#73daca{{ end }}"
     template: "
