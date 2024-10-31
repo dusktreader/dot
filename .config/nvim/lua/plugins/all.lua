@@ -126,4 +126,7 @@ return {
 
     -- Use pep8 style indentation for python
     { "Vimjas/vim-python-pep8-indent" },
+
+    -- Extend a/i textobjects
+    { "echasnovski/mini.ai" },
 }

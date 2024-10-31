@@ -10,6 +10,7 @@ require("config.tokyonight")
 require("config.ibl")
 require("config.treesitter")
 require("config.copilot")
+require("config.miniai")
 
 -- Grab the home directory for use throughout
 local home = vim.fn.expand("$HOME")
