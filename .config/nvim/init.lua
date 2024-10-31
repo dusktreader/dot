@@ -11,6 +11,7 @@ require("config.ibl")
 require("config.treesitter")
 require("config.copilot")
 require("config.miniai")
+require("config.fterm")
 
 -- Grab the home directory for use throughout
 local home = vim.fn.expand("$HOME")

@@ -61,3 +61,7 @@ vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>",  { noremap = t
 
 -- Mappings for treesj
 vim.keymap.set('n', '<leader>a', require('treesj').toggle)
+
+
+-- Mappings for FTerm
+vim.keymap.set('n', '`', '<CMD>lua require("FTerm").toggle()<CR>')
