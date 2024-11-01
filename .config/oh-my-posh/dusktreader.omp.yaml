@@ -52,6 +52,7 @@ blocks:
   type: prompt
 - alignment: right
   overflow: break
+  filler: "<#3d59a1,transparent>\u2501</>"
   segments:
   - background: "#3d59a1"
     foreground: "#c0caf5"
