@@ -7,6 +7,7 @@ export LESS='SX'
 export HISTCONTROL=ignorespace:ignoredups
 shopt -s histappend
 export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+export XAUTHORITY=$HOME/.Xauthority
 
 HISTSIZE=1000000
 HISTFILESIZE=1000000

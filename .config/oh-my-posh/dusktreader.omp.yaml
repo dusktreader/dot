@@ -17,8 +17,8 @@ blocks:
     foreground: "#c0caf5"
     template: " {{ .UserName }}@{{ .HostName }} "
     style: diamond
-    leading_diamond: "<transparent,background>\ue0b0"
-    trailing_diamond: "\ue0b0</>"
+    leading_diamond: "<transparent,background>\ue0b0</>"
+    trailing_diamond: "\ue0b0"
     type: session
   - background: "#737aa2"
     foreground: "#24283b"
