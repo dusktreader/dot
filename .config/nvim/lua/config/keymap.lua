@@ -59,9 +59,16 @@ vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>",    { noremap = t
 vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>",  { noremap = true })
 
 
--- Mappings for treesj
-vim.keymap.set('n', '<leader>a', require('treesj').toggle)
+-- Mappings for trees
+vim.keymap.set("n", "<leader>a", require("treesj").toggle)
 
 
 -- Mappings for FTerm
-vim.keymap.set('n', '`', '<CMD>lua require("FTerm").toggle()<CR>')
+vim.keymap.set("n", "`", "<CMD>lua require('FTerm').toggle()<CR>")
+
+
+-- Mappings to resize splits
+vim.keymap.set({"n", "i", "v"}, "<Down>", "<CMD>resize +2<CR>")
+vim.keymap.set({"n", "i", "v"}, "<Up>", "<CMD>resize -2<CR>")
+vim.keymap.set({"n", "i", "v"}, "<Right>", "<CMD>vertical resize +4<CR>")
+vim.keymap.set({"n", "i", "v"}, "<Left>", "<CMD>vertical resize -4<CR>")
