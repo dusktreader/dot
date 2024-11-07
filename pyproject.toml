@@ -28,7 +28,8 @@ toml = "^0.10.1"
 pylint = "^2.6.0"
 "keyrings.alt" = "^4.0.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.29.0"
 
 [tool.poetry.scripts]
 duck = 'dot_tools.bin.duck:main'

@@ -1,110 +1,105 @@
----
-"$schema": https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
-enable_cursor_positioning: true
+# yaml-language-server: $schema=https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json
+
 blocks:
-- alignment: left
+- type: prompt
   newline: true
+  alignment: left
   segments:
-  - background: "#3d59a1"
-    foreground: "#c0caf5"
-    properties:
+  - template: "\n" # this seems like a hack, but it works
+    type: text
+  - properties:
       macos: mac
     style: diamond
+    trailing_diamond: 
     template: " {{.Icon}} {{ if .WSL }}on WSL {{ end }}"
-    trailing_diamond: "\ue0b0"
-    type: os
-  - background: "#545c7e"
     foreground: "#c0caf5"
+    background: "#3d59a1"
+    type: os
+  - style: diamond
+    leading_diamond: <transparent,background></>
+    trailing_diamond: 
     template: " {{ .UserName }}@{{ .HostName }} "
-    style: diamond
-    leading_diamond: "<transparent,background>\ue0b0</>"
-    trailing_diamond: "\ue0b0"
+    foreground: "#c0caf5"
+    background: "#545c7e"
     type: session
-  - background: "#737aa2"
-    foreground: "#24283b"
-    properties:
+  - properties:
       style: full
     style: diamond
-    leading_diamond: "<transparent,background>\ue0b0"
-    trailing_diamond: "\ue0b0</>"
+    leading_diamond: <transparent,background>
+    trailing_diamond: </>
     template: " \ue5ff {{ .Path }} "
+    foreground: "#24283b"
+    background: "#737aa2"
     type: path
-  - background: "#9d7cd8"
-    foreground: "#193549"
-    style: diamond
-    leading_diamond: "<transparent,background>\ue0b0"
-    trailing_diamond: "\ue0b0</>"
-    properties:
-      fetch_status: true
+  - properties:
       fetch_stash_count: true
+      fetch_status: true
       fetch_upstream_icon: true
+    style: diamond
+    leading_diamond: <transparent,background>
+    trailing_diamond: </>
+    template: " {{ .UpstreamIcon }}{{ abbrev 30 .HEAD }} {{ if .BranchStatus }} {{ .BranchStatus }}{{ end }} {{ if .Working.Changed }} \uf055 {{ .Working.String }}{{ end }} {{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }} {{ if .Staging.Changed }} \uf093 {{ .Staging.String }}{{ end }} {{ if gt .StashCount 0 }} \uf1c0 {{ .StashCount }}{{ end }} "
+    foreground: "#193549"
+    background: "#9d7cd8"
+    type: git
     background_templates:
     - "{{ if .Working.Changed }}#73daca{{ end }}"
-    template: "
-      {{ .UpstreamIcon }}{{ abbrev 30 .HEAD }}
-      {{ if .BranchStatus }} {{ .BranchStatus }}{{ end }}
-      {{ if .Working.Changed }} \uf055 {{ .Working.String }}{{ end }}
-      {{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }}
-      {{ if .Staging.Changed }} \uf093 {{ .Staging.String }}{{ end }}
-      {{ if gt .StashCount 0 }} \uf1c0 {{ .StashCount }}{{ end }}
-      "
-    type: git
-  type: prompt
-- alignment: right
+- type: prompt
+  alignment: right
+  filler: "<#3d59a1,transparent>━</>"
   overflow: break
-  filler: "<#3d59a1,transparent>\u2501</>"
   segments:
-  - background: "#3d59a1"
-    foreground: "#c0caf5"
-    leading_diamond: "\ue0b2"
-    trailing_diamond: "<transparent,background>\ue0b2</>"
-    style: diamond
+  - style: diamond
+    leading_diamond: 
+    trailing_diamond: <transparent,background></>
     template: " \uf308 {{.Context}} :: {{if .Namespace}}{{.Namespace}}{{else}}default{{end}} "
-    type: kubectl
-  - background: "#545c7e"
     foreground: "#c0caf5"
-    style: diamond
-    leading_diamond: "\ue0b2"
-    trailing_diamond: "<transparent,background>\ue0b2</>"
-    template: " \uf017 {{ .FormattedMs }} "
-    properties:
+    background: "#3d59a1"
+    type: kubectl
+  - properties:
       style: austin
       threshold: 100
+    style: diamond
+    leading_diamond: 
+    trailing_diamond: <transparent,background></>
+    template: " \uf017 {{ .FormattedMs }} "
+    foreground: "#c0caf5"
+    background: "#545c7e"
     type: executiontime
-  - background: "#73daca"
-    background_templates:
-    - "{{ if gt .Code 0 }}#db4b4b{{ end }}"
-    foreground: "#ffffff"
-    leading_diamond: "\ue0b2"
-    properties:
+  - properties:
       always_enabled: true
     style: diamond
+    leading_diamond: 
     template: " {{ if gt .Code 0}}\ue315 {{.Code}}{{else}}\ue30d{{end}} "
+    foreground: "#ffffff"
+    background: "#73daca"
     type: status
-  type: prompt
-- alignment: left
-  newline: true
+    background_templates:
+    - "{{ if gt .Code 0 }}#db4b4b{{ end }}"
+- type: prompt
+  alignment: left
   segments:
-  - foreground: "#3d59a1"
-    template: "\u2503"
+  - template: ┃
+    foreground: "#3d59a1"
     type: text
-  type: prompt
-- alignment: left
   newline: true
+- type: prompt
+  newline: true
+  alignment: left
   segments:
-  - foreground: "#3d59a1"
-    template: "\u2517\u2501"
+  - template: ┗━
+    foreground: "#3d59a1"
     type: text
-  - foreground: "#c0caf5"
+  - style: diamond
+    leading_diamond: 
+    trailing_diamond: 
+    template: "{{ if .Venv }} \ue235  {{ .Full }} {{ end }}"
+    foreground: "#c0caf5"
     background: "#3d59a1"
-    template: "{{ if .Venv }}   {{ .Full }} {{ end }}"
-    style: diamond
-    leading_diamond: "\ue0b2"
-    trailing_diamond: "\ue0b0"
     type: python
-  - foreground: "#3d59a1"
-    template: "\u2501\u25ba"
+  - template: ━►
+    foreground: "#3d59a1"
     type: text
-  type: prompt
+version: 3
+enable_cursor_positioning: true
 final_space: true
-version: 2
