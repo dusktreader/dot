@@ -1,5 +1,10 @@
 # dusktreader's todo list for dot
 
+# general
+
+* use fd more
+* use rip-grep more
+
 # installer todos
 
 * Add color to the installer...make it prettier
@@ -21,3 +26,15 @@
 # miscellaneous todos
 
 * cleanup unused scripts and executables
+
+
+# vim todos
+
+* Investigate `undotree`
+* Investigate `vim-surround`
+* Investigate `nvim-dap`
+* Investigate `nvim-tree`
+* Investigate `harpoon`
+* Investigate `possession.nvim`
+* Look into using `basedpyright` for type hinting in vim
+* Look into `op.nvim` + `dressing.nvim` + `parrot.nvim` for llm support in vim

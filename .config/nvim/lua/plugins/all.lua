@@ -150,5 +150,8 @@ return {
     },
 
     -- Enable a floating terminal window
-    { "numToStr/FTerm.nvim" }
+    { "numToStr/FTerm.nvim" },
+
+    -- Colorize color code
+    { "norcalli/nvim-colorizer.lua" },
 }
