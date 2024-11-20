@@ -25,8 +25,8 @@ fail () {
     exit 1
 }
 
-sudo grep $USER /etc/sudoers > /dev/null 2>&1
 check "Checking if $USER has already been added to sudoers"
+sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
 then
     status "Making passwordless sudo"
@@ -39,7 +39,22 @@ else
     confirm "$USER is already a sudoer"
 fi
 
+check "Checking if unzip is installed (needed for oh-my-posh)"
+unzip > /dev/null 2>&1
+if (( $? ))
+then
+    status "Installing unzip"
+    sudo apt install unzip
+    if (( $? ))
+    then
+        fail "Failed to install unzip!"
+    fi
+else
+    confirm "unzip is already installed."
+fi
+
 check "Checking if oh-my-posh is installed"
+oh-my-posh version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing oh-my-posh"
