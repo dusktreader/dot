@@ -31,3 +31,5 @@
     helper = cache
 [github]
     user = dusktreader
+[init]
+	defaultBranch = main

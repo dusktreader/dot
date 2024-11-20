@@ -71,6 +71,10 @@ lspconfig.pyright.setup {
   end
 }
 
+lspconfig.ts_ls.setup {
+  exclude = {"node_modules"}
+}
+
 -- Yoinked from neotest-python
 -- if lib.files.exists("pyproject.toml") then
 --   print("LOOKING IN PYPROJECT.TOML")

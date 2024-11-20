@@ -16,6 +16,10 @@ export GIT_PS1_SHOWDIRTYSTATE=1
 export DIFF_COLOR_DO_HORIZONTAL=1
 export DIFF_COLOR_MERGE_ONE_LINERS=1
 
+export ANDROID_HOME=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
 export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 export PATH=$PATH:~/.local/bin
 
