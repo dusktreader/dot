@@ -77,3 +77,6 @@ vim.keymap.set({"n", "i", "v"}, "<Left>", "<CMD>vertical resize -4<CR>")
 
 -- Mapping to open issue hover
 vim.keymap.set("n", "<leader>h", function () vim.diagnostic.open_float() end)
+
+-- Mapping to toggle the undotree
+vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)

@@ -154,4 +154,7 @@ return {
 
     -- Colorize color code
     { "norcalli/nvim-colorizer.lua" },
+
+    -- Add a view/manager for undo trees
+    { "mbbill/undotree" },
 }
