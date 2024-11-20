@@ -100,6 +100,7 @@ alias nofailall='py.test test --maxfail=1'
 alias tfm='terraform'
 
 alias k='kubectl'
+alias mk='microk8s.kubectl'
 
 alias wjst='watch -n 1 -c juju status --color'
 

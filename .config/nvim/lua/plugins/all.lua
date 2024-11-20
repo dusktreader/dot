@@ -117,13 +117,6 @@ return {
     -- Show the span of code blocks
     { "lukas-reineke/indent-blankline.nvim" },
 
-    -- Copilot integration into neovim
-    {
-      "zbirenbaum/copilot.lua",
-      cmd = "Copilot",
-      event = "InsertEnter",
-    },
-
     -- Use pep8 style indentation for python
     { "Vimjas/vim-python-pep8-indent" },
 
