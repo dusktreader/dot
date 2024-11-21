@@ -75,6 +75,9 @@ vim.keymap.set({"n", "i", "v"}, "<Right>", "<CMD>vertical resize +4<CR>")
 vim.keymap.set({"n", "i", "v"}, "<Left>", "<CMD>vertical resize -4<CR>")
 
 
+-- Mapping to open lsp hover
+vim.keymap.set("n", "<leader>H", function () vim.lsp.buf.hover() end)
+
 -- Mapping to open issue hover
 vim.keymap.set("n", "<leader>h", function () vim.diagnostic.open_float() end)
 
