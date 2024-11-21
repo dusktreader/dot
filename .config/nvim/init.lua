@@ -19,7 +19,7 @@ local home = vim.fn.expand("$HOME")
 -- Sets the leader character for commands
 vim.mapleader=","
 
--- Tells neovim to use indentation based on filetype
+-- Tells neovim to use indentation based on the file-type
 vim.filetype.indent = true
 
 -- Doesn't seem to do anything any more...
@@ -51,6 +51,10 @@ vim.o.sidescrolloff = 10
 
 -- Keep the cursor in the current column when jumping to other lines
 vim.o.startofline = false
+
+-- Enable spell-check
+vim.opt.spelllang = "en_us"
+vim.opt.spell = true
 
 -- Show trailing spaces, tabs, non-breakable space characters
 vim.opt.list = true
@@ -88,7 +92,7 @@ vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.smarttab = true
 
--- Set the colorscheme
+-- Set the color-scheme
 vim.api.nvim_cmd(
   {
     cmd = "colorscheme",
@@ -106,7 +110,7 @@ vim.api.nvim_create_autocmd(
   }
 )
 
--- Remove windows nelines (usually brought in from copypasta)
+-- Remove windows newlines (usually brought in from copy-pasta)
 vim.api.nvim_create_autocmd(
   "BufWritePre",
   {
