@@ -8,7 +8,12 @@ require("neotest").setup({
         "--verbose",
         "--verbose",
       },
-      -- runner = "pytest",
+    }),
+    require("neotest-go")({
+      -- dap = { justMyCode = false },
+      args = {
+        -- How to verbose?
+      },
     }),
     -- require("neotest-plenary"),
     -- require("neotest-vim-test")({

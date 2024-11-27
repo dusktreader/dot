@@ -12,6 +12,7 @@ require("config.treesitter")
 require("config.miniai")
 require("config.fterm")
 require("config.colorizer")
+require("config.dapui")
 
 -- Grab the home directory for use throughout
 local home = vim.fn.expand("$HOME")

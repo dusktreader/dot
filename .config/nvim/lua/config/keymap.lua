@@ -50,7 +50,16 @@ vim.keymap.set("n", "<leader>to", function () require("neotest").output.open({ e
 vim.keymap.set("n", "<leader>tp", function () require("neotest").output_panel.toggle() end)
 vim.keymap.set("n", "<leader>ts", function () require("neotest").summary.toggle() end)
 vim.keymap.set("n", "<leader>tw", function () require("neotest").watch.toggle(vim.fn.expand("%")) end)
+vim.keymap.set("n", "<leader>td", function () require("neotest").run.run({strategy = "dap"}) end)
 
+
+-- Mappings for nvim-dap
+vim.keymap.set("n", "<leader>db", function () require("dap").toggle_breakpoint() end)
+vim.keymap.set("n", "<leader>dc", function () require("dap").continue() end)
+vim.keymap.set("n", "<leader>do", function () require("dap").step_over() end)
+vim.keymap.set("n", "<leader>di", function () require("dap").step_into() end)
+vim.keymap.set("n", "<leader>dO", function () require("dap").step_out() end)
+vim.keymap.set("n", "<leader>dt", function () require("dapui").toggle() end)
 
 -- Mappings for telescope
 vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { noremap = true })

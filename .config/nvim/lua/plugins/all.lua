@@ -81,6 +81,9 @@ return {
     -- Python extension for neotest
     { "nvim-neotest/neotest-python" },
 
+    -- Go extension for neotest
+    { "nvim-neotest/neotest-go" },
+
     -- A colleciton of niceties for lsp clients in neovim
     { "VonHeikemen/lsp-zero.nvim", branch = "v4.x" },
 
@@ -150,4 +153,16 @@ return {
 
     -- Add a view/manager for undo trees
     { "mbbill/undotree" },
+
+    -- Add a debugging adapters
+    {
+      "rcarriga/nvim-dap-ui",
+      dependencies = {
+        "mfussenegger/nvim-dap",
+        "nvim-neotest/nvim-nio",
+      },
+    },
+
+    -- Add a debugging adapter for Go
+    { "leoluz/nvim-dap-go" },
 }
