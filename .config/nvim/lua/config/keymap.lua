@@ -1,6 +1,8 @@
 -- Remaps K to split lines under cursor. Basically the inverse of J
 vim.keymap.set("n", "K", "i<CR><Esc>", { noremap = true })
 
+-- Mappings for lsp
+vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
 
 -- Mappings to switch windows
 vim.keymap.set("n", "<TAB>", "<C-w>w")

@@ -126,6 +126,9 @@ return {
     -- Extend a/i textobjects
     { "echasnovski/mini.ai" },
 
+    -- Align text
+    { "echasnovski/mini.align" },
+
     -- Show key mappings
     {
       "folke/which-key.nvim",
