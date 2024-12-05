@@ -11,14 +11,14 @@ blocks:
       macos: mac
     style: diamond
     trailing_diamond: 
-    template: " {{.Icon}} {{ if .WSL }}on WSL {{ end }}"
+    template: " {{.Icon}} {{ if .WSL -}} on WSL {{- end }}"
     foreground: "#c0caf5"
     background: "#3d59a1"
     type: os
   - style: diamond
     leading_diamond: <transparent,background></>
     trailing_diamond: 
-    template: " {{ .UserName }}@{{ .HostName }} "
+    template: " {{ .UserName -}} @ {{- .HostName }} "
     foreground: "#c0caf5"
     background: "#545c7e"
     type: session
@@ -27,7 +27,7 @@ blocks:
     style: diamond
     leading_diamond: <transparent,background>
     trailing_diamond: </>
-    template: " \ue5ff {{ .Path }} "
+    template: " \ue5ff {{ abbrev 30 .Path }} "
     foreground: "#24283b"
     background: "#737aa2"
     type: path
@@ -46,7 +46,7 @@ blocks:
     - "{{ if .Working.Changed }}#73daca{{ end }}"
 - type: prompt
   alignment: right
-  filler: "<#3d59a1,transparent>━</>"
+  filler: "{{ if .Overflow }} {{ else -}} <#3d59a1,transparent>━</> {{- end }}"
   overflow: break
   segments:
   - style: diamond
