@@ -8,6 +8,8 @@ vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-l>", "<C-w>l")
 
+-- Mapping to escape terminal mode
+vim.keymap.set("t", "<Esc><Esc><Esc>", "<C-\\><C-n>", { noremap = true })
 
 -- Mapping to open nerdtree on the current file
 vim.keymap.set("n", "<leader>e", ":NERDTreeFind<CR>", { noremap = true })
