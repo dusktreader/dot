@@ -169,6 +169,21 @@ return {
     -- Add a debugging adapter for Go
     { "leoluz/nvim-dap-go" },
 
+    -- Silliness to get symbols in cmp menu
+    { "onsails/lspkind.nvim" },
+
     -- Copilot
-    { "github/copilot.vim" },
+    {
+      "zbirenbaum/copilot.lua",
+      cmd = "Copilot",
+      event = "InsertEnter"
+    },
+
+    -- Copilot cmp
+    {
+      "zbirenbaum/copilot-cmp",
+      config = function()
+        require("copilot_cmp").setup()
+      end,
+    },
 }

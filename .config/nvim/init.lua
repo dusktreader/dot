@@ -14,6 +14,7 @@ require("config.minialign")
 require("config.fterm")
 require("config.colorizer")
 require("config.dapui")
+require("config.copilot")
 
 -- Grab the home directory for use throughout
 local home = vim.fn.expand("$HOME")

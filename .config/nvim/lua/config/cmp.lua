@@ -1,8 +1,18 @@
 local cmp = require('cmp')
+local lspkind = require("lspkind")
 
 cmp.setup({
   sources = {
     {name = 'nvim_lsp'},
+    {name = 'copilot', group_index = 2},
+  },
+  formatting = {
+    format = lspkind.cmp_format({
+      mode ="symbol",
+      symbol_map = {
+        Copilot = ""
+      },
+    })
   },
   mapping = cmp.mapping.preset.insert({
     -- Navigate between completion items
