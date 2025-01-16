@@ -68,6 +68,8 @@ vim.keymap.set("n", "<leader>fg", "<cmd>Telescope live_grep<cr>",  { noremap = t
 vim.keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>",    { noremap = true })
 vim.keymap.set("n", "<leader>fh", "<cmd>Telescope help_tags<cr>",  { noremap = true })
 
+vim.keymap.set("n", "<leader>sp", function () require("telescope.builtin").spell_suggest() end)
+
 
 -- Mappings for trees
 vim.keymap.set("n", "<leader>a", require("treesj").toggle)

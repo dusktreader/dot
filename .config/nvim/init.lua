@@ -58,6 +58,7 @@ vim.o.startofline = false
 -- Enable spell-check
 vim.opt.spelllang = "en_us"
 vim.opt.spell = true
+vim.opt.spelloptions = "camel"
 
 -- Show trailing spaces, tabs, non-breakable space characters
 vim.opt.list = true
