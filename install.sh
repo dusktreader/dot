@@ -157,6 +157,20 @@ else
     confirm "fzf is already installed."
 fi
 
+check "Checking if node is installed"
+node --version > /dev/null 2>&1
+if (( $? ))
+then
+    status "Setting up node"
+    sudo snap install node --classic
+    if (( $? ))
+    then
+        fail "Failed to install node!"
+    fi
+else
+    confirm "node is already installed"
+fi
+
 check "Checking if neovim is installed"
 nvim --version > /dev/null 2>&1
 if (( $? ))
