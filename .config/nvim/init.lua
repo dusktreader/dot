@@ -15,6 +15,9 @@ require("config.fterm")
 require("config.colorizer")
 require("config.dapui")
 require("config.copilot")
+require("config.smear")
+require("config.chunk")
+require("config.dropbar")
 
 -- Grab the home directory for use throughout
 local home = vim.fn.expand("$HOME")

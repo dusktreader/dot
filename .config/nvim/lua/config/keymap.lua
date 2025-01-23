@@ -95,3 +95,6 @@ vim.keymap.set("n", "<leader>h", function () vim.diagnostic.open_float() end)
 
 -- Mapping to toggle the undotree
 vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
+
+-- Dropbar mappings
+vim.keymap.set('n', '<Leader>;', function () require("dropbar.api").pick() end, { noremap = true })
