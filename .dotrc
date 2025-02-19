@@ -99,8 +99,9 @@ alias nofailall='py.test test --maxfail=1'
 
 alias tfm='terraform'
 
-# Should add a function that does docker compose up svc1 svc2 --detach && docker compose logs --follow --tail=30 svc1 svc2
 alias dc='docker compose'
+
+alias fd='fdfind'
 
 alias k='kubectl'
 alias mk='microk8s.kubectl'

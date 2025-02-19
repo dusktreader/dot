@@ -9,19 +9,6 @@ debug_out() {
 
 debug_out "Processing configuration for Miscellaneous Tools"
 
-umask 0002
-function ff() {
-    find . -type f -iname '*'$*'*' -ls ;
-}
-
-function fd() {
-    find . -type d -iname '*'$*'*' -ls ;
-}
-
-function fe() {
-    find . -type f -iname '*'${1:-}'*' -exec ${2:-file} {} \; ;
-}
-
 list_functions() {
     echo "listing functions"
     for return_status in 0
@@ -63,4 +50,3 @@ list_functions() {
     echo $message
     return $return_status
 }
-

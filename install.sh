@@ -129,7 +129,7 @@ else
 fi
 
 check "Checking if fd is installed. (Needed by a neovim plugin)"
-fd --version > /dev/null 2>&1
+fdfind --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing fd"
@@ -138,7 +138,6 @@ then
     then
         fail "Failed to install fd!"
     fi
-    source $home/.cargo/env
 else
     confirm "fd is already installed."
 fi
@@ -155,6 +154,20 @@ then
     fi
 else
     confirm "fzf is already installed."
+fi
+
+check "Checking if lynx is installed. (Needed by a neovim plugin)"
+lynx --version > /dev/null 2>&1
+if (( $? ))
+then
+    status "Installing lynx"
+    sudo apt install lynx
+    if (( $? ))
+    then
+        fail "Failed to install lynx!"
+    fi
+else
+    confirm "lynx is already installed."
 fi
 
 check "Checking if node is installed"

@@ -98,3 +98,6 @@ vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 
 -- Dropbar mappings
 vim.keymap.set('n', '<Leader>;', function () require("dropbar.api").pick() end, { noremap = true })
+
+-- Mappings for Copilot Chat
+vim.keymap.set("n", "<leader>AA", "<cmd>CopilotChatOpen<cr>", { noremap = true })
