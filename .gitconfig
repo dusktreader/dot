@@ -9,6 +9,7 @@
     sup = "submodule update"
     pushup = "!git push -u origin $(git rev-parse --abbrev-ref HEAD)"
     tagup = "!git tag v$(poetry version -s) && git push origin v$(poetry version -s)"
+    tagdown = "!git tag -d $1; git push --delete origin $1"
     crack = "!target=$(git st -s | grep -m1 '^U.*' | cut -d' ' -f2) && $EDITOR $target && git add $target"
     now = "rev-parse --abbrev-ref HEAD"
     jam = "!git commit -am 'interim commit' && git push"

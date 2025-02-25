@@ -41,15 +41,24 @@ require('mason-lspconfig').setup({
   },
 })
 
--- Get pyright to use poetry's virtual environment
--- Adapted from from: https://www.reddit.com/r/neovim/comments/wls43h/pyright_lsp_configuration_for_python_poetry/
 local lspconfig = require('lspconfig')
 lspconfig.pyright.setup {
   on_new_config = function(config, root_dir)
-    local pyproject_file = io.open(root_dir .. "/pyproject.toml")
-    if (pyproject_file == nil) then
+
+    -- See if there is a local virtual env (as uv uses)
+    local venv_path = root_dir .. "/.venv/bin/python"
+    if vim.fn.filereadable(venv_path) == 1 then
+      config.settings.python.pythonPath = venv_path
       return
     end
+
+    local pyproject_path = root_dir .. "/pyproject.toml"
+    if not vim.fn.filereadable(pyproject_path) then
+      return
+    end
+
+    -- Get pyright to use poetry's virtual environment
+    -- Adapted from from: https://www.reddit.com/r/neovim/comments/wls43h/pyright_lsp_configuration_for_python_poetry/
     if (vim.g.pyright_poetry_roots == nil) then
       vim.g.pyright_poetry_roots = {}
     end
@@ -75,33 +84,6 @@ lspconfig.pyright.setup {
 lspconfig.ts_ls.setup {
   exclude = {"node_modules"}
 }
-
--- Yoinked from neotest-python
--- if lib.files.exists("pyproject.toml") then
---   print("LOOKING IN PYPROJECT.TOML")
---   local success, exit_code, data = pcall(
---     lib.process.run,
---     { "poetry", "run", "poetry", "env", "info", "-p" },
---     { stdout = true }
---   )
---   print("DATA: " .. data.stdout)
---   print("SUCCESS: " .. tostring(success))
---   print("EXIT_CODE: " .. tostring(exit_code))
---   if success and exit_code == 0 then
---     local venv = data.stdout:gsub("\n", "")
---     if venv then
---       print("LOOKING FOR PYTHON COMMAND")
---       python_command_mem[root] = { Path:new(venv, "bin", "python").filename }
---       print("PYTHON COMMAND: " .. Path:new(venv, "bin", "python").filename)
---       return python_command_mem[root]
---     end
---   end
--- end
---
---
---
--- local root = base.get_root(position.path) or vim.loop.cwd() or ""
-
 
 require'lspconfig'.lua_ls.setup {
   on_init = function(client)
