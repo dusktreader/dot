@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - command: echo Hello World!
+    register: result
+  - debug:
+    var: result.stdout

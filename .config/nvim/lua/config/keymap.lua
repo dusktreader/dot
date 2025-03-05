@@ -1,6 +1,9 @@
 -- Remaps K to split lines under cursor. Basically the inverse of J
 vim.keymap.set("n", "K", "i<CR><Esc>", { noremap = true })
 
+-- Mapping for toggling word wrap
+vim.keymap.set("n", "<leader>W", "<cmd>set wrap!<CR>", { noremap = true })
+
 -- Mappings to switch windows
 vim.keymap.set("n", "<TAB>", "<C-w>w")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
