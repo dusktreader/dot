@@ -33,6 +33,11 @@ export PATH="$HOME/go/bin:$PATH"
 # Add generic binaries to the path
 export PATH="~/bin:$PATH"
 
+if [[ -n "$WSL_DISTRO_NAME" ]]
+then
+    export BROWSER="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+fi
+
 alias vim='nvim -O'
 raw_vim_command='nvim'
 
