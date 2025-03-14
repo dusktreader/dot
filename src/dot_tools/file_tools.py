@@ -1,7 +1,7 @@
 import os
 import re
 
-from dot_tools.misc_tools import DotError, get_timestamp
+from dot_tools.misc_tools import DotError
 from dot_tools.git_tools import GitManager
 
 

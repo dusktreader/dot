@@ -2,7 +2,6 @@ import ast
 import inspect
 import os
 import pathlib
-import pendulum
 import pprintpp
 import re
 import sys
@@ -51,17 +50,6 @@ def transpose_dict(in_stream=sys.stdin, out_stream=sys.stdout, separator=","):
 def setup_logging(sink=sys.stderr, verbose=False):
     logger.remove()
     logger.add(sys.stderr, level="DEBUG" if verbose else "INFO")
-
-
-def get_timestamp(instance=None, format="YYYYMMDD_HHmmss"):
-    if instance is None:
-        instance = pendulum.now()
-    timestamp = instance.format(format)
-    DotError.require_condition(
-        timestamp != format,
-        "Couldn't generate timestamp",
-    )
-    return timestamp
 
 
 def call(command):
