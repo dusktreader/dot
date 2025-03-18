@@ -118,6 +118,11 @@ dcup () {
     docker compose up --detach $@ && docker compose logs --follow --tail=30 $@
 }
 
+dcw () {
+    services=$@
+    docker compose up --build --watch $@
+}
+
 function wisdom {
     curl -s -X GET -H "Content-Type: application/json" https://zenquotes.io/api/random | jq -r '" " as $space | .[0] | .q + "\n\n\($space * ((.q |length)-(.a |length) - 2))--" + .a' | cowsay -nsf $(cowsay -l | tail -n +2  | tr ' ' '\n' | shuf -n1) | lolcat
 }
