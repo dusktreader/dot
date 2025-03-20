@@ -217,4 +217,12 @@ return {
       build = 'make'
     },
   },
+
+  -- Toggle comments
+  {
+    'numToStr/Comment.nvim',
+    opts = {
+      padding = true,
+    }
+  }
 }
