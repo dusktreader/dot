@@ -100,6 +100,7 @@ lspconfig.basedpyright.setup({
         diagnosticSeverityOverrides = {
           reportAny = false,
           reportExplicitAny = false,
+          reportUnusedCallResult = false,
         },
       },
     },
