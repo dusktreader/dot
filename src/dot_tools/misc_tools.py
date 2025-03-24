@@ -10,7 +10,7 @@ from loguru import logger
 
 from buzz import Buzz
 
-DEFAULT_BLACK_LINE_LENGTH = 88
+DEFAULT_LINE_LENGTH = 120
 
 
 class DotException(Buzz):
@@ -117,8 +117,8 @@ def get_config_line_length():
         logger.debug("Finding pyproject.toml")
         pyproject_toml = find_pyproject_toml()
         if not pyproject_toml:
-            logger.debug("No pyproject.toml found. Using default of {DEFAULT_BLACK_LINE_LENGTH}")
-            return DEFAULT_BLACK_LINE_LENGTH
+            logger.debug("No pyproject.toml found. Using default of {DEFAULT_LINE_LENGTH}")
+            return DEFAULT_LINE_LENGTH
         logger.debug(f"Found at {pyproject_toml}")
 
         config = toml.load(pyproject_toml)
@@ -143,4 +143,4 @@ def get_config_line_length():
             logger.debug(f"Line length extracted as {line_length}")
             return line_length
 
-    return DEFAULT_BLACK_LINE_LENGTH
+    return DEFAULT_LINE_LENGTH
