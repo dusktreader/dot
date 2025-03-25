@@ -3,6 +3,7 @@ local lspkind = require("lspkind")
 
 cmp.setup({
   sources = {
+    {name = 'typos_lsp'},
     {name = 'nvim_lsp'},
     {name = 'copilot', group_index = 2},
   },

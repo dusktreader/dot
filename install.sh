@@ -239,7 +239,7 @@ else
 fi
 
 check "Checking if dot is installed yet"
-now > /dev/null 2>&1
+dot-version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing dot via uv"

@@ -28,10 +28,6 @@ vim.mapleader=","
 -- Tells neovim to use indentation based on the file-type
 vim.filetype.indent = true
 
--- Doesn't seem to do anything any more...
--- make bell visual only
--- vim.o.visualbell = true
-
 -- Turn off vi compatibility mode
 vim.o.compatible = false
 
@@ -57,11 +53,6 @@ vim.o.sidescrolloff = 10
 
 -- Keep the cursor in the current column when jumping to other lines
 vim.o.startofline = false
-
--- Enable spell-check
-vim.opt.spelllang = "en_us"
-vim.opt.spell = true
-vim.opt.spelloptions = "camel"
 
 -- Show trailing spaces, tabs, non-breakable space characters
 vim.opt.list = true

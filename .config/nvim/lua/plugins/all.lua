@@ -71,10 +71,7 @@ return {
   -- Go extension for neotest
   { "nvim-neotest/neotest-go" },
 
-  -- A colleciton of niceties for lsp clients in neovim
-  { "VonHeikemen/lsp-zero.nvim", branch = "v4.x" },
-
-  -- A protable package manager for neovim external dependencies
+  -- A portable package manager for neovim external dependencies
   { "williamboman/mason.nvim" },
 
   -- Some glue for mason and lspconfig

@@ -71,6 +71,7 @@ alias cdmine='cd $HOME/git-repos/personal'
 alias ecoc="$EDITOR $DOT_HOME/.config/nvim/coc-settings.json"
 
 alias einstall="$EDITOR $DOT_HOME/install.sh"
+alias rinstall="$DOT_HOME/install.sh"
 
 alias elualine="$EDITOR $DOT_HOME/.config/nvim/lualine.lua"
 

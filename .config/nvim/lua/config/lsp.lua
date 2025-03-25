@@ -130,3 +130,5 @@ lspconfig.lua_ls.setup {
     Lua = {}
   }
 }
+
+lspconfig.typos_lsp.setup {}
