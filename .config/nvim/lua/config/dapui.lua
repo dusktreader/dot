@@ -14,8 +14,10 @@ dap.listeners.before.event_exited.dapui_config = function()
   dapui.close()
 end
 
-require('dap-go').setup {
+require('dap-go').setup({
   tests = {
     verbose = true,
   }
-}
+})
+
+require('dap-python').setup("uv")

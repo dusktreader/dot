@@ -14,18 +14,6 @@ return {
     end
   },
 
-  -- Explore open buffers, but show file tree structure
-  {
-    "el-iot/buffer-tree-explorer",
-    init = function()
-      -- Use compressed buffer-tree-explorer
-      vim.g.buffer_tree_explorer_compress = 1
-
-      -- Close buffer-tree-explorer when buffer is selected
-      vim.g.buffertree_close_on_enter = 1
-    end
-  },
-
   -- Have word motions respect things like camelCase, snake_case, and others
   { "chaoren/vim-wordmotion" },
 
@@ -173,6 +161,9 @@ return {
 
   -- Add a debugging adapter for Go
   { "leoluz/nvim-dap-go" },
+
+  -- Add a debugging adapter for Python (requires uv project)
+  { "mfussenegger/nvim-dap-python" },
 
   -- Silliness to get symbols in cmp menu
   { "onsails/lspkind.nvim" },

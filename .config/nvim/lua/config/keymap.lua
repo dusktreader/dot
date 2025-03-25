@@ -35,7 +35,7 @@ vim.keymap.set("n",  "<leader>ss", ":so %<CR>", { noremap = true })
 
 
 -- Mapping to open buffer-tree-explorer
-vim.keymap.set("n", "<leader>be", ":Tree<CR>", { noremap = true })
+vim.keymap.set("n", "<leader>be", function() require("telescope.builtin").buffers() end)
 
 
 -- Mappings for vim-bookmark
@@ -58,12 +58,19 @@ vim.keymap.set("n", "<leader>td", function () require("neotest").run.run({strate
 
 
 -- Mappings for nvim-dap
-vim.keymap.set("n", "<leader>db", function () require("dap").toggle_breakpoint() end)
-vim.keymap.set("n", "<leader>dc", function () require("dap").continue() end)
-vim.keymap.set("n", "<leader>do", function () require("dap").step_over() end)
-vim.keymap.set("n", "<leader>di", function () require("dap").step_into() end)
-vim.keymap.set("n", "<leader>dO", function () require("dap").step_out() end)
-vim.keymap.set("n", "<leader>dt", function () require("dapui").toggle() end)
+vim.keymap.set("n", "<leader>db", require("dap").toggle_breakpoint)
+vim.keymap.set("n", "<leader>dc", require("dap").continue)
+vim.keymap.set("n", "<leader>do", require("dap").step_over)
+vim.keymap.set("n", "<leader>di", require("dap").step_into)
+vim.keymap.set("n", "<leader>dO", require("dap").step_out)
+vim.keymap.set("n", "<leader>dt", require("dapui").toggle)
+vim.keymap.set("n", "<leader>dX", function ()
+  local dap = require("dap")
+  local dapui = require("dapui")
+  dap.disconnect()
+  dap.close()
+  dapui.close()
+end)
 
 -- Mappings for telescope
 vim.keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { noremap = true })
