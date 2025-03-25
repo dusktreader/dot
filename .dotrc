@@ -60,6 +60,10 @@ alias edot="$EDITOR $DOT_HOME/.dotrc"
 alias sdot='source $DOT_HOME/.dotrc'
 alias idot='install_dot'
 alias cdot='cd $DOT_HOME'
+alias pdot='pushd $DOT_HOME'
+
+alias cnotes='cd $HOME/git-repos/personal/notes'
+alias pnotes='pushd $HOME/git-repos/personal/notes'
 
 alias cdwork='cd $HOME/git-repos/omnivector'
 alias cdmine='cd $HOME/git-repos/personal'
