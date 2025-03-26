@@ -19,7 +19,7 @@ vim.keymap.set("n", "<leader>e", ":NERDTreeFind<CR>", { noremap = true })
 
 
 -- Mapping to reload init script
-vim.keymap.set("n", "<leader>RR", ":source $MYVIMRC <CR>", { noremap = true })
+vim.keymap.set("n", "<leader>RR", function() require('config.reload').Reload() end)
 
 
 -- Mapping to edit vim config

@@ -81,10 +81,13 @@ return {
   { "neovim/nvim-lspconfig" },
 
   -- More integration with lsp
-  { "hrsh7th/cmp-nvim-lsp" },
+  -- { "hrsh7th/cmp-nvim-lsp" },
 
   -- Auto-completion in neovim
-  { "hrsh7th/nvim-cmp" },
+  -- { "hrsh7th/nvim-cmp" },
+
+  -- Auto-completion in neovim
+  { "saghen/blink.cmp", version = "1.*" },
 
   -- CSV Reader with color and formatting
   { "mechatroner/rainbow_csv" },
@@ -172,13 +175,15 @@ return {
     event = "InsertEnter"
   },
 
+  { "fang2hou/blink-copilot" },
+
   -- Copilot cmp
-  {
-    "zbirenbaum/copilot-cmp",
-    config = function()
-      require("copilot_cmp").setup()
-    end,
-  },
+  -- {
+  --   "zbirenbaum/copilot-cmp",
+  --   config = function()
+  --     require("copilot_cmp").setup()
+  --   end,
+  -- },
 
   -- Copilot chat
   {

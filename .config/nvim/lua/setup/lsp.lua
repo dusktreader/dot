@@ -2,14 +2,64 @@
 -- This will avoid an annoying layout shift in the screen
 vim.opt.signcolumn = 'yes'
 
--- Add cmp_nvim_lsp capabilities settings to lspconfig
+
+-- Add completion capabilities settings to lspconfig
 -- This should be executed before you configure any language server
-local lspconfig_defaults = require('lspconfig').util.default_config
-lspconfig_defaults.capabilities = vim.tbl_deep_extend(
-  'force',
-  lspconfig_defaults.capabilities,
-  require('cmp_nvim_lsp').default_capabilities()
-)
+local lspconfig = require('lspconfig')
+local blink = require('blink.cmp')
+local capabilities = blink.get_lsp_capabilities()
+
+-- Setup the language servers
+lspconfig.basedpyright.setup({
+  capabilities = capabilities,
+  on_new_config = based_new_cfg,
+  settings = {
+    basedpyright = {
+      analysis = {
+        diagnosticSeverityOverrides = {
+          reportAny = false,
+          reportExplicitAny = false,
+          reportUnusedCallResult = false,
+        },
+      },
+    },
+  }
+})
+
+lspconfig.ts_ls.setup({
+  capabilities = capabilities,
+  exclude = {"node_modules"}
+})
+
+lspconfig.lua_ls.setup({
+  capabilities = capabilities,
+  on_init = function(client)
+
+    client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
+      runtime = {
+        version = 'LuaJIT'
+      },
+      workspace = {
+        checkThirdParty = false,
+        library = {
+          vim.env.VIMRUNTIME
+        }
+      }
+    })
+  end,
+  settings = {
+  Lua = {}
+  }
+})
+
+lspconfig.gopls.setup({
+  capabilities = capabilities,
+})
+
+lspconfig.typos_lsp.setup({
+  capabilities = capabilities,
+})
+
 
 -- This is where you enable features that only work
 -- if there is a language server active in the file
@@ -32,7 +82,6 @@ vim.api.nvim_create_autocmd('LspAttach', {
   end,
 })
 
-require('mason').setup({})
 require('mason-lspconfig').setup({
   handlers = {
     function(server_name)
@@ -41,7 +90,6 @@ require('mason-lspconfig').setup({
   },
 })
 
-local lspconfig = require('lspconfig')
 
 function based_new_cfg(config, root_dir)
   -- See if there is a local virtual env (as uv uses)
@@ -91,44 +139,3 @@ function based_new_cfg(config, root_dir)
   --   },
   -- }
 end
-
-lspconfig.basedpyright.setup({
-  on_new_config = based_new_cfg,
-  settings = {
-    basedpyright = {
-      analysis = {
-        diagnosticSeverityOverrides = {
-          reportAny = false,
-          reportExplicitAny = false,
-          reportUnusedCallResult = false,
-        },
-      },
-    },
-  }
-})
-
-lspconfig.ts_ls.setup {
-  exclude = {"node_modules"}
-}
-
-lspconfig.lua_ls.setup {
-  on_init = function(client)
-
-    client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
-      runtime = {
-        version = 'LuaJIT'
-      },
-      workspace = {
-        checkThirdParty = false,
-        library = {
-          vim.env.VIMRUNTIME
-        }
-      }
-    })
-  end,
-  settings = {
-    Lua = {}
-  }
-}
-
-lspconfig.typos_lsp.setup {}
