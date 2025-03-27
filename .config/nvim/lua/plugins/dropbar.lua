@@ -1,4 +1,12 @@
-require("dropbar").setup({
+return {
+  -- Interactive breadcrumbs at the top
+
+  "Bekaboo/dropbar.nvim",
+  dependencies = {
+    "nvim-telescope/telescope-fzf-native.nvim",
+    build = 'make'
+  },
+  opts = {
     sources = {
       path = {
         relative_to = function(_, _)
@@ -11,4 +19,5 @@ require("dropbar").setup({
         end,
       },
     },
-})
+  },
+}

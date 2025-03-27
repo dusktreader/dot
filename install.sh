@@ -198,6 +198,36 @@ else
     confirm "nvim is already installed."
 fi
 
+check "Checking if luarocks is installed"
+luarocks --version > /dev/null 2>%1
+if (( $? ))
+then
+    status "Getting current lua version"
+    ver=$(lua -v | awk '{print $2}' | cut -d. -f1,2)
+    if [[ -z "$ver" ]]
+    then
+        fail "Failed to get lua version!"
+    else
+        status "Setting up luarocks"
+        sudo apt install -y liblua${ver}-dev && \
+        pushd /tmp && \
+        wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz && \
+        tar zxpf luarocks-3.11.1.tar.gz && \
+        cd luarocks-3.11.1 && \
+        ./configure && \
+        make && \
+        sudo make install \
+        popd
+        if (( $? ))
+        then
+            fail "Failed to install luarocks!"
+        fi
+    fi
+else
+    confirm "luarocks is already installed"
+fi
+
+
 check "Checking if 1password-cli is installed"
 op --version > /dev/null 2>&1
 if (( $? ))

@@ -42,9 +42,10 @@ alias vim='nvim -O'
 raw_vim_command='nvim'
 
 alias vi='nvim'
-alias evim='$EDITOR ~/.config/nvim/init.lua'
-alias eplug='$EDITOR ~/.config/nvim/lua/plugins/all.lua'
-alias ekeys='$EDITOR ~/.config/nvim/lua/user/keymap.lua'
+alias evim='$EDITOR $HOME/.config/nvim/init.lua'
+alias cplug='cd $HOME/.config/nvim/lua/plugins/'
+alias eplug='$EDITOR $HOME/.config/nvim/lua/plugins/'
+alias ekeys='$EDITOR $HOME/.config/nvim/lua/user/keymap.lua'
 export EDITOR=$raw_vim_command
 export VISUAL=$raw_vim_command
 
@@ -64,6 +65,7 @@ alias pdot='pushd $DOT_HOME'
 
 alias cnotes='cd $HOME/git-repos/personal/notes'
 alias pnotes='pushd $HOME/git-repos/personal/notes'
+alias enotes='$EDITOR $HOME/git-repos/personal/notes'
 
 alias cdwork='cd $HOME/git-repos/omnivector'
 alias cdmine='cd $HOME/git-repos/personal'
