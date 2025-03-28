@@ -17,7 +17,7 @@ return {
       unpack(opts),
       adapters = {
         require("neotest-python")({
-          -- dap = { justMyCode = false },
+          dap = { justMyCode = false },
           args = {
             "--log-level=DEBUG",
             "--verbose",
