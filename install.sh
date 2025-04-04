@@ -34,6 +34,8 @@ then
     if (( $? ))
     then
         fail "Failed to configure sudo! Aborting..."
+    else
+        confirm "Added $USER to sudoers"
     fi
 else
     confirm "$USER is already a sudoer"
@@ -48,6 +50,8 @@ then
     if (( $? ))
     then
         fail "Failed to install unzip!"
+    else
+        confirm "Installed unzip"
     fi
 else
     confirm "unzip is already installed."
@@ -62,6 +66,8 @@ then
     if (( $? ))
     then
         fail "Failed to install oh-my-posh!"
+    else
+        confirm "Installed oh-my-posh"
     fi
 else
     confirm "oh-my-posh is already installed."
@@ -76,6 +82,8 @@ then
     if (( $? ))
     then
         fail "Failed to install uv!"
+    else
+        confirm "Installed uv"
     fi
     source $home/.cargo/env
 else
@@ -92,6 +100,8 @@ then
     if (( $? ))
     then
         fail "Failed to install python $python_version!"
+    else
+        confirm "Installed python $python_version"
     fi
 else
     confirm "python $python_version is already available through uv"
@@ -106,6 +116,8 @@ then
     if (( $? ))
     then
         fail "Failed to install poetry!"
+    else
+        confirm "Installed poetry"
     fi
     export PATH="$home/.local/bin:$PATH"
 else
@@ -121,7 +133,8 @@ then
     if (( $? ))
     then
         fail "Failed to install ripgrep!"
-        exit 1
+    else
+        confirm "Installed ripgrep"
     fi
     source $home/.cargo/env
 else
@@ -137,6 +150,8 @@ then
     if (( $? ))
     then
         fail "Failed to install fd!"
+    else
+        confirm "Installed fd"
     fi
 else
     confirm "fd is already installed."
@@ -151,6 +166,8 @@ then
     if (( $? ))
     then
         fail "Failed to install fzf!"
+    else
+        confirm "Installed fzf"
     fi
 else
     confirm "fzf is already installed."
@@ -165,6 +182,8 @@ then
     if (( $? ))
     then
         fail "Failed to install lynx!"
+    else
+        confirm "Installed linx"
     fi
 else
     confirm "lynx is already installed."
@@ -179,6 +198,8 @@ then
     if (( $? ))
     then
         fail "Failed to install node!"
+    else
+        confirm "Installed node"
     fi
 else
     confirm "node is already installed"
@@ -193,6 +214,8 @@ then
     if (( $? ))
     then
         fail "Failed to install neovim!"
+    else
+        confirm "Installed neovim"
     fi
 else
     confirm "nvim is already installed."
@@ -221,6 +244,8 @@ then
         if (( $? ))
         then
             fail "Failed to install luarocks!"
+        else
+            confirm "Installed luarocks"
         fi
     fi
 else
@@ -247,9 +272,29 @@ then
     if (( $? ))
     then
         fail "Failed to install 1password-cli!"
+    else
+        confirm "Installed 1password-cli"
     fi
 else
     confirm "1password-cli is already installed"
+fi
+
+check "Checking if github cli is installed"
+gh --version > /dev/null 2>&1
+if (( $? ))
+then
+    status "Setting up github cli"
+    pushd /tmp && \
+    wget https://github.com/cli/cli/releases/download/v2.69.0/gh_2.69.0_linux_amd64.deb && \
+    sudo apt install -y gh_2.69.0_linux_amd64.deb
+    if (( $? ))
+    then
+        fail "Failed to install github cli"
+    else
+        confirm "Installed github cli"
+    fi
+else
+    confirm "github cli is already installed"
 fi
 
 status "Making parent directories for dot"
@@ -263,6 +308,8 @@ then
     if (( $? ))
     then
         fail "Failed to clone dot repository!"
+    else
+        confirm "Cloned dot repository"
     fi
 else
     confirm "dot is already cloned on this machine"
@@ -276,7 +323,9 @@ then
     uv tool install $home/git-repos/personal/dot --force --python=$python_version --editable
     if (( $? ))
     then
-        fail "Failed to clone dot repository!"
+        fail "Failed to install dot!"
+    else
+        confirm "Installed dot"
     fi
 else
     confirm "dot is already installed"
@@ -287,6 +336,8 @@ configure-dot --quiet --root=$home/git-repos/personal/dot
 if (( $? ))
 then
     fail "Failed to configure dot!"
+else
+    confirm "Configured dot"
 fi
 
 confirm "Completed installation! To activate > source $home/.bashrc"
