@@ -221,8 +221,24 @@ else
     confirm "nvim is already installed."
 fi
 
+check "Checking if lua is installed"
+lua -v > /dev/null 2>&1
+if (( $? ))
+then
+    status "Setting up lua"
+    sudo apt install -y lua5.3
+    if (( $? ))
+    then
+        fail "Failed to install lua!"
+    else
+        confirm "Installed lua"
+    fi
+else
+    confirm "lua is already installed."
+fi
+
 check "Checking if luarocks is installed"
-luarocks --version > /dev/null 2>%1
+luarocks --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Getting current lua version"
@@ -239,7 +255,7 @@ then
         cd luarocks-3.11.1 && \
         ./configure && \
         make && \
-        sudo make install \
+        sudo make install && \
         popd
         if (( $? ))
         then
@@ -286,7 +302,8 @@ then
     status "Setting up github cli"
     pushd /tmp && \
     wget https://github.com/cli/cli/releases/download/v2.69.0/gh_2.69.0_linux_amd64.deb && \
-    sudo apt install -y gh_2.69.0_linux_amd64.deb
+    sudo apt install -y ./gh_2.69.0_linux_amd64.deb && \
+    popd
     if (( $? ))
     then
         fail "Failed to install github cli"
