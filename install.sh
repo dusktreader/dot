@@ -2,7 +2,7 @@
 
 source ./.dot_colors
 home=$(echo "$HOME" | sed 's:/*$::')
-python_version="3.12"
+python_version="3.13"
 
 check () {
     message=$1
@@ -90,6 +90,23 @@ else
     confirm "uv is already installed."
     source $home/.cargo/env
 fi
+
+check "Checking if python3.12-venv is installed (needed by Mason FOR NOW)"
+apt -qq list python3.12-venv > /dev/null 2>&1
+if (( $? ))
+then
+    status "Installing python3.12-venv"
+    sudo apt install -y python3.12-venv
+    if (( $? ))
+    then
+        fail "Failed to install python3.12-venv"
+    else
+        confirm "Installed python3.12-venv"
+    fi
+else
+    confirm "python3.12-venv is already installed"
+fi
+
 
 check "Checking if python $python_version is installed"
 uv python list | grep $python_version > /dev/null 2>&1
@@ -235,6 +252,22 @@ then
     fi
 else
     confirm "lua is already installed."
+fi
+
+check "Checking if go is installed"
+go version > /dev/null 2>&1
+if (( $? ))
+then
+    status "Setting up go"
+    sudo snap install go --classic
+    if (( $? ))
+    then
+        fail "Failed to install go!"
+    else
+        confirm "Installed go"
+    fi
+else
+    confirm "go is already installed."
 fi
 
 check "Checking if luarocks is installed"

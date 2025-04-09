@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-export DOT_DEBUG=1
 debug_out "Processing main dot configuration"
 
 export PAGER='less -R'
