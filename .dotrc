@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export DOT_DEBUG=1
 debug_out "Processing main dot configuration"
 
 export PAGER='less -R'
@@ -37,6 +38,8 @@ if [[ -n "$WSL_DISTRO_NAME" ]]
 then
     export BROWSER="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
 fi
+# Stupid hack so that neovim installed from snap can use node installed from snap
+export PATH="/snap/node/current/bin:$PATH"
 
 alias vim='nvim -O'
 raw_vim_command='nvim'
@@ -154,13 +157,7 @@ fi
 
 
 # Start agent if it is not already started
-if [[ -n "$SSH_AGENT_PID" ]]
-then
-    debug_out "Agent already initialized. Skipping..."
-else
-    debug_out "Initialising new SSH agent..."
-    eval "$(ssh-agent)"
-fi
+bind_ssh_agent
 
 poetry_env_path=$HOME/.poetry/env
 if [[ -e $poetry_env_path ]]
