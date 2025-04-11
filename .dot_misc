@@ -1,7 +1,5 @@
 #!/bin/bash
 
-debug_out "Processing dot misc"
-
 debug_out() {
     if [[ $- == *i* && $DOT_DEBUG ]]
     then
@@ -68,9 +66,10 @@ bind_ssh_agent() {
 
         SSH_AUTH_SOCK=${FILE}
         SSH_AGENT_PID=${PID}
+        debug_out "Trying ssh-add using vars: SSH_AUTH_SOCK=${SSH_AUTH_SOCK}, SSH_AGENT_PID=${SSH_AGENT_PID}"
 
-        ssh-add -l > /dev/null
-        if [ $? != 2 ]
+        SSH_AUTH_SOCK=$SSH_AUTH_SOCK SSH_AGENT_PID=$SSH_AGENT_PID ssh-add -l > /dev/null
+        if (( $? != 2 ))
         then
             debug_out "Found agent pid: ${PID}. Binding to it"
             export SSH_AUTH_SOCK

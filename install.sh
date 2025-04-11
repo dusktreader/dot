@@ -301,6 +301,22 @@ else
     confirm "luarocks is already installed"
 fi
 
+check "Checking if rustup is installed"
+rustup --version > /dev/null 2>&1
+if (( $? ))
+then
+    status "Setting up rustup"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    if (( $? ))
+    then
+        fail "Failed to install rustup!"
+    else
+        confirm "Installed rustup"
+    fi
+else
+    confirm "rustup is already installed"
+fi
+
 
 check "Checking if 1password-cli is installed"
 op --version > /dev/null 2>&1

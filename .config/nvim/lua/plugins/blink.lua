@@ -2,6 +2,9 @@ return {
   -- Auto-completion in neovim
   "saghen/blink.cmp",
   version = "1.*",
+  dependencies = {
+    "Kaiser-Yang/blink-cmp-avante",
+  },
   opts = {
     completion = {
       menu = {
@@ -17,7 +20,7 @@ return {
       },
       documentation = {
         auto_show = true,
-        auto_show_delay_ms = 500,
+        --auto_show_delay_ms = 500,
         window = {
           border = 'rounded',
           scrollbar = true,
@@ -34,7 +37,7 @@ return {
       ['<pagedown>'] = { 'scroll_documentation_down', 'fallback' },
     },
     sources = {
-      default = { "lsp", "path", "buffer", "copilot"},
+      default = { "lsp", "path", "buffer", "copilot", "avante" },
       providers = {
         lsp = {
           score_offset = 1,
@@ -53,6 +56,10 @@ return {
           async = true,
           opts = {},
         },
+        avante = {
+          module = "blink-cmp-avante",
+          name = "avante",
+        }
       },
     },
   },

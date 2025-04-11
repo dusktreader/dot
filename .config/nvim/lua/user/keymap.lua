@@ -19,7 +19,7 @@ vim.keymap.set("n", "<leader>e", ":NERDTreeFind<CR>", { noremap = true })
 
 
 -- Mapping to reload init script
-vim.keymap.set("n", "<leader>RR", function() require('config.reload').Reload() end)
+vim.keymap.set("n", "<leader>RR", function() require('config.user.reload').Reload() end)
 
 
 -- Mapping to edit vim config
@@ -111,3 +111,6 @@ vim.keymap.set('n', '<Leader>;', function () require("dropbar.api").pick() end, 
 
 -- Mappings for Copilot Chat
 vim.keymap.set("n", "<leader>AA", "<cmd>CopilotChatOpen<cr>", { noremap = true })
+
+-- Restart LSP
+vim.keymap.set("n", "<leader>ll", "<cmd>LspRestart<cr>", { noremap = true })

@@ -20,6 +20,14 @@ return {
           capabilities = require('blink.cmp').get_lsp_capabilities(),
         })
       end,
+      ['typos_lsp'] = function ()
+        require('lspconfig').typos_lsp.setup({
+          capabilities = require('blink.cmp').get_lsp_capabilities(),
+          init_options = {
+            config = "pyproject.toml",
+          }
+        })
+      end,
       ['ruff'] = function ()
         require('lspconfig').ruff.setup({
           capabilities = require('blink.cmp').get_lsp_capabilities(),
@@ -40,6 +48,16 @@ return {
               },
             },
           }
+        })
+      end,
+      ['gopls'] = function ()
+        require('lspconfig').gopls.setup({
+          capabilities = require('blink.cmp').get_lsp_capabilities(),
+          settings = {
+            gopls = {
+              staticcheck = true,
+            },
+          },
         })
       end,
       ['ts_ls'] = function ()

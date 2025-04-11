@@ -15,7 +15,10 @@ vim.o.undofile = true
 vim.o.undodir = home .. "/.local/share/nvim/undodir"
 
 -- Always show a status line
-vim.opt.laststatus = 2
+-- vim.opt.laststatus = 2
+
+-- Recommended for Avante
+vim.opt.laststatus = 3
 
 -- Makes backspace behave the way you would expect
 vim.o.backspace = "indent,eol,start"
@@ -63,3 +66,4 @@ vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.smarttab = true
+

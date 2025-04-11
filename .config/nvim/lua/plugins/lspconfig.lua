@@ -24,7 +24,7 @@ return {
         vim.keymap.set('n', '<leader>gr', vim.lsp.buf.references, opts)
         vim.keymap.set('n', '<leader>gs', vim.lsp.buf.signature_help, opts)
         vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action)
+        vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
         -- vim.keymap.set({'n', 'x'}, '<F3>', '<cmd>lua vim.lsp.buf.format({async = true})<cr>', opts)
 
       end,
