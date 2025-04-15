@@ -49,4 +49,10 @@ return {
 
   -- Nice Markdown rendering
   {'MeanderingProgrammer/render-markdown.nvim'},
+
+  -- Show virtual text with locals values in dap mode
+  {'theHamsta/nvim-dap-virtual-text'},
+
+  -- Overseer!
+  { 'stevearc/overseer.nvim', opts = {} },
 }
