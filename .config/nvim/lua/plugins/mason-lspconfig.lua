@@ -13,11 +13,30 @@ return {
       'gopls',
       'lua_ls',
       'ruff',
+      'pylsp',
     },
     handlers = {
       function (server_name)
         require('lspconfig')[server_name].setup({
           capabilities = require('blink.cmp').get_lsp_capabilities(),
+        })
+      end,
+      ['pylsp'] = function ()
+        require('lspconfig').pylsp.setup({
+          capabilities = require('blink.cmp').get_lsp_capabilities(),
+          settings = {
+            pylsp = {
+              plugins = {
+                mypy = { enabled = true },
+                autopep8 = { enabled = false },
+                jedi_completion = { enabled = false },
+                mccabe = { enabled = false },
+                pycodestyle = { enabled = false },
+                pyflakes = { enabled = false },
+                yapf = { enabled = false },
+              },
+            },
+          },
         })
       end,
       ['typos_lsp'] = function ()
