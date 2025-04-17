@@ -2,6 +2,7 @@ return {
   -- AI super powers
   "yetone/avante.nvim",
   event = "VeryLazy",
+  --lazy = false,
   version = false,
   dependencies = {
     "nvim-treesitter/nvim-treesitter",

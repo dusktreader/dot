@@ -6,5 +6,6 @@ return {
   opts = {
     suggestion = { enabled = false },
     panel = { enabled = false },
+    copilot_model = "gpt-4.1",
   },
 }
