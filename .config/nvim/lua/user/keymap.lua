@@ -15,7 +15,7 @@ vim.keymap.set("n", "<C-l>", "<C-w>l")
 vim.keymap.set("t", "<Esc><Esc><Esc>", "<C-\\><C-n>", { noremap = true })
 
 -- Mapping to open nerdtree on the current file
-vim.keymap.set("n", "<leader>e", ":NERDTreeFind<CR>", { noremap = true })
+vim.keymap.set("n", "<leader>e", ":Neotree<CR>", { noremap = true })
 
 
 -- Mapping to reload init script

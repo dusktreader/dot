@@ -1,0 +1,38 @@
+return {
+  "nvim-neo-tree/neo-tree.nvim",
+  branch = "v3.x",
+  dependencies = {
+    "nvim-lua/plenary.nvim",
+    "nvim-tree/nvim-web-devicons",
+    "MunifTanjim/nui.nvim",
+    -- {"3rd/image.nvim", opts = {}}, -- Optional image support in preview window: See `# Preview Mode` for more information
+  },
+  lazy = false,
+  opts = {
+    close_if_last_window = true,
+    window = {
+      width = 80,
+    },
+    buffers = {
+      leave_dirs_open = true,
+      follow_current_file = {
+        enabled = true,
+        leave_dirs_open = true,
+      },
+    },
+    filesystem = {
+      follow_current_file = {
+        enabled = true,
+        leave_dirs_open = true,
+      },
+    },
+    event_handlers = {
+      {
+        event = "file_opened",
+        handler = function(file_path)
+          require("neo-tree.command").execute({ action = "close" })
+        end,
+      },
+    },
+  },
+}

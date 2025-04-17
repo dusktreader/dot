@@ -14,7 +14,7 @@ return {
   -- A bunch of stuff that's used by a lot of plugins
   { "nvim-lua/plenary.nvim" },
 
-  -- Webicons for neovim. Not sure I need this any more...
+  -- Webicons for neovim.
   { "nvim-tree/nvim-web-devicons" },
 
   -- Python extension for neotest
