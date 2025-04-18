@@ -86,7 +86,8 @@ vim.keymap.set("n", "<leader>sp", function () require("telescope.builtin").spell
 
 
 -- Mappings for trees
-vim.keymap.set("n", "<leader>a", require("treesj").toggle)
+vim.keymap.set("n", "<leader>j", require("treesj").split)
+vim.keymap.set("n", "<leader>k", require("treesj").join)
 
 
 -- Mappings for FTerm
@@ -118,3 +119,6 @@ vim.keymap.set("n", "<leader>AA", "<cmd>CopilotChatOpen<cr>", { noremap = true }
 
 -- Restart LSP
 vim.keymap.set("n", "<leader>ll", "<cmd>LspRestart<cr>", { noremap = true })
+
+-- Open the aerial code outline viewer
+vim.keymap.set("n", "<leader>o", "<cmd>AerialOpen<cr>", { noremap = true })

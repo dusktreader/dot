@@ -14,6 +14,7 @@ return {
       'lua_ls',
       'ruff',
       'pylsp',
+      'lemminx',
     },
     handlers = {
       function (server_name)
