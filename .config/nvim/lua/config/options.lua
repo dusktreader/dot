@@ -9,6 +9,7 @@ vim.o.wrap = false
 
 -- Show line numbers
 vim.o.number = true
+vim.o.relativenumber = true
 
 -- Maintain undo history between sessions
 vim.o.undofile = true
