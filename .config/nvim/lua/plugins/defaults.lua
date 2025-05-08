@@ -17,12 +17,6 @@ return {
   -- Webicons for neovim.
   { "nvim-tree/nvim-web-devicons" },
 
-  -- Python extension for neotest
-  { "nvim-neotest/neotest-python" },
-
-  -- Go extension for neotest
-  { "nvim-neotest/neotest-go" },
-
   -- CSV Reader with color and formatting
   { "mechatroner/rainbow_csv" },
 

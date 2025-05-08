@@ -68,3 +68,8 @@ vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 vim.opt.smarttab = true
 
+-- Format for automatic wrapping
+vim.opt.formatoptions = "cqjr"
+
+-- Gui colors?
+vim.opt.termguicolors = true
