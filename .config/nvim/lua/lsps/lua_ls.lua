@@ -2,6 +2,7 @@ vim.lsp.config(
   "lua_ls",
   {
     capabilities = require("blink.cmp").get_lsp_capabilities(),
+    filetypes = { "lua" },
     on_init = function(client)
       client.config.settings.Lua = vim.tbl_deep_extend('force', client.config.settings.Lua, {
         runtime = {
@@ -20,3 +21,4 @@ vim.lsp.config(
     },
   }
 )
+vim.lsp.enable({"lua"})

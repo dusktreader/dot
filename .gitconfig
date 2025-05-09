@@ -1,7 +1,7 @@
 [user]
 	name = Tucker Beck
 	email = tucker.beck@gmail.com
-	signingkey = 8AB369CEEAEB6E9A317DE739E0E8F7B4D99E8ABF
+	signingkey = E0E8F7B4D99E8ABF
 [alias]
     lg  = "log --pretty=format:'%C(yellow)%h%C(reset) %C(blue)%an%C(reset) %C(cyan)%cr (%cs)%C(reset) %s %C(green)%d%C(reset)' --graph"
     st  = status

@@ -2,6 +2,7 @@ vim.lsp.config(
   "pylsp",
   {
     capabilities = require("blink.cmp").get_lsp_capabilities(),
+    filetypes = { "python" },
     settings = {
       pylsp = {
         plugins = {
@@ -18,3 +19,4 @@ vim.lsp.config(
     },
   }
 )
+vim.lsp.enable({"pylsp"})

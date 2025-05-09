@@ -2,6 +2,7 @@ vim.lsp.config(
   "basedpyright",
   {
     capabilities = require("blink.cmp").get_lsp_capabilities(),
+    filetypes = { "python" },
     settings = {
       basedpyright = {
         analysis = {
@@ -15,6 +16,7 @@ vim.lsp.config(
     },
   }
 )
+vim.lsp.enable({"basedpyright"})
 
 -- Add completion capabilities settings to lspconfig
 -- This should be executed before you configure any language server
