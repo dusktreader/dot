@@ -19,6 +19,7 @@ return {
         request = 'attach',
         host = '127.0.0.1',
         port = 5678,
+        console = 'integratedTerminal',
       },
     }
     dap.listeners.before.attach["dap-view-config"] = function() dapview.open() end
