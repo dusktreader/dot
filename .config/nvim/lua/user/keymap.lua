@@ -122,3 +122,9 @@ vim.keymap.set("n", "<leader>ll", "<cmd>LspRestart<cr>", { noremap = true })
 
 -- Open the aerial code outline viewer
 vim.keymap.set("n", "<leader>o", "<cmd>AerialOpen<cr>", { noremap = true })
+
+-- Dismiss Noice notifications
+vim.keymap.set("n", "<leader>n", "<cmd>Noice dismiss<cr>", { noremap = true })
+
+-- Toggle render-markdown
+vim.keymap.set("n", "<leader>M", "<cmd>RenderMarkdown toggle<cr>", { noremap = true })

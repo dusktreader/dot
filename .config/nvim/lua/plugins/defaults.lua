@@ -41,9 +41,6 @@ return {
   -- Add a repl for lua
   { 'ii14/neorepl.nvim' },
 
-  -- Nice Markdown rendering
-  {'MeanderingProgrammer/render-markdown.nvim'},
-
   -- Show virtual text with locals values in dap mode
   {'theHamsta/nvim-dap-virtual-text'},
 
