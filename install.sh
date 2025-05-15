@@ -206,12 +206,28 @@ else
     confirm "lynx is already installed."
 fi
 
+check "Checking if volta is installed"
+volta --version > /dev/null 2>&1
+if (( $? ))
+then
+    status "Setting up volta"
+    curl https://get.volta.sh | bash
+    if (( $? ))
+    then
+        fail "Failed to install volta!"
+    else
+        confirm "Installed volta"
+    fi
+else
+    confirm "volta is already installed"
+fi
+
 check "Checking if node is installed"
 node --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Setting up node"
-    sudo snap install node --classic
+    volta install node
     if (( $? ))
     then
         fail "Failed to install node!"

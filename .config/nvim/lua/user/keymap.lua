@@ -128,3 +128,5 @@ vim.keymap.set("n", "<leader>n", "<cmd>Noice dismiss<cr>", { noremap = true })
 
 -- Toggle render-markdown
 vim.keymap.set("n", "<leader>M", "<cmd>RenderMarkdown toggle<cr>", { noremap = true })
+
+-- Change quotes for the current string

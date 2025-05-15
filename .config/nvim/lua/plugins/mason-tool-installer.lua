@@ -6,17 +6,21 @@ return {
   },
   opts = {
     ensure_installed = {
-      'typos-lsp',
+
+      -- Language LSPs
       'basedpyright',
       'gopls',
       'lua-language-server',
-      'ruff',
       'python-lsp-server',
-      'lemminx',
+      'typescript-language-server',
+
+      -- Other LSPs
+      'typos-lsp',
+      'ruff',
+      'lemminx', -- XML
+
+      -- DAPs
+      'js-debug-adapter',
     },
   },
 }
-
-
-
-
