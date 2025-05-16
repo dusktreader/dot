@@ -41,6 +41,7 @@ vim.keymap.set("n", "<leader>be", function() require("telescope.builtin").buffer
 -- Mapping for Overseer
 vim.keymap.set("n", "<leader>mt", "<cmd>OverseerToggle<cr>", { noremap = true })
 vim.keymap.set("n", "<leader>mr", "<cmd>OverseerRun<cr>", { noremap = true })
+vim.keymap.set("n", "<leader>mq", "<cmd>OverseerQuickAction<cr>", { noremap = true })
 
 -- Mappings for vim-bookmark
 vim.keymap.set("n", "<leader>bb", "<Plug>BookmarkToggle")

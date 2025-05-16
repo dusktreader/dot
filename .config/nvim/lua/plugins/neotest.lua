@@ -8,6 +8,7 @@ return {
     "nvim-treesitter/nvim-treesitter",
     "nvim-neotest/neotest-python",
     "nvim-neotest/neotest-go",
+    "nvim-neotest/neotest-jest",
   },
   opts = {
     log_level = "DEBUG",
@@ -29,6 +30,10 @@ return {
           args = {
             -- How to verbose?
           },
+        }),
+        require("neotest-jest")({
+          dap = { justMyCode = false },
+          jestCommand = "npm test --",
         }),
         -- require("neotest-plenary"),
         -- require("neotest-vim-test")({

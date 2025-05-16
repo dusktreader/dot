@@ -13,17 +13,10 @@ return {
     window = {
       width = 80,
     },
-    buffers = {
-      leave_dirs_open = true,
-      follow_current_file = {
-        enabled = true,
-        leave_dirs_open = true,
-      },
-    },
     filesystem = {
-      follow_current_file = {
-        enabled = true,
-        leave_dirs_open = true,
+      -- This doesn't seem to work at all
+      cwd_target = {
+        sidebar = "window",
       },
     },
     event_handlers = {
@@ -31,7 +24,7 @@ return {
         event = "file_opened",
         handler = function(file_path)
           require("neo-tree.command").execute({ action = "close" })
-        end,
+        end
       },
     },
   },
