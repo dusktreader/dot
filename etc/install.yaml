@@ -1,0 +1,25 @@
+link_paths:
+  - .ackrc
+  - .psqlrc
+  - .npmrc
+  - .gitconfig
+  - .gitconfig.dusktreader
+  - .systemd-env
+  - .config/terminator
+  - .config/nvim/init.lua
+  - .config/nvim/lua
+  - .config/oh-my-posh/dusktreader.omp.yaml
+copy_paths:
+  - path: .ssh/config
+    perms: 0o600
+  - path: .ssh/rc
+    perms: 0o600
+dotfile_paths:
+  - .dot_misc
+  - .dot_tools_helpers
+  - .dot_colors
+  - .dotrc
+mkdir_paths:
+  .vim/local/backup
+  .vim/local/swap
+  .vim/undodir

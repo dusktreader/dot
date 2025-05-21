@@ -13,6 +13,7 @@ return {
       'lua-language-server',
       'python-lsp-server',
       'typescript-language-server',
+      -- 'typescript-tools',
 
       -- Other LSPs
       'angular-language-server',

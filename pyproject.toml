@@ -1,6 +1,6 @@
 [project]
-name = "dot"
-version = "4.0.0"
+name = "dot-tools"
+version = "5.0.0"
 description = "My dotfiles"
 authors = [
     {name = "Tucker Beck", email ="tucker.beck@gmail.com"},
@@ -8,55 +8,95 @@ authors = [
 license-files = ["LICENSE.md"]
 requires-python = ">=3.13"
 dependencies = [
-    "addict>=2.4.0",
-    "bidict>=0.23.1",
-    "click>=8.1.8",
-    "git-url-parse>=1.2.2",
-    "gitpython>=3.1.44",
-    "inflection>=0.5.1",
-    "jira>=3.8.0",
-    "keyring>=25.6.0",
-    "keyrings-alt>=5.0.2",
-    "loguru>=0.7.3",
+    "gitpython~=3.1",
+    "loguru~=0.7",
     "pprintpp>=0.4.0",
-    "py-buzz>=5.0.2",
-    "pydon>=0.1.0",
-    "pylint>=3.3.5",
-    "pytest>=8.3.5",
-    "requests>=2.32.3",
-    "sh>=2.2.2",
-    "toml>=0.10.2",
+    "py-buzz~=7.3",
+    # "inflection>=0.5.1",
+    # "jira>=3.8.0",
+    # "keyring>=25.6.0",
+    # "keyrings-alt>=5.0.2",
+    # "pprintpp>=0.4.0",
+    # "pylint>=3.3.5",
+    # "pytest>=8.3.5",
+    # "requests>=2.32.3",
+    # "sh>=2.2.2",
+    # "toml>=0.10.2",
+    "pydantic>=2.11.4",
+    "pyyaml>=6.0.2",
+    "snick>=2.2.0",
+    "typer~=0.15",
+    "typerdrive~=0.7",
 ]
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/dot_tools"]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.uv]
+package = true
 
 [dependency-groups]
 dev = [
-    "ipython>=9.0.2",
+    "basedpyright~=1.29",
+    "debugpy~=1.8",
+    "ipython~=9.2",
+    "mypy~=1.5",
+    "pyclean~=3.1",
+    "pytest~=8.3",
+    "pytest-cov~=6.1",
+    "pytest-mock~=3.14",
+    "pytest-pretty~=1.2",
+    "pytest-random-order~=1.1",
+    "respx>=0.22.0",
+    "ruff~=0.11",
+    "typos~=1.32",
 ]
 
 [project.scripts]
-duck = 'dot_tools.bin.duck:main'
-configure-dot = 'dot_tools.bin.configure_dot:main'
-checkout-branch-by-pattern = 'dot_tools.bin.checkout_branch_by_pattern:main'
-current-branch = 'dot_tools.bin.current_branch:main'
-find-source-file = 'dot_tools.bin.find_source_file:main'
-find-test-file = 'dot_tools.bin.find_test_file:main'
-gittop = 'dot_tools.bin.gittop:main'
-make-branch = 'dot_tools.bin.make_branch:main'
-dot-version = 'dot_tools.bin.version:main'
-sep-bar = 'dot_tools.bin.sep_bar:main'
-tag-version = 'dot_tools.bin.tag_version:main'
-transpose = 'dot_tools.bin.transpose:main'
-underlined-header = 'dot_tools.bin.underlined_header:main'
-save-jira-password = 'dot_tools.bin.save_jira_password:main'
-find-pyproject-toml = 'dot_tools.bin.find_pyproject_toml:main'
-get-config-line-length = 'dot_tools.bin.get_config_line_length:main'
+dt = "dot_tools.cli.main:cli"
+# configure-dot = 'dot_tools.bin.configure_dot:main'
+# checkout-branch-by-pattern = 'dot_tools.bin.checkout_branch_by_pattern:main'
+# current-branch = 'dot_tools.bin.current_branch:main'
+# find-source-file = 'dot_tools.bin.find_source_file:main'
+# find-test-file = 'dot_tools.bin.find_test_file:main'
+# gittop = 'dot_tools.bin.gittop:main'
+# make-branch = 'dot_tools.bin.make_branch:main'
+# sep-bar = 'dot_tools.bin.sep_bar:main'
+# transpose = 'dot_tools.bin.transpose:main'
+# underlined-header = 'dot_tools.bin.underlined_header:main'
+# save-jira-password = 'dot_tools.bin.save_jira_password:main'
+# find-pyproject-toml = 'dot_tools.bin.find_pyproject_toml:main'
+# get-config-line-length = 'dot_tools.bin.get_config_line_length:main'
+
+[tool.pytest.ini_options]
+addopts = [
+    "--random-order",
+    "--cov=src/dot_tools",
+    "--cov-report=term-missing",
+    "--cov-fail-under=85",
+    "--cov-report=xml:.coverage.xml",
+    "--junitxml=.junit.xml",
+    "--override-ini=junit_family=legacy",
+]
 
 [tool.ruff]
 line-length = 120
+src = ["src/dot_tools", "tests"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+pretty = true
+check_untyped_defs = true
+files = ["src/dot_tools", "tests"]
+
+[[tool.mypy.overrides]]
+module = [
+    "giturlparse",
+]
+ignore_missing_imports = true
+
+[tool.basedpyright]
+reportAny = false
+reportExplicitAny = false
+reportUnusedCallResult = false
+
+[build-system]
+requires = ["uv_build>=0.7.6,<0.8.0"]
+build-backend = "uv_build"

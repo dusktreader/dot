@@ -27,6 +27,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
   end,
 })
+vim.lsp.buf.hover({
+  border = "rounded",
+})
 
 function RestartLSP()
   vim.print("Restarting LSPs")

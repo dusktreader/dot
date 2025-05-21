@@ -1,22 +1,40 @@
 import filecmp
 import fileinput
-import json
-import os
 import platform
-import sh
+from typing import Annotated
 import shutil
 
-from textwrap import dedent
-
+import pydantic
+import snick
+import yaml
 from loguru import logger
+from pathlib import Path
 
-from dot_tools.misc_tools import DotError
+from dot_tools.exceptions import DotError
+
+
+class FileSpecs(pydantic.BaseModel):
+    path: Path
+    permissions: int
+
+
+class InstallManifest(pydantic.BaseModel):
+    link_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
+    copy_paths: Annotated[list[Path | FileSpecs], pydantic.Field(default_factory=lambda: [])]
+    dotfile_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
+    mkdir_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
+
 
 class DotInstaller:
+    root: Path
+    home: Path
+    startup_config: Path
+    install_manifest: InstallManifest
 
-    def __init__(self, home, root, name='unnamed', setup_dict=None):
-        self.home = os.path.abspath(os.path.expanduser(home))
-        self.root = os.path.abspath(os.path.expanduser(root))
+    def __init__(self, root: Path, override_home: Path | None = None):
+        self.root = root.resolve().absolute()
+        self.home = override_home or Path.home().absolute()
+        logger.debug(f"Initializing with {self.home} as home, {self.root} as root")
 
         if platform.system() == 'Darwin':
             rc_path = os.path.join(self.home, '.zshrc')
@@ -24,151 +42,112 @@ class DotInstaller:
             rc_path = os.path.join(self.home, '.bashrc')
 
         self.startup_config = rc_path
+        logger.debug(f"Startup config file detected at {self.startup_config}")
 
-        logger.debug("Initializing configure/install for {}".format(name))
+        logger.debug(f"Configuring dot!")
 
-        if setup_dict is None:
-            install_json_file_path = os.path.join(self.root, 'etc', 'install.json')
-            logger.debug(
-                "Using {} as install configuration file",
-                install_json_file_path,
-            )
-            with open(install_json_file_path) as install_json_file:
-                self.setup_dict = json.load(install_json_file)
-        else:
-            self.setup_dict = setup_dict
+        manifest_path = self.root / "etc/install.yaml"
+        logger.debug(f"Using {manifest_path} as install manifest")
+        self.install_manifest = InstallManifest(**yaml.safe_load(manifest_path.read_text()))
 
-        logger.debug(
-            "Instantiated with {} as home, {} as root",
-            self.home, self.root,
-        )
-        logger.debug(
-            "Startup config file detected at {}",
-            self.startup_config,
-        )
+        logger.debug(f"Loaded install manifest from {manifest_path}")
 
     def _make_links(self):
-        for path in self.setup_dict.get('links', []):
-            link_path = os.path.join(self.home, path)
-            target_path = os.path.join(self.root, path)
-            logger.debug(
-                "Preparing to create symlink {} -> {}",
-                link_path, target_path,
-            )
-            DotError.require_condition(
-                os.path.exists(target_path),
-                "can't link to non-existent path {}".format(path),
-            )
-            if os.path.lexists(link_path):
+        logger.debug("Linking files from manifest")
+        for path in self.install_manifest.link_paths:
+            logger.debug(f"Processing {path}")
+
+            link_path: Path = self.home / path
+            target_path: Path = self.root / path
+            logger.debug(f"Preparing to create symlink {link_path} -> {target_path}")
+
+            DotError.require_condition(target_path.exists(), f"can't link to non-existent path {target_path}")
+            if link_path.exists(follow_symlinks=False):
                 logger.debug("Link exists. Checking target")
-                DotError.require_condition(
-                    os.path.islink(link_path),
-                    "Link path already exists but is not a symlink: {}".format(link_path),
-                )
-                existing_target_path = os.readlink(link_path)
-                logger.debug(
-                    "Existing target path: {}",
-                    existing_target_path,
-                )
-                if not os.path.exists(existing_target_path):
-                    logger.warning(
-                        "Link exists target is missing: {}",
-                        existing_target_path,
-                    )
-                    logger.debug("unlinking existing link")
-                    os.unlink(link_path)
-                elif not os.path.samefile(existing_target_path, target_path):
-                    logger.warning(
-                        "Link already exists but points to another target: {}",
-                        existing_target_path,
-                    )
-                    logger.debug("unlinking existing link")
-                    os.unlink(link_path)
+
+                DotError.require_condition(link_path.is_symlink(), "Link path already exists but is not a symlink")
+                existing_target_path = link_path.readlink()
+
+                logger.debug(f"Found existing target path: {existing_target_path}")
+                if not existing_target_path.exists():
+                    logger.warning(f"Link exists target is missing: {existing_target_path}")
+                    logger.debug("Unlinking existing link")
+                    link_path.unlink()
+                elif not existing_target_path.samefile(target_path):
+                    logger.warning(f"Link already exists but points to another target: {existing_target_path}")
+                    logger.debug("Unlinking existing link")
+                    link_path.unlink()
                 else:
-                    logger.debug(
-                        "Skipping symlink {}: already exists and is corret",
-                        link_path,
-                    )
+                    logger.debug(f"Skipping symlink {link_path} as it already exists and is correct")
                     continue
-            logger.debug(
-                "Creating symlink {} -> {}",
-                link_path, target_path,
-            )
-            symlink_dir = os.path.dirname(link_path)
-            if not os.path.exists(symlink_dir):
+
+            logger.debug(f"Creating symlink {link_path} -> {target_path}")
+            if not link_path.parent.exists():
                 logger.debug("Creating parent dirs for symlink")
-                os.makedirs(symlink_dir)
-            os.symlink(target_path, link_path)
+                link_path.parent.mkdir(parents=True)
+            link_path.symlink_to(target_path)
 
     def _make_dirs(self):
-        for path in self.setup_dict.get('mkdirs', []):
-            target_path = os.path.join(self.home, path)
-            logger.debug("Making target directory {}", target_path)
-            try:
-                os.makedirs(target_path)
-                logger.debug("Created directory {}", target_path)
-            except OSError:
-                logger.debug(
-                    "Skipping directory creation for {}. Already exists",
-                    target_path,
-                )
+        logger.debug("Making directories from manifest")
+        for path in self.install_manifest.mkdir_paths:
+            logger.debug(f"Processing {path}")
+
+            target_path = self.home / path
+            logger.debug(f"Checking/making target directory {target_path}")
+            target_path.mkdir(parents=True, exist_ok=True)
 
     def _copy_files(self):
-        for path in self.setup_dict.get('copy', []):
-            src_path = os.path.join(self.root, path)
-            dst_path = os.path.join(self.home, path)
+        logger.debug("Copying files from manifest")
+        for item in self.install_manifest.copy_paths:
+            path: Path
+            perms: int | None
+            if isinstance(item, FileSpecs):
+                path = item.path
+                perms = item.permissions
+            else:
+                path = item
+                perms = None
 
-            if os.path.exists(dst_path):
+            logger.debug(f"Processing {path}")
+
+            src_path = self.root / path
+            dst_path = self.home / path
+            logger.debug(f"Preparing to copy file {src_path} -> {dst_path}")
+
+            if dst_path.exists():
                 DotError.require_condition(
                     filecmp.cmp(src_path, dst_path, shallow=False),
-                    "File exists at destination {} but doesn't match".format(dst_path),
+                    f"File exists at destination {dst_path} but doesn't match",
                 )
-                logger.debug("Skipping {} it was already installed", path)
+                logger.debug(f"Skipping {path} it was already installed")
             else:
-                logger.debug("Copying {} to {}", src_path, dst_path)
-                copy_dir = os.path.dirname(dst_path)
-                if not os.path.exists(copy_dir):
-                    logger.debug("Creating parent directories for copy")
-                    os.makedirs(copy_dir)
+                logger.debug(f"Copying {path}")
+                dst_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy(src_path, dst_path)
-                if 'ssh' in src_path:
-                    logger.debug(
-                        "Updating permissions for ssh config file {}", dst_path,
-                    )
-                    sh.chmod('600', dst_path)
-
-    def _extra_scripts(self):
-        for path in self.setup_dict.get('scripts', []):
-            exe_path = os.path.join(self.root, path)
-
-            DotError.require_condition(
-                os.path.exists(exe_path),
-                "Extra script doesn't exist: {}".format(exe_path),
-            )
-            logger.debug("Executing extra script {}", path)
-            extra_command = sh.Command(exe_path)
-            extra_command()
+                if perms is not None:
+                    logger.debug(f"Updating permissions for file {dst_path}")
+                    dst_path.chmod(perms)
 
     def _update_dotfiles(self):
-        dotfile_list_path = os.path.join(self.home, '.extra_dotfiles')
-        if not os.path.exists(dotfile_list_path):
-            sh.touch(dotfile_list_path)
+        logger.debug("Adding dotfiles from manifest")
+        dotfile_list_path = self.home / ".extra_dotfiles"
+        if not dotfile_list_path.exists():
+            dotfile_list_path.touch()
+
         with open(dotfile_list_path, 'r+') as dotfile_list_file:
             all_entries = [l.strip() for l in dotfile_list_file.readlines()]
-            for path in self.setup_dict['dotfiles']:
-                dotfile_path = os.path.join(self.root, path)
-                entry = 'source {}'.format(dotfile_path)
+
+            for path in self.install_manifest.dotfile_paths:
+                logger.debug(f"Processing {path}")
+
+                dotfile_path = self.root / path
+                entry = f"source {dotfile_path}"
                 if entry not in all_entries:
-                    logger.debug(
-                        "Adding {} to .extra_dotfiles", dotfile_path,
-                    )
+                    logger.debug(f"Adding {dotfile_path} to .extra_dotfiles")
                     print(entry, file=dotfile_list_file)
 
     def _scrub_extra_dotfiles_block(self):
-        logger.debug(
-            "Scrubbing extra dotfiles block from {}",
-            self.startup_config,
-        )
+        logger.debug(f"Scrubbing extra dotfiles block from {self.startup_config}")
         in_extra_block = False
         for line in fileinput.input(self.startup_config, inplace=True):
             if 'EXTRA DOTFILES START' in line:
@@ -179,44 +158,34 @@ class DotInstaller:
                 in_extra_block = False
 
     def _add_extra_dotfiles_block(self):
-        logger.debug(
-            "Adding extra dotfiles to startup in {}",
-            self.startup_config,
-        )
-        extra_dotfiles_path = os.path.join(self.home, '.extra_dotfiles')
+        logger.debug(f"Adding extra dotfiles to startup in {self.startup_config}")
+        extra_dotfiles_path = self.home / ".extra_dotfiles"
         with open(self.startup_config, 'a') as startup_file:
-            startup_file.write(dedent(
-                """
-                # EXTRA DOTFILES START
-                if [[ -e {extra} ]]
-                then
-                    export DOT_HOME={root}
-                    source {extra}
-                fi
-                # EXTRA DOTFILES END
-                """.format(
-                    root=self.root,
-                    extra=extra_dotfiles_path,
+            startup_file.write(
+                snick.dedent(
+                    f"""
+                    # EXTRA DOTFILES START
+                    if [[ -e {extra_dotfiles_path} ]]
+                    then
+                        export DOT_HOME={self.root}
+                        source {extra_dotfiles_path}
+                    fi
+                    # EXTRA DOTFILES END
+                    """
                 )
-            ).strip())
+            )
 
     def _startup(self):
-        logger.debug(
-            "Using {} as startup config file",
-            self.startup_config,
-        )
-        if not os.path.exists(self.startup_config):
-            logger.debug(
-                "{} doesn't exist. Creating it",
-                self.startup_config,
-            )
-            sh.touch(self.startup_config)
+        logger.debug(f"Using {self.startup_config} as startup config file")
+        if not self.startup_config.exists():
+            logger.debug("{self.startup_config} doesn't exist. Creating it")
+            self.startup_config.touch()
         self._scrub_extra_dotfiles_block()
         self._add_extra_dotfiles_block()
 
     def install_dot(self):
         logger.info("Started Installing dot")
-        with DotError.handle_errors('Install failed. Aborting'):
+        with DotError.handle_errors("Install failed. Aborting"):
             logger.debug("Create needed directories")
             self._make_dirs()
 
@@ -229,14 +198,8 @@ class DotInstaller:
             logger.debug("Adding in extra dotfiles")
             self._update_dotfiles()
 
-            logger.debug("Executing extra scripts")
-            self._extra_scripts()
-
             logger.debug("Setting up startup config to include dot")
             self._startup()
 
         logger.info("Finished installing dot")
-        logger.info(
-            "(To apply new changes, source {})",
-            self.startup_config,
-        )
+        logger.info(f"(To apply new changes, source {self.startup_config})")
