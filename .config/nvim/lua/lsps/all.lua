@@ -9,6 +9,9 @@ vim.lsp.config("*", { capabilities = require("blink.cmp").get_lsp_capabilities()
 vim.lsp.enable({
   "lemminx",
 })
+vim.lsp.buf.hover({
+  border = "rounded",
+})
 
 -- function RestartLSP()
 --   vim.lsp.stop_client(vim.lsp.get_active_clients())

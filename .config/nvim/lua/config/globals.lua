@@ -6,3 +6,13 @@ vim.g.maplocalleader = "\\"
 
 -- Tells neovim to use indentation based on the file-type
 vim.filetype.indent = true
+
+vim.diagnostic.config({
+  virtual_lines = {
+    current_line = true,
+  },
+  float = {
+    border = "rounded",
+    focusable = true,
+  },
+})

@@ -92,8 +92,8 @@ vim.keymap.set("n", "<leader>k", require("treesj").join)
 
 
 -- Mappings for FTerm
-vim.keymap.set("n", "`", "<CMD>lua require('FTerm').toggle()<CR>")
-vim.keymap.set("t", "`", "<CMD>lua require('FTerm').toggle()<CR>")
+-- vim.keymap.set("n", "`", "<CMD>lua require('FTerm').toggle()<CR>")
+-- vim.keymap.set("t", "`", "<CMD>lua require('FTerm').toggle()<CR>")
 
 
 -- Mappings to resize splits
