@@ -1,7 +1,5 @@
 import pytest
 import pytest_mock
-import respx
-from jira import Issue as JiraIssue
 
 from dot_tools.exceptions import JiraError
 from dot_tools.jira_tools import JiraManager

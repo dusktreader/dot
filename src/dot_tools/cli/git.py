@@ -7,7 +7,7 @@ from dot_tools.git_tools import GitManager
 from dot_tools.jira_tools import JiraManager
 from dot_tools.settings import Settings
 
-cli = typer.Typer()
+cli = typer.Typer(help="Commands to interact with git")
 
 @cli.command()
 @handle_errors("Couldn't checkout branch by pattern")
