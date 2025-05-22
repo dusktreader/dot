@@ -9,7 +9,7 @@ license-files = ["LICENSE.md"]
 requires-python = ">=3.13"
 dependencies = [
     "gitpython~=3.1",
-    "jira>=3.8.0",
+    "jira~=3.0",
     "loguru~=0.7",
     "py-buzz~=7.3",
     # "inflection>=0.5.1",
@@ -23,7 +23,7 @@ dependencies = [
     # "sh>=2.2.2",
     # "toml>=0.10.2",
     "typer~=0.15",
-    "typerdrive~=0.6",
+    "typerdrive~=0.7",
 ]
 
 [tool.uv]
@@ -41,6 +41,7 @@ dev = [
     "pytest-mock~=3.14",
     "pytest-pretty~=1.2",
     "pytest-random-order~=1.1",
+    "respx>=0.22.0",
     "ruff~=0.11",
     "typos~=1.32",
 ]

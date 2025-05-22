@@ -2,18 +2,11 @@ import re
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from pathlib import Path
-from typing import Any, Literal, Self, cast
+from typing import Self
 from urllib.parse import urlparse, ParseResult
 
-from loguru import logger
-
 import git
-import inflection
-import jira
-import json
-import os
-import pathlib
-import requests
+from loguru import logger
 
 from dot_tools.exceptions import DotError, GitError
 
@@ -52,20 +45,19 @@ class GitUrl:
 
 
 class GitManager:
-    path: Path
     repo: git.Repo
 
     def __init__(self, path: Path | None = None):
         if path is None:
-            self.path = Path.cwd()
+            path = Path.cwd()
         else:
-            self.path = path.expanduser().resolve().absolute()
+            path = path.expanduser().resolve().absolute()
         GitError.require_condition(
-            self.path.exists(),
-            "Can't initialize GitManger with nonextant path",
+            path.exists(),
+            "Can't initialize GitManger with a path that doesn't exist",
         )
 
-        temp_path: Path = self.path
+        temp_path: Path = path
         while temp_path != Path("/"):
             try:
                 self.repo = git.Repo(temp_path)
@@ -73,7 +65,7 @@ class GitManager:
             except git.InvalidGitRepositoryError:
                 temp_path = temp_path.parent
         else:
-            raise GitError(f"Path {self.path} was not in a git repository")
+            raise GitError(f"Path {path} was not in a git repository")
 
         logger.debug(f"Initialized GitManger for {self.repo}")
 
@@ -188,25 +180,6 @@ class GitManager:
 #         logger.debug(f"branch name built as {branch_name}")
 #         self.checkout_new_branch(branch_name, base=base)
 #
-#     def jira_key(self):
-#         current_branch = self.repo.active_branch
-#         GitError.require_condition(
-#             current_branch != "master",
-#             "Can't extract a JIRA key from master branch",
-#         )
-#
-#         match = re.match(
-#             r"(?:.*/)?([a-z]+-\d+).*",
-#             str(current_branch),
-#             flags=re.IGNORECASE,
-#         )
-#         GitError.require_condition(
-#             match is not None,
-#             f"Can't extract a JIRA key from {current_branch}",
-#         )
-#
-#         return match.group(1)
-#
     def checkout_branch_by_pattern(self, pattern: str):
         matching_refs: list[git.Head | git.SymbolicReference] = [
             b for b in self.repo.heads if re.search(pattern, b.name, re.IGNORECASE)
@@ -227,7 +200,7 @@ class GitManager:
             new_head.checkout()
         else:
             logger.debug(f"Trying to checkout local branch: {ref.name}")
-            old_head = cast(git.Head, ref)
+            old_head = GitError.ensure_type(ref, git.Head)
             old_head.checkout()
 
         logger.debug(f"Branch {ref.name} checked out")

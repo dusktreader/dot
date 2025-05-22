@@ -2,9 +2,8 @@ from pydantic import BaseModel, AnyHttpUrl
 
 
 class JiraInfo(BaseModel):
-    baseurl: AnyHttpUrl
-    username: str
-    password: str
+    base_url: AnyHttpUrl
+    api_key: str
 
 class Settings(BaseModel):
-    jira_info: JiraInfo | None = None
+    jira_info: JiraInfo

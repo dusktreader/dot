@@ -1,6 +1,6 @@
 from collections.abc import Generator
-import os
 from pathlib import Path
+from typing import cast
 
 import git
 import pytest
@@ -70,6 +70,38 @@ def fake_origin(tmp_path: Path) -> Generator[Path, None, None]:
 
 class TestGitManager:
 
+    def test___init____with_provided_path(self, tmp_path: Path):
+        fake_root = tmp_path / "fake_root"
+        init_empty_repo(fake_root)
+        test_path = fake_root / "jawa/ewok/hutt/pyke"
+        test_path.mkdir(parents=True)
+
+        git_man = GitManager(path=test_path)
+        assert git_man.repo.working_dir == str(fake_root)
+
+    def test___init____with_default_path(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        fake_root = tmp_path / "fake_root"
+        init_empty_repo(fake_root)
+        test_path = fake_root / "jawa/ewok/hutt/pyke"
+        test_path.mkdir(parents=True)
+
+        monkeypatch.chdir(test_path)
+        git_man = GitManager(path=test_path)
+        assert git_man.repo.working_dir == str(fake_root)
+
+    def test___init____fails_if_no_repo_found(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        fake_root = tmp_path / "fake_root"
+        fake_root.mkdir()
+
+        monkeypatch.chdir(fake_root)
+        with pytest.raises(GitError, match="Path .* was not in a git repository"):
+            GitManager()
+
+    def test___init____fails_path_does_not_exist(self):
+        fake_root = Path("jawa/ewok/hutt/pyke")
+
+        with pytest.raises(GitError, match="Can't initialize GitManger with a path that doesn't exist"):
+            GitManager(path=fake_root)
 
     def test_toplevel__works_in_subfolder(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         fake_root = tmp_path / "fake_root"
@@ -233,3 +265,46 @@ class TestGitManager:
 
         local_file = fake_root / "LICENSE.md"
         assert "Fuck It" in local_file.read_text()
+
+    def test_checkout_branch_by_pattern__matches_only_one_branch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_origin: Path):
+        fake_root = tmp_path / "fake_root"
+        init_empty_repo(fake_root)
+
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+        remote = git_man.repo.create_remote("origin", str(fake_origin))
+        fetch_info: git.FetchInfo = remote.fetch()["origin/other"]
+        ref = GitError.ensure_type(fetch_info.ref, git.RemoteReference, f"Expected type {git.RemoteReference}, got {type(fetch_info.ref)}")
+        git_man.repo.create_head(ref.remote_head, ref)
+        origin = git.Repo(fake_origin)
+        readme = fake_origin / "README.md"
+        readme.write_text("NEW TEXT")
+        origin.index.add(str(readme))
+        origin.index.commit("New README text")
+
+        git_man.checkout_branch_by_pattern("gin/oth")
+
+        assert git_man.repo.active_branch.name == "other"
+
+        assert "NEW TEXT" == readme.read_text()
+
+    def test_checkout_branch_by_pattern__raises_error_on_multiple_matches(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        fake_root = tmp_path / "fake_root"
+        init_filled_repo(fake_root)
+
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+        git_man.repo.create_head("moth")
+
+        with pytest.raises(GitError, match="Couldn't find exactly one branch"):
+            git_man.checkout_branch_by_pattern("oth")
+
+    def test_checkout_branch_by_pattern__raises_error_on_zero_matches(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        fake_root = tmp_path / "fake_root"
+        init_empty_repo(fake_root)
+
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        with pytest.raises(GitError, match="Couldn't find exactly one branch"):
+            git_man.checkout_branch_by_pattern("other")

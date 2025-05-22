@@ -1,8 +1,12 @@
 import typer
-from typerdrive import terminal_message
+from typerdrive import add_logs_subcommand, add_settings_subcommand, terminal_message
+
+from dot_tools.settings import Settings
 
 
 cli = typer.Typer(rich_markup_mode="rich")
+add_settings_subcommand(cli, Settings)
+add_logs_subcommand(cli)
 
 
 @cli.callback(invoke_without_command=True)
