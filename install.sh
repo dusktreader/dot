@@ -238,6 +238,9 @@ else
     confirm "node is already installed"
 fi
 
+status "Making directories for global npm"
+mkdir -p $home/.local/share/npm
+
 check "Checking if neovim is installed"
 nvim --version > /dev/null 2>&1
 if (( $? ))

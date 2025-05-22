@@ -42,8 +42,11 @@ return {
   { 'ii14/neorepl.nvim' },
 
   -- Show virtual text with locals values in dap mode
-  {'theHamsta/nvim-dap-virtual-text'},
+  { 'theHamsta/nvim-dap-virtual-text' },
 
   -- Overseer!
   { 'stevearc/overseer.nvim', opts = {} },
+
+  -- lspconfig...sigh...do I really need this?
+  { 'neovim/nvim-lspconfig' },
 }

@@ -15,12 +15,16 @@ return {
       'typescript-language-server',
 
       -- Other LSPs
+      'angular-language-server',
       'typos-lsp',
       'ruff',
       'lemminx', -- XML
 
       -- DAPs
       'js-debug-adapter',
+
+      -- Formatters
+      'prettierd',
     },
   },
 }

@@ -18,6 +18,10 @@ return {
       cwd_target = {
         sidebar = "window",
       },
+      follow_current_file = {
+        enabled = true,
+        leave_dirs_open = true,
+      },
     },
     event_handlers = {
       {

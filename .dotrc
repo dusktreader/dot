@@ -23,6 +23,8 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 export PATH=$PATH:~/.local/bin
 
+export PATH=$PATH:~/.local/share/npm/bin
+
 # Add yarn binaries to the path
 export PATH="~/.yarn/bin/:$PATH"
 

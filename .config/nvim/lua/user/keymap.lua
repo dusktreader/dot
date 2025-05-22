@@ -91,9 +91,9 @@ vim.keymap.set("n", "<leader>j", require("treesj").split)
 vim.keymap.set("n", "<leader>k", require("treesj").join)
 
 
--- Mappings for FTerm
-vim.keymap.set("n", "`", "<CMD>lua require('FTerm').toggle()<CR>")
-vim.keymap.set("t", "`", "<CMD>lua require('FTerm').toggle()<CR>")
+-- Mappings for toggleterm
+vim.keymap.set("n", "`", "<CMD>ToggleTerm<CR>")
+vim.keymap.set("t", "`", "<CMD>ToggleTerm<CR>")
 
 
 -- Mappings to resize splits
@@ -119,7 +119,7 @@ vim.keymap.set('n', '<Leader>;', function () require("dropbar.api").pick() end, 
 vim.keymap.set("n", "<leader>AA", "<cmd>CopilotChatOpen<cr>", { noremap = true })
 
 -- Restart LSP
-vim.keymap.set("n", "<leader>ll", "<cmd>LspRestart<cr>", { noremap = true })
+vim.keymap.set("n", "<leader>ll", "<cmd>RestartLSP<cr>", { noremap = true })
 
 -- Open the aerial code outline viewer
 vim.keymap.set("n", "<leader>o", "<cmd>AerialOpen<cr>", { noremap = true })
@@ -129,5 +129,3 @@ vim.keymap.set("n", "<leader>n", "<cmd>Noice dismiss<cr>", { noremap = true })
 
 -- Toggle render-markdown
 vim.keymap.set("n", "<leader>M", "<cmd>RenderMarkdown toggle<cr>", { noremap = true })
-
--- Change quotes for the current string

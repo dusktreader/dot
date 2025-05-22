@@ -73,3 +73,6 @@ vim.opt.formatoptions = "cqjr"
 
 -- Gui colors?
 vim.opt.termguicolors = true
+
+-- Prevent DAP from changing the current buffer to a breakpoint if the file is already open in another buffer
+vim.opt.switchbuf = "useopen,uselast"
