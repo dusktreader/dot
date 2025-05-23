@@ -9,7 +9,6 @@ license-files = ["LICENSE.md"]
 requires-python = ">=3.13"
 dependencies = [
     "gitpython~=3.1",
-    "jira~=3.0",
     "loguru~=0.7",
     "py-buzz~=7.3",
     # "inflection>=0.5.1",
