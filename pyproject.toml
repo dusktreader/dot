@@ -10,6 +10,7 @@ requires-python = ">=3.13"
 dependencies = [
     "gitpython~=3.1",
     "loguru~=0.7",
+    "pprintpp>=0.4.0",
     "py-buzz~=7.3",
     # "inflection>=0.5.1",
     # "jira>=3.8.0",
@@ -21,6 +22,9 @@ dependencies = [
     # "requests>=2.32.3",
     # "sh>=2.2.2",
     # "toml>=0.10.2",
+    "pydantic>=2.11.4",
+    "pyyaml>=6.0.2",
+    "snick>=2.2.0",
     "typer~=0.15",
     "typerdrive~=0.7",
 ]
@@ -46,7 +50,7 @@ dev = [
 ]
 
 [project.scripts]
-dot-tools = "dot_tools.cli.main:cli"
+dt = "dot_tools.cli.main:cli"
 # configure-dot = 'dot_tools.bin.configure_dot:main'
 # checkout-branch-by-pattern = 'dot_tools.bin.checkout_branch_by_pattern:main'
 # current-branch = 'dot_tools.bin.current_branch:main'

@@ -1,4 +1,4 @@
-links:
+link_paths:
   - .ackrc
   - .psqlrc
   - .npmrc
@@ -7,16 +7,17 @@ links:
   - .config/nvim/init.lua
   - .config/nvim/lua
   - .config/oh-my-posh/dusktreader.omp.yaml
-copy:
-  - .ssh/config"
-  - .ssh/rc
-dotfiles:
-  - .dot_misc"
+copy_paths:
+  - path: .ssh/config
+    perms: 0o600
+  - path: .ssh/rc
+    perms: 0o600
+dotfile_paths:
+  - .dot_misc
   - .dot_tools_helpers
-  - .dot_colors"
+  - .dot_colors
   - .dotrc
-mkdirs:
+mkdir_paths:
   .vim/local/backup
   .vim/local/swap
   .vim/undodir
-scripts:
