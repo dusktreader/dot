@@ -1,0 +1,149 @@
+{
+  "blocks": [
+    {
+      "type": "prompt",
+      "newline": true,
+      "alignment": "left",
+      "segments": [
+        {
+          "template": "\n",
+          "type": "text"
+        },
+        {
+          "properties": {
+            "macos": "mac"
+          },
+          "style": "diamond",
+          "trailing_diamond": "",
+          "template": " {{.Icon}} {{ if .WSL -}} on WSL {{- end }}",
+          "foreground": "#c0caf5",
+          "background": "#3d59a1",
+          "type": "os"
+        },
+        {
+          "style": "diamond",
+          "leading_diamond": "<transparent,background></>",
+          "trailing_diamond": "",
+          "template": " {{ .UserName -}} @ {{- .HostName }} ",
+          "foreground": "#c0caf5",
+          "background": "#545c7e",
+          "type": "session"
+        },
+        {
+          "properties": {
+            "style": "full"
+          },
+          "style": "diamond",
+          "leading_diamond": "<transparent,background>",
+          "trailing_diamond": "</>",
+          "template": "  {{ abbrev 30 .Path }} ",
+          "foreground": "#24283b",
+          "background": "#737aa2",
+          "type": "path"
+        },
+        {
+          "properties": {
+            "fetch_stash_count": true,
+            "fetch_status": true,
+            "fetch_upstream_icon": true
+          },
+          "style": "diamond",
+          "leading_diamond": "<transparent,background>",
+          "trailing_diamond": "</>",
+          "template": " {{ .UpstreamIcon }}{{ abbrev 30 .HEAD }} {{ if .BranchStatus }} {{ .BranchStatus }}{{ end }} {{ if .Working.Changed }}  {{ .Working.String }}{{ end }} {{ if and (.Working.Changed) (.Staging.Changed) }} |{{ end }} {{ if .Staging.Changed }}  {{ .Staging.String }}{{ end }} {{ if gt .StashCount 0 }}  {{ .StashCount }}{{ end }} ",
+          "foreground": "#193549",
+          "background": "#9d7cd8",
+          "type": "git",
+          "background_templates": [
+            "{{ if .Working.Changed }}#73daca{{ end }}"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "right",
+      "filler": "{{ if .Overflow }} {{ else -}} <#3d59a1,transparent>━</> {{- end }}",
+      "overflow": "break",
+      "segments": [
+        {
+          "style": "diamond",
+          "leading_diamond": "",
+          "trailing_diamond": "<transparent,background></>",
+          "template": "  {{.Context}} :: {{if .Namespace}}{{.Namespace}}{{else}}default{{end}} ",
+          "foreground": "#c0caf5",
+          "background": "#3d59a1",
+          "type": "kubectl"
+        },
+        {
+          "properties": {
+            "style": "austin",
+            "threshold": 100
+          },
+          "style": "diamond",
+          "leading_diamond": "",
+          "trailing_diamond": "<transparent,background></>",
+          "template": "  {{ .FormattedMs }} ",
+          "foreground": "#c0caf5",
+          "background": "#545c7e",
+          "type": "executiontime"
+        },
+        {
+          "properties": {
+            "always_enabled": true
+          },
+          "style": "diamond",
+          "leading_diamond": "",
+          "template": " {{ if gt .Code 0}} {{.Code}}{{else}}{{end}} ",
+          "foreground": "#ffffff",
+          "background": "#73daca",
+          "type": "status",
+          "background_templates": [
+            "{{ if gt .Code 0 }}#db4b4b{{ end }}"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+        {
+          "template": "┃",
+          "foreground": "#3d59a1",
+          "type": "text"
+        }
+      ],
+      "newline": true
+    },
+    {
+      "type": "prompt",
+      "newline": true,
+      "alignment": "left",
+      "segments": [
+        {
+          "template": "┗━",
+          "foreground": "#3d59a1",
+          "type": "text"
+        },
+        {
+          "style": "diamond",
+          "leading_diamond": "",
+          "trailing_diamond": "",
+          "template": "{{ if .Venv }}   {{ .Full }} {{ end }}",
+          "foreground": "#c0caf5",
+          "background": "#3d59a1",
+          "type": "python"
+        },
+        {
+          "template": "━►",
+          "foreground": "#3d59a1",
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "version": 3,
+  "enable_cursor_positioning": true,
+  "final_space": true
+}
