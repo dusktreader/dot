@@ -1,63 +1,38 @@
 { config, pkgs, ... }:
 
 {
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
   home.username = "dusktreader";
   home.homeDirectory = "/home/dusktreader";
 
-  # This value determines the Home Manager release that your configuration is
-  # compatible with. This helps avoid breakage when a new Home Manager release
-  # introduces backwards incompatible changes.
-  #
-  # You should not change this value, even if you update Home Manager. If you do
-  # want to update the value, then make sure to first check the Home Manager
-  # release notes.
-  home.stateVersion = "25.05"; # Please read the comment before changing.
+  home.stateVersion = "25.05"; # Read docs before changing.
 
-  # The home.packages option allows you to install Nix packages into your
-  # environment.
+  targets.genericLinux.enable = true;
+
   home.packages = [
     pkgs.htop
-    # pkgs.unzip  # Needed for oh-my-posh
-    pkgs.oh-my-posh
-
-    # # It is sometimes useful to fine-tune packages, for example, by applying
-    # # overrides. You can do that directly here, just don't forget the
-    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
-    # # fonts?
-    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
-
-    # # You can also create simple shell scripts directly inside your
-    # # configuration. For example, this adds a command 'my-hello' to your
-    # # environment:
-    # (pkgs.writeShellScriptBin "my-hello" ''
-    #   echo "Hello, ${config.home.username}!"
-    # '')
+    pkgs.yq
+    pkgs.nerd-fonts.fira-code
+    pkgs.ripgrep
   ];
 
-  # Home Manager is pretty good at managing dotfiles. The primary way to manage
-  # plain files is through 'home.file'.
   home.file = {
-    "$HOME/.config/oh-my-posh/dusktreader.omp.yaml".source = "$HOME/src/dusktreader/dot/.config/oh-my-posh/dusktreader.omp.yaml";
-    # # Building this configuration will create a copy of 'dotfiles/screenrc' in
-    # # the Nix store. Activating the configuration will then make '~/.screenrc' a
-    # # symlink to the Nix store copy.
-    # ".screenrc".source = dotfiles/screenrc;
+    ".config/oh-my-posh/config.json".source = "${config.home.homeDirectory}/src/dusktreader/dot/.config/oh-my-posh/config.json";
+    # ".config/nvim" = {
+    #   source = "${config.home.homeDirectory}/src/dusktreader/dot/.config/nvim";
+    #   recursive = true;
+    # };
 
-    # # You can also set the file content immediately.
-    # ".gradle/gradle.properties".text = ''
-    #   org.gradle.console=verbose
-    #   org.gradle.daemon.idletimeout=3600000
-    # '';
   };
 
   home.sessionVariables = {
-    EDITOR = "neovim";
+    EDITOR = "nvim";
   };
 
   programs.zsh = {
     enable = true;
+    initContent = ''
+      bindkey -e
+    '';
   };
 
   programs.neovim = {
@@ -67,9 +42,13 @@
     vimdiffAlias = true;
   };
 
+  programs.oh-my-posh = {
+    enable = true;
+    enableZshIntegration = true;
+  };
+
   # Let Home Manager install and manage itself.
   programs.home-manager = {
     enable = true;
-    path = "$HOME/src/dusktreader/dot/.config/home-manager/home.nix";
   };
 }
