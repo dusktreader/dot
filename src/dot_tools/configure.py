@@ -18,17 +18,12 @@ class DotInstaller:
         self.home = os.path.abspath(os.path.expanduser(home))
         self.root = os.path.abspath(os.path.expanduser(root))
 
-        bash_profile_path = os.path.join(self.home, '.bash_profile')
-        bashrc_path = os.path.join(self.home, '.bashrc')
         if platform.system() == 'Darwin':
-            bash_profile_path = os.path.join(self.home, '.bash_profile')
-            with open(bash_profile_path, 'r') as bash_profile_file:
-                bash_profile = bash_profile_file.read()
-            if 'source {}'.format(bashrc_path) not in bash_profile:
-                with open(bash_profile_path, 'a') as bash_profile_file:
-                    bash_profile_file.write('source {}'.format(bashrc_path))
+            rc_path = os.path.join(self.home, '.zshrc')
+        else:
+            rc_path = os.path.join(self.home, '.bashrc')
 
-        self.startup_config = bashrc_path
+        self.startup_config = rc_path
 
         logger.debug("Initializing configure/install for {}".format(name))
 

@@ -5,8 +5,16 @@ debug_out "Processing main dot configuration"
 export PAGER='less -R'
 export LESS='SX'
 export HISTCONTROL=ignorespace:ignoredups
-shopt -s histappend
-export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    setopt share_history
+else
+    shopt -s histappend
+fi
+
+# Not sure what this does any more, but I don't think I need it
+# export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+
 export XAUTHORITY=$HOME/.Xauthority
 
 HISTSIZE=1000000
@@ -57,8 +65,14 @@ alias eack='$EDITOR $DOT_HOME/.ackrc'
 
 alias egit='$EDITOR $DOT_HOME/.gitconfig'
 
-alias ebash="$EDITOR ~/.bashrc"
-alias sbash='source ~/.bashrc'
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    rc="$HOME/.zsh"
+else
+    rc="$HOME/.bashrc"
+fi
+alias ebash="$EDITOR $rc"
+alias sbash="source $rc"
 
 # TODO: this should have a configurable dot location based on dot-configure root
 alias edot="$EDITOR $DOT_HOME/.dotrc"
@@ -92,16 +106,7 @@ alias cojira='checkout-branch-by-pattern'
 alias cb='current-branch'
 
 alias sl='ls'
-if [[ $(uname) == "Darwin" ]]
-then
-    alias ls='gls --color=tty'
-    alias ln='gln'
-    alias cp='gcp'
-    alias touch='gtouch'
-    alias ps='pstree -wg3 | less'
-else
-    alias ls='ls --color=tty'
-fi
+alias ls='ls --color=tty'
 
 alias cd='fancy_cd'
 alias less='less -RNJMw -z-4'
@@ -331,4 +336,9 @@ function venv_info {
 export VENV_INFO="\$(venv_info)"
 
 # Load my oh-my-posh theme
-eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/dusktreader.omp.yaml)"
+if [[ "$OSTYPE" == "darwin"* ]]
+then
+    eval "$(oh-my-posh init zsh --config ~/.config/oh-my-posh/dusktreader.omp.yaml)"
+else
+    eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/dusktreader.omp.yaml)"
+fi

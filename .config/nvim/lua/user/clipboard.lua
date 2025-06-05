@@ -1,7 +1,7 @@
 local exports = {}
 
 function exports.set()
-  if vim.fn.has("wsl") then
+  if vim.fn.has("wsl") ~= 0 then
     -- If in wsl, do NOT check has('clipboard') and just set things
     -- See: https://github.com/neovim/neovim/issues/8017
     vim.opt.clipboard:append "unnamedplus"

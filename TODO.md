@@ -7,7 +7,6 @@
 
 # installer todos
 
-* Add color to the installer...make it prettier
 * add pre-reqs to the README
 
 
@@ -30,11 +29,7 @@
 
 # vim todos
 
-* Investigate `undotree`
 * Investigate `vim-surround`
-* Investigate `nvim-dap`
-* Investigate `nvim-tree`
 * Investigate `harpoon`
 * Investigate `possession.nvim`
-* Look into using `basedpyright` for type hinting in vim
 * Look into `op.nvim` + `dressing.nvim` + `parrot.nvim` for llm support in vim

@@ -6,22 +6,22 @@ python_version="3.13"
 
 check () {
     message=$1
-    echo -e "${COLOR_YELLOW}\uf29c  ${1}${COLOR_OFF}"
+    echo -e "${COLOR_YELLOW}  ${1}${COLOR_OFF}"
 }
 
 status () {
     message=$1
-    echo -e "${COLOR_BLUE}\u25ba  ${1}${COLOR_OFF}"
+    echo -e "${COLOR_BLUE}►  ${1}${COLOR_OFF}"
 }
 
 confirm () {
     message=$1
-    echo -e "${COLOR_GREEN}\uf00c  ${1}${COLOR_OFF}"
+    echo -e "${COLOR_GREEN}  ${1}${COLOR_OFF}"
 }
 
 fail () {
     message=$1
-    echo -e "${COLOR_RED}\ueabd  ${1} Aborting...${COLOR_OFF}"
+    echo -e "${COLOR_RED}  ${1} Aborting...${COLOR_OFF}"
     exit 1
 }
 
@@ -30,7 +30,7 @@ sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
 then
     status "Making passwordless sudo"
-    echo "$USER ALL=(ALL) NOPASSWD: ALL" | (sudo su -c 'EDITOR="tee -a" visudo')
+    echo "$USER ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" sudo visudo)
     if (( $? ))
     then
         fail "Failed to configure sudo! Aborting..."
@@ -62,7 +62,12 @@ oh-my-posh version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing oh-my-posh"
-    curl -s https://ohmyposh.dev/install.sh | bash -s
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+	    sudo port -N install oh-my-posh
+    else
+        curl -s https://ohmyposh.dev/install.sh | bash -s
+    fi
     if (( $? ))
     then
         fail "Failed to install oh-my-posh!"
@@ -78,34 +83,39 @@ uv version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing uv"
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install uv
+    else
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+    fi
     if (( $? ))
     then
         fail "Failed to install uv!"
     else
         confirm "Installed uv"
     fi
-    source $home/.cargo/env
+    source $home/.local/bin/env
 else
     confirm "uv is already installed."
-    source $home/.cargo/env
+    source $home/.local/bin/env
 fi
 
-check "Checking if python3.12-venv is installed (needed by Mason FOR NOW)"
-apt -qq list python3.12-venv > /dev/null 2>&1
-if (( $? ))
-then
-    status "Installing python3.12-venv"
-    sudo apt install -y python3.12-venv
-    if (( $? ))
-    then
-        fail "Failed to install python3.12-venv"
-    else
-        confirm "Installed python3.12-venv"
-    fi
-else
-    confirm "python3.12-venv is already installed"
-fi
+# check "Checking if python3.12-venv is installed (needed by Mason FOR NOW)"
+# apt -qq list python3.12-venv > /dev/null 2>&1
+# if (( $? ))
+# then
+#     status "Installing python3.12-venv"
+#     sudo apt install -y python3.12-venv
+#     if (( $? ))
+#     then
+#         fail "Failed to install python3.12-venv"
+#     else
+#         confirm "Installed python3.12-venv"
+#     fi
+# else
+#     confirm "python3.12-venv is already installed"
+# fi
 
 
 check "Checking if python $python_version is installed"
@@ -146,24 +156,34 @@ rg --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing ripgrep"
-    sudo apt install ripgrep
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install ripgrep
+    else
+        sudo apt install ripgrep
+    fi
     if (( $? ))
     then
         fail "Failed to install ripgrep!"
     else
         confirm "Installed ripgrep"
     fi
-    source $home/.cargo/env
+    source $home/.local/bin/env
 else
     confirm "ripgrep is already installed."
 fi
 
 check "Checking if fd is installed. (Needed by a neovim plugin)"
-fdfind --version > /dev/null 2>&1
+fd --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing fd"
-    sudo apt install fd-find
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install fd
+    else
+        sudo apt install fd-find
+    fi
     if (( $? ))
     then
         fail "Failed to install fd!"
@@ -179,7 +199,12 @@ fzf --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing fzf"
-    sudo apt install fzf
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install fzf
+    else
+        sudo apt install fzf
+    fi
     if (( $? ))
     then
         fail "Failed to install fzf!"
@@ -195,7 +220,12 @@ lynx --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing lynx"
-    sudo apt install lynx
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install lynx
+    else
+        sudo apt install lynx
+    fi
     if (( $? ))
     then
         fail "Failed to install lynx!"
@@ -246,7 +276,12 @@ nvim --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Setting up neovim"
-    sudo snap install nvim --classic
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install neovim
+    else
+        sudo snap install nvim --classic
+    fi
     if (( $? ))
     then
         fail "Failed to install neovim!"
@@ -262,7 +297,12 @@ lua -v > /dev/null 2>&1
 if (( $? ))
 then
     status "Setting up lua"
-    sudo apt install -y lua5.3
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install lua
+    else
+        sudo apt install -y lua5.3
+    fi
     if (( $? ))
     then
         fail "Failed to install lua!"
@@ -278,7 +318,12 @@ go version > /dev/null 2>&1
 if (( $? ))
 then
     status "Setting up go"
-    sudo snap install go --classic
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install go
+    else
+        sudo snap install go --classic
+    fi
     if (( $? ))
     then
         fail "Failed to install go!"
@@ -300,15 +345,21 @@ then
         fail "Failed to get lua version!"
     else
         status "Setting up luarocks"
-        sudo apt install -y liblua${ver}-dev && \
-        pushd /tmp && \
-        wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz && \
-        tar zxpf luarocks-3.11.1.tar.gz && \
-        cd luarocks-3.11.1 && \
-        ./configure && \
-        make && \
-        sudo make install && \
-        popd
+        if [[ "$OSTYPE" == "darwin"* ]]
+        then
+            pkg=$(echo $ver | perl -pe 's/(\d)\.(\d)/lua\1\2-luarocks/g')
+            sudo port -N install $pkg
+        else
+            sudo apt install -y liblua${ver}-dev && \
+            pushd /tmp && \
+            wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz && \
+            tar zxpf luarocks-3.11.1.tar.gz && \
+            cd luarocks-3.11.1 && \
+            ./configure && \
+            make && \
+            sudo make install && \
+            popd
+        fi
         if (( $? ))
         then
             fail "Failed to install luarocks!"
@@ -342,17 +393,22 @@ op --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Setting up 1password-cli"
-    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
-      sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && \
-      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
-      sudo tee /etc/apt/sources.list.d/1password.list && \
-      sudo mkdir -p /etc/debsig/policies/AC2D62742012EA22/ && \
-      curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
-      sudo tee /etc/debsig/policies/AC2D62742012EA22/1password.pol && \
-      sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22 && \
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install 1password-cli
+    else
       curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
-      sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg && \
-      sudo apt update && sudo apt install 1password-cli
+        sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && \
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+        sudo tee /etc/apt/sources.list.d/1password.list && \
+        sudo mkdir -p /etc/debsig/policies/AC2D62742012EA22/ && \
+        curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+        sudo tee /etc/debsig/policies/AC2D62742012EA22/1password.pol && \
+        sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22 && \
+        curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+        sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg && \
+        sudo apt update && sudo apt install 1password-cli
+    fi
     if (( $? ))
     then
         fail "Failed to install 1password-cli!"
@@ -368,15 +424,20 @@ gh --version > /dev/null 2>&1
 if (( $? ))
 then
     status "Setting up github cli"
-    (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) && \
-	  sudo mkdir -p -m 755 /etc/apt/keyrings && \
-      out=$(mktemp) && \
-      wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg && \
-      cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && \
-	  sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
-	  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
-	  sudo apt update && \
-	  sudo apt install gh -y
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install gh
+    else
+        (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) && \
+    	  sudo mkdir -p -m 755 /etc/apt/keyrings && \
+          out=$(mktemp) && \
+          wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg && \
+          cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && \
+    	  sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
+    	  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
+    	  sudo apt update && \
+    	  sudo apt install gh -y
+    fi
     if (( $? ))
     then
         fail "Failed to install github cli"
@@ -388,13 +449,13 @@ else
 fi
 
 status "Making parent directories for dot"
-mkdir -p $home/git-repos/personal
+mkdir -p $home/src/dusktreader
 
 check "Checking if dot is cloned to this machine yet"
-if [[ ! -d "$home/git-repos/personal/dot" ]]
+if [[ ! -d "$home/src/dusktreader/dot" ]]
 then
     status "Cloning dot repository"
-    git clone git@github.com:dusktreader/dot.git $home/git-repos/personal/dot
+    git clone git@github.com:dusktreader/dot.git $home/src/dusktreader/dot
     if (( $? ))
     then
         fail "Failed to clone dot repository!"
@@ -410,7 +471,7 @@ dot-version > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing dot via uv"
-    uv tool install $home/git-repos/personal/dot --force --python=$python_version --editable
+    uv tool install $home/src/dusktreader/dot --force --python=$python_version --editable
     if (( $? ))
     then
         fail "Failed to install dot!"
@@ -422,7 +483,7 @@ else
 fi
 
 status "Configuring dot"
-configure-dot --quiet --root=$home/git-repos/personal/dot
+configure-dot --quiet --root=$home/src/dusktreader/dot
 if (( $? ))
 then
     fail "Failed to configure dot!"
