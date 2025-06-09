@@ -3,6 +3,7 @@
         ".ackrc",
         ".psqlrc",
         ".gitconfig",
+        ".gitconfig.dusktreader",
         ".config/terminator",
         ".config/nvim/init.lua",
         ".config/nvim/lua",

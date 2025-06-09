@@ -8,6 +8,7 @@ export HISTCONTROL=ignorespace:ignoredups
 if [[ "$OSTYPE" == "darwin"* ]]
 then
     setopt share_history
+    setopt noautomenu
 else
     shopt -s histappend
 fi
@@ -122,7 +123,10 @@ alias tfm='terraform'
 
 alias dc='docker compose'
 
-alias fd='fdfind'
+if [[ "$OSTYPE" != "darwin"* ]]
+then
+    alias fd='fdfind'
+fi
 
 alias k='kubectl'
 alias mk='microk8s.kubectl'
@@ -173,20 +177,27 @@ then
 fi
 
 debug_out "Adding ssh keys to agent"
-dusktreader_ed25519_key="dusktreader.ed25519.secret"
-dusktreader_ed25519_path="$HOME/.ssh/$dusktreader_ed25519_key"
-if [[ -e $dusktreader_ed25519_path ]]
-then
-    if [[ -z "$(ssh-add -l | grep $dusktreader_ed25519_key)" ]]
+keys=(
+    "dusktreader.ed25519"
+    "tucker.beck.ed25519"
+)
+for key in "${keys[@]}";
+do
+    key_path="$HOME/.ssh/$key"
+    if [[ -e $key_path ]]
     then
-        debug_out "$dusktreader_ed25519_key key not found in active ssh identities not found.  Setting it up:"
-        ssh-add $dusktreader_ed25519_path
+        if [[ -z "$(ssh-add -l | grep $key)" ]]
+        then
+            debug_out "$key key not found in active ssh identities not found.  Setting it up:"
+            ssh-add $key_path
+        else
+            debug_out "$key already added. Skipping..."
+        fi
     else
-        debug_out "$dusktreader_ed25519_key already added. Skipping..."
+        debug_out "Couldn't find ssh key named $key to add"
     fi
-else
-    debug_out "Didn't find any ssh key to add"
-fi
+done
+
 
 nuke () {
     branch_name=$1

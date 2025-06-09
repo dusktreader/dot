@@ -271,6 +271,22 @@ fi
 status "Making directories for global npm"
 mkdir -p $home/.local/share/npm
 
+check "Checking if angular is installed"
+ng --version > /dev/null 2>&1
+if (( $? ))
+then
+    status "Setting up angular"
+    npm install -g @angular/cli
+    if (( $? ))
+    then
+        fail "Failed to install angular!"
+    else
+        confirm "Installed angular"
+    fi
+else
+    confirm "angular is already installed"
+fi
+
 check "Checking if neovim is installed"
 nvim --version > /dev/null 2>&1
 if (( $? ))
