@@ -37,14 +37,14 @@ class DotInstaller:
         logger.debug(f"Initializing with {self.home} as home, {self.root} as root")
 
         if platform.system() == 'Darwin':
-            rc_path = os.path.join(self.home, '.zshrc')
+            rc_path = self.home / ".zshrc"
         else:
-            rc_path = os.path.join(self.home, '.bashrc')
+            rc_path = self.home / ".bashrc"
 
         self.startup_config = rc_path
         logger.debug(f"Startup config file detected at {self.startup_config}")
 
-        logger.debug(f"Configuring dot!")
+        logger.debug("Configuring dot!")
 
         manifest_path = self.root / "etc/install.yaml"
         logger.debug(f"Using {manifest_path} as install manifest")

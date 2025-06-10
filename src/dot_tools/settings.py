@@ -6,5 +6,6 @@ class JiraInfo(BaseModel):
     api_key: str
     cloud_id: str
 
+
 class Settings(BaseModel):
     jira_info: JiraInfo
