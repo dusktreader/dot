@@ -12,7 +12,7 @@ from typerdrive import (
     handle_errors,
 )
 
-from dot_tools.cli.branches import cli as branches_cli
+from dot_tools.cli.git import cli as git_cli
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
 from dot_tools.line_length import get_config_line_length
@@ -22,7 +22,7 @@ cli = typer.Typer(rich_markup_mode="rich")
 add_settings_subcommand(cli, Settings)
 add_logs_subcommand(cli)
 
-cli.add_typer(branches_cli, name="branch")
+cli.add_typer(git_cli, name="git")
 
 
 @cli.callback(invoke_without_command=True)

@@ -23,6 +23,7 @@ def test_jira_key__errors_if_no_pattern_matched():
     with pytest.raises(JiraError, match="Can't extract a JIRA key"):
         JiraManager.jira_key(branch_name)
 
+
 def test_get_issue_from_jira__fetches_issue_based_on_key(mocker: pytest_mock.MockFixture):
     jira_man = JiraManager(JiraInfo(
         base_url="https://dusktreader.atlassian.net",
@@ -31,6 +32,7 @@ def test_get_issue_from_jira__fetches_issue_based_on_key(mocker: pytest_mock.Moc
 
     with mocker.patch.object(jira_man, "server") as mock_server:
         jira_man.get_issue("JAWA-9999")
+
 
 def test_get_issue_from_jira__fails_on_invalid_key_pattern():
     jira_man = JiraManager(JiraInfo(

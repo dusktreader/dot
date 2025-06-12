@@ -88,6 +88,7 @@ class GitManager:
 
 
     def toplevel(self, *, start_path: Path | None = None, relative: bool = False) -> Path:
+        logger.debug(f"Finding {'relative' if relative else 'absolute'} toplevel path for {start_path}")
         root_path = Path(self.repo.working_dir)
         logger.debug(f"Toplevel is {root_path=}")
         if not relative:
@@ -96,6 +97,7 @@ class GitManager:
         if not start_path:
             start_path = Path.cwd()
             logger.debug(f"Finding relative path from {start_path=}")
+        start_path = start_path.expanduser().resolve().absolute()
         return root_path.relative_to(start_path, walk_up=True)
 
     def is_github_repo(self) -> bool:
