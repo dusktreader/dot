@@ -1,21 +1,48 @@
 import filecmp
 import fileinput
 import platform
-from typing import Annotated
 import shutil
+import subprocess
+from typing import Annotated
 
+import buzz
 import pydantic
 import snick
 import yaml
 from loguru import logger
 from pathlib import Path
+from typerdrive import terminal_message
 
 from dot_tools.exceptions import DotError
+from dot_tools.spinner import report_block
+
+
+CHECK = "" # Yellow
+STATUS = "►" # Blue
+CONFIRM = "" # Green
+FAIL = "" # Red
+
+
+def parse_octal(value: str) -> int:
+    with buzz.handle_errors("Invalid octal value", raise_exc_class=ValueError):
+        return int(value.removeprefix("0o"), 8)
 
 
 class FileSpecs(pydantic.BaseModel):
     path: Path
-    permissions: int
+    perms: Annotated[int, pydantic.BeforeValidator(parse_octal)]
+
+
+class ScriptSpecs(pydantic.BaseModel):
+    generic: str | None = None
+    linux: str | None = None
+    darwin: str | None = None
+
+
+class ToolSpecs(pydantic.BaseModel):
+    name: str
+    check: str
+    scripts: ScriptSpecs
 
 
 class InstallManifest(pydantic.BaseModel):
@@ -23,6 +50,7 @@ class InstallManifest(pydantic.BaseModel):
     copy_paths: Annotated[list[Path | FileSpecs], pydantic.Field(default_factory=lambda: [])]
     dotfile_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
     mkdir_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
+    tools: Annotated[list[ToolSpecs], pydantic.Field(default_factory=lambda: [])]
 
 
 class DotInstaller:
@@ -103,7 +131,7 @@ class DotInstaller:
             perms: int | None
             if isinstance(item, FileSpecs):
                 path = item.path
-                perms = item.permissions
+                perms = item.perms
             else:
                 path = item
                 perms = None
@@ -127,6 +155,34 @@ class DotInstaller:
                 if perms is not None:
                     logger.debug(f"Updating permissions for file {dst_path}")
                     dst_path.chmod(perms)
+
+    def _install_tools(self):
+        for tool in self.install_manifest.tools:
+            with report_block(f"Installing {tool.name}", context_level="DEBUG"):
+                with DotError.handle_errors(f"Failed to install tool {tool.name}"):
+                    logger.debug(f"{CHECK} Checking if {tool.name} is installed")
+                    result = subprocess.run(tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    if result.returncode == 0:
+                        logger.debug(f"{CONFIRM} {tool.name} is already installed")
+                        continue
+
+                    script: str
+                    if tool.scripts.generic:
+                        logger.debug("Using generic script for tool installation")
+                        script = tool.scripts.generic
+                    elif platform.system() == 'Linux':
+                        logger.debug("Using linux script for tool installation")
+                        script = DotError.enforce_defined(tool.scripts.linux, "No linux script defined for tool")
+                    elif platform.system() == 'Darwin':
+                        logger.debug("Using darwin script for tool installation")
+                        script = DotError.enforce_defined(tool.scripts.darwin, "No darwin script defined for tool")
+                    else:
+                        raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
+
+                    logger.debug(f"Running installation script for {tool.name}")
+                    result = subprocess.run(script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    DotError.require_condition(result.returncode == 0, f"Failed to install {tool.name}: {result.stdout.decode()}")
+                    logger.debug(f"{CONFIRM} completed {tool.name} installation")
 
     def _update_dotfiles(self):
         logger.debug("Adding dotfiles from manifest")
@@ -195,11 +251,22 @@ class DotInstaller:
             logger.debug("Copying files")
             self._copy_files()
 
+            logger.debug("Installing tools")
+            self._install_tools()
+
             logger.debug("Adding in extra dotfiles")
             self._update_dotfiles()
 
             logger.debug("Setting up startup config to include dot")
             self._startup()
 
-        logger.info("Finished installing dot")
-        logger.info(f"(To apply new changes, source {self.startup_config})")
+        terminal_message(
+            f"""
+            Dot installation complete!
+
+            Install directory: {self.home}
+            Dot root directory: {self.root}
+            """,
+            subject="Finished installing dot!",
+            footer=f"Restart your terminal or source {self.startup_config} to apply changes."
+        )

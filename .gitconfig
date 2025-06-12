@@ -33,5 +33,7 @@
 	defaultBranch = main
 [includeIf "gitdir:~/src/dusktreader/"]
   path = ~/.gitconfig.dusktreader
+[includeIf "gitdir:~/git-repos/personal/"]
+  path = ~/.gitconfig.dusktreader
 [includeIf "gitdir:~/src/mhe/"]
   path = ~/.gitconfig.mhe
