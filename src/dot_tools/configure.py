@@ -157,32 +157,36 @@ class DotInstaller:
                     dst_path.chmod(perms)
 
     def _install_tools(self):
-        for tool in self.install_manifest.tools:
-            with report_block(f"Installing {tool.name}", context_level="DEBUG"):
-                with DotError.handle_errors(f"Failed to install tool {tool.name}"):
-                    logger.debug(f"{CHECK} Checking if {tool.name} is installed")
-                    result = subprocess.run(tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    if result.returncode == 0:
-                        logger.debug(f"{CONFIRM} {tool.name} is already installed")
-                        continue
+        from time import sleep
+        with report_block(f"Installing tools", context_level="DEBUG"):
+            sleep(1)
+            for tool in self.install_manifest.tools:
+                with report_block(f"Installing {tool.name}", context_level="DEBUG"):
+                    sleep(1)
+                    with DotError.handle_errors(f"Failed to install tool {tool.name}"):
+                        logger.debug(f"{CHECK} Checking if {tool.name} is installed")
+                        result = subprocess.run(tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        if result.returncode == 0:
+                            logger.debug(f"{CONFIRM} {tool.name} is already installed")
+                            continue
 
-                    script: str
-                    if tool.scripts.generic:
-                        logger.debug("Using generic script for tool installation")
-                        script = tool.scripts.generic
-                    elif platform.system() == 'Linux':
-                        logger.debug("Using linux script for tool installation")
-                        script = DotError.enforce_defined(tool.scripts.linux, "No linux script defined for tool")
-                    elif platform.system() == 'Darwin':
-                        logger.debug("Using darwin script for tool installation")
-                        script = DotError.enforce_defined(tool.scripts.darwin, "No darwin script defined for tool")
-                    else:
-                        raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
+                        script: str
+                        if tool.scripts.generic:
+                            logger.debug("Using generic script for tool installation")
+                            script = tool.scripts.generic
+                        elif platform.system() == 'Linux':
+                            logger.debug("Using linux script for tool installation")
+                            script = DotError.enforce_defined(tool.scripts.linux, "No linux script defined for tool")
+                        elif platform.system() == 'Darwin':
+                            logger.debug("Using darwin script for tool installation")
+                            script = DotError.enforce_defined(tool.scripts.darwin, "No darwin script defined for tool")
+                        else:
+                            raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
 
-                    logger.debug(f"Running installation script for {tool.name}")
-                    result = subprocess.run(script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    DotError.require_condition(result.returncode == 0, f"Failed to install {tool.name}: {result.stdout.decode()}")
-                    logger.debug(f"{CONFIRM} completed {tool.name} installation")
+                        logger.debug(f"Running installation script for {tool.name}")
+                        result = subprocess.run(script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        DotError.require_condition(result.returncode == 0, f"Failed to install {tool.name}: {result.stdout.decode()}")
+                        logger.debug(f"{CONFIRM} completed {tool.name} installation")
 
     def _update_dotfiles(self):
         logger.debug("Adding dotfiles from manifest")

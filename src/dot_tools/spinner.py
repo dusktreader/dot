@@ -2,15 +2,31 @@ import sys
 from contextlib import contextmanager
 
 from loguru import logger
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+from rich.live import Live
+from rich.tree import Tree
+from rich.panel import Panel
 
+live: Live | None = None
+progress_tree: Tree = Tree("Tasks")
+branch_stack: list[Tree] = [progress_tree]
 
 @contextmanager
 def spinner(text: str):
-    with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
-        task = progress.add_task(description=f"{text}...", total=None)
-        yield
-        progress.update(task, completed=1.0)
+    global live
+    global progress_tree
+    if live is None:
+        live = Live(progress_tree)
+    #progress = Progress(SpinnerColumn(), BarColumn(), TextColumn("[progress.description]{task.description}"), transient=True)
+    #branch_stack.append(branch_stack[-1].add(Panel.fit(progress)))
+    #branch_stack.append(branch_stack[-1].add(Panel.fit("FUCK")))
+    progress_tree = progress_tree.add(Panel("Fuck!"))
+    live.update(progress_tree)
+    yield
+    # branch_stack.pop()
+    # branch_stack[-1].children = []
+    # if len(branch_stack) == 1:
+    #     live = None
 
 
 @contextmanager
