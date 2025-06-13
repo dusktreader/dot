@@ -9,6 +9,7 @@ return {
     "nvim-neotest/neotest-python",
     "nvim-neotest/neotest-go",
     "nvim-neotest/neotest-jest",
+    "adrigzr/neotest-mocha",
   },
   opts = {
     log_level = "DEBUG",
@@ -39,6 +40,21 @@ return {
         -- require("neotest-vim-test")({
         --   ignore_file_types = { "python", "vim", "lua" },
         -- }),
+        require('neotest-mocha')({
+          -- dap = { justMyCode = false },
+          command = "npx mocha",
+          command_args = function(context)
+            return {
+                "--require=babel-core/register",
+                "--recursive",
+                "--full-trace",
+                "--reporter=json",
+                "--reporter-options=output=" .. context.results_path,
+                "--grep=" .. context.test_name_pattern,
+                context.path,
+            }
+          end,
+        }),
       },
     })
   end,

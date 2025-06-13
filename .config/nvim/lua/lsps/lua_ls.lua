@@ -17,7 +17,11 @@ vim.lsp.config(
       })
     end,
     settings = {
-      Lua = {},
+      Lua = {
+        diagnostics = {
+          disable = { "missing-fields" },
+        },
+      },
     },
   }
 )
