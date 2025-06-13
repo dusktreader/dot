@@ -16,6 +16,7 @@ from dot_tools.cli.git import cli as git_cli
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
 from dot_tools.line_length import get_config_line_length
+from dot_tools.version import get_version
 
 
 cli = typer.Typer(rich_markup_mode="rich")
@@ -28,6 +29,7 @@ cli.add_typer(git_cli, name="git")
 @cli.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
+    version: Annotated[bool, typer.Option(help="Print the version of this app and exit")] = False,
 ):
     """
     Welcome to dot-tools!
@@ -35,6 +37,10 @@ def main(
     More information can be shown for each command listed below by running it with the
     --help option.
     """
+
+    if version:
+        print(get_version())
+        ctx.exit()
 
     if ctx.invoked_subcommand is None:
         ctx.get_help()
@@ -78,7 +84,7 @@ def configure(
         Path,
         typer.Option(
             help="Root directory for dot",
-            default_factory=lambda: Path.home() / "git-repos/personal/dot"
+            default_factory=lambda: Path.home() / "src/dusktreader/dot"
         )
     ],
     override_home: Annotated[Path | None, typer.Option(help="Install to this path instead of home")] = None,

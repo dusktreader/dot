@@ -24,6 +24,134 @@ mkdir_paths:
   - .vim/local/swap
   - .vim/undodir
 tools:
+  - name: poetry
+    check: "poetry --version"
+    scripts:
+      generic: |
+        uv tool install poetry --python=$PYTHON_VERSION
+  - name: unzip
+    check: "unzip"
+    scripts:
+      linux: |
+        sudo apt install -y unzip
+      darwin: |
+        sudo port -N install unzip
+  - name: oh-my-posh
+    check: "oh-my-posh version"
+    scripts:
+      linux: |
+        curl -shttps://github.com/dusktreader https://ohmyposh.dev/install.sh | bash -s
+      darwin: |
+        sudo port -N install oh-my-posh
+  - name: go
+    check: "go version"
+    scripts:
+      linux: |
+        sudo snap install go --classic
+      darwin: |
+        sudo port -N install go
+  - name: ripgrep
+    check: "rg --version"
+    scripts:
+      linux: |
+        sudo apt install -y ripgrep
+        source $HOME/.local/bin/env
+      darwin: |
+        sudo port -N install ripgrep
+        source $HOME/.local/bin/env
+  - name: fd-find
+    check: "fd --version"
+    scripts:
+      linux: |
+        sudo apt install -y fd-find
+      darwin: |
+        sudo port -N install fd
+  - name: fzf
+    check: "fzf --version"
+    scripts:
+      linux: |
+        sudo apt install -y fzf
+      darwin: |
+        sudo port -N install fzf
+  - name: lynx
+    check: "lynx --version"
+    scripts:
+      linux: |
+        sudo apt install -y lynx
+      darwin: |
+        sudo port -N install lynx
+  - name: volta
+    check: "volta --version"
+    scripts:
+      generic: |
+        curl https://get.volta.sh | bash
+  - name: node
+    check: "node --version"
+    scripts:
+      generic: |
+        volta install node@20
+  - name: npm
+    check: "npm --version"
+    scripts:
+      generic: |
+        volta install npm@11.1
+  - name: angular
+    check: "ng --version"
+    scripts:
+      generic: |
+        npm install -g @angular/cli
+  - name: neovim
+    check: "nvim --version"
+    scripts:
+      linux: |
+        sudo snap install nvim --classic
+      darwin: |
+        sudo port -N install neovim
+  - name: lua
+    check: "lua -v"
+    scripts:
+      linux: |
+        sudo apt install lua5.3
+      darwin: |
+        sudo port -N install lua
+  - name: luarocks
+    check: "luarocks --version"
+    scripts:
+      linux: |
+        ver=$(lua -v | awk '{print $2}' | cut -d. -f1,2)
+        sudo apt install -y liblua${ver}-dev && \
+        pushd /tmp && \
+        wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz && \
+        tar zxpf luarocks-3.11.1.tar.gz && \
+        cd luarocks-3.11.1 && \
+        ./configure && \
+        make && \
+        sudo make install && \
+        popd
+      darwin: |
+        ver=$(lua -v | awk '{print $2}' | cut -d. -f1,2)
+        pkg=$(echo $ver | perl -pe 's/(\d)\.(\d)/lua\1\2-luarocks/g')
+        sudo port -N install $pkg
+  - name: rustup
+    check: "rustup --version"
+    scripts:
+      generic: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  - name: github cli
+    check: "gh --version"
+    scripts:
+      linux: |
+        (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) && \
+        sudo mkdir -p -m 755 /etc/apt/keyrings && \
+          out=$(mktemp) && \
+          wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg && \
+          cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null && \
+        sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg && \
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && \
+        sudo apt update && \
+        sudo apt install gh -y
+      darwin: |
+        sudo port -N install gh
   - name: 1password-cli
     check: "op --version"
     scripts:

@@ -2,31 +2,34 @@ import sys
 from contextlib import contextmanager
 
 from loguru import logger
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.live import Live
 from rich.tree import Tree
 from rich.panel import Panel
 
-live: Live | None = None
-progress_tree: Tree = Tree("Tasks")
-branch_stack: list[Tree] = [progress_tree]
+branch_stack: list[Tree] = []
 
 @contextmanager
 def spinner(text: str):
-    global live
-    global progress_tree
-    if live is None:
-        live = Live(progress_tree)
-    #progress = Progress(SpinnerColumn(), BarColumn(), TextColumn("[progress.description]{task.description}"), transient=True)
-    #branch_stack.append(branch_stack[-1].add(Panel.fit(progress)))
-    #branch_stack.append(branch_stack[-1].add(Panel.fit("FUCK")))
-    progress_tree = progress_tree.add(Panel("Fuck!"))
-    live.update(progress_tree)
+    progress = Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"))
+    progress.add_task(text)
+
+    live: Live | None = None
+    if len(branch_stack) == 0:
+        root_tree = Tree(progress)
+        branch_stack.append(root_tree)
+        live = Live(Panel(root_tree), transient=True)
+        live.start()
+    else:
+        branch_stack.append(branch_stack[-1].add(progress))
+
     yield
-    # branch_stack.pop()
-    # branch_stack[-1].children = []
-    # if len(branch_stack) == 1:
-    #     live = None
+
+    branch_stack.pop()
+    if len(branch_stack) > 0:
+        branch_stack[-1].children = []
+    if live:
+        live.stop()
 
 
 @contextmanager
@@ -40,3 +43,4 @@ def report_block(text: str, context_level: str = "INFO"):
             raise
         else:
             logger.log(context_level, f"Completed: {text}")
+            # TODO: would be fun to include a time elapsed here
