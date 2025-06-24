@@ -24,6 +24,12 @@ mkdir_paths:
   - .vim/local/swap
   - .vim/undodir
 tools:
+  - name: fucky
+    check: "fucky"
+    scripts:
+      generic: |
+        sleep 1
+        fucky fuck fuck
   - name: poetry
     check: "poetry --version"
     scripts:

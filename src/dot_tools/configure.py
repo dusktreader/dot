@@ -15,13 +15,8 @@ from pathlib import Path
 from typerdrive import terminal_message
 
 from dot_tools.exceptions import DotError
-from dot_tools.spinner import report_block
-
-
-CHECK = "" # Yellow
-STATUS = "►" # Blue
-CONFIRM = "" # Green
-FAIL = "" # Red
+from dot_tools.spinner import spinner
+from dot_tools.constants import Status
 
 
 def parse_octal(value: str) -> int:
@@ -85,7 +80,7 @@ class DotInstaller:
         logger.debug(f"Loaded install manifest from {manifest_path}")
 
     def _make_links(self):
-        with report_block("Linking files from manifest", context_level="DEBUG"):
+        with spinner("Linking files from manifest", context_level="DEBUG"):
             for path in self.install_manifest.link_paths:
                 logger.debug(f"Processing {path}")
 
@@ -120,7 +115,7 @@ class DotInstaller:
                 link_path.symlink_to(target_path)
 
     def _make_dirs(self):
-        with report_block("Making directories from manifest", context_level="DEBUG"):
+        with spinner("Making directories from manifest", context_level="DEBUG"):
             for path in self.install_manifest.mkdir_paths:
                 logger.debug(f"Processing {path}")
 
@@ -129,7 +124,7 @@ class DotInstaller:
                 target_path.mkdir(parents=True, exist_ok=True)
 
     def _copy_files(self):
-        with report_block("Copying files from manifest", context_level="DEBUG"):
+        with spinner("Copying files from manifest", context_level="DEBUG"):
             for item in self.install_manifest.copy_paths:
                 path: Path
                 perms: int | None
@@ -161,18 +156,23 @@ class DotInstaller:
                         dst_path.chmod(perms)
 
     def _install_tools(self):
+
+        def _log_fail(dep: buzz.DoExceptParams):
+            logger.error(dep.final_message, status=Status.FAIL)
+
         install_env = os.environ.copy()
         install_env["PYTHON_VERSION"] = platform.python_version()
-        with report_block("Installing tools", context_level="DEBUG"):
+        with spinner("Installing tools", context_level="DEBUG"):
             for tool in self.install_manifest.tools:
-                with report_block(f"Installing {tool.name}", context_level="DEBUG"):
-                    with DotError.handle_errors(f"Failed to install tool {tool.name}"):
-                        logger.debug(f"{CHECK} Checking if {tool.name} is installed")
+                with spinner(f"Installing {tool.name}", context_level="DEBUG"):
+                    with DotError.handle_errors(f"Failed to install tool {tool.name}", do_except=_log_fail):
+                        logger.debug(f"Checking if {tool.name} is installed", status=Status.CHECK)
                         result = subprocess.run(tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                         if result.returncode == 0:
-                            logger.debug(f"{CONFIRM} {tool.name} is already installed")
+                            logger.debug(f"{tool.name} is already installed", status=Status.CONFIRM)
                             continue
 
+                        logger.debug(f"{tool.name} is not yet installed", status=Status.MISSING)
                         script: str
                         if tool.scripts.generic:
                             logger.debug("Using generic script for tool installation")
@@ -188,11 +188,11 @@ class DotInstaller:
 
                         logger.debug(f"Running installation script for {tool.name}")
                         result = subprocess.run(script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env)
-                        DotError.require_condition(result.returncode == 0, f"Failed to install {tool.name}: {result.stdout.decode()}")
-                        logger.debug(f"{CONFIRM} completed {tool.name} installation")
+                        DotError.require_condition(result.returncode == 0, result.stdout.decode())
+                        logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
 
     def _update_dotfiles(self):
-        with report_block("Adding dotfiles from manifest", context_level="DEBUG"):
+        with spinner("Adding dotfiles from manifest", context_level="DEBUG"):
             dotfile_list_path = self.home / ".extra_dotfiles"
             if not dotfile_list_path.exists():
                 dotfile_list_path.touch()
@@ -239,7 +239,7 @@ class DotInstaller:
             )
 
     def _startup(self):
-        with report_block(f"Using {self.startup_config} as startup config file", context_level="DEBUG"):
+        with spinner(f"Using {self.startup_config} as startup config file", context_level="DEBUG"):
             if not self.startup_config.exists():
                 logger.debug("{self.startup_config} doesn't exist. Creating it")
                 self.startup_config.touch()
@@ -247,7 +247,7 @@ class DotInstaller:
             self._add_extra_dotfiles_block()
 
     def install_dot(self):
-        with report_block("Installing dot", context_level="INFO"):
+        with spinner("Installing dot", context_level="INFO"):
             with DotError.handle_errors("Install failed. Aborting"):
                 self._make_dirs()
                 self._make_links()

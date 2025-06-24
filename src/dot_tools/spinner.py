@@ -1,20 +1,26 @@
 from collections import deque
 import sys
 from contextlib import contextmanager
-from time import sleep
-from typing import Any, Generator, override
+from typing import Any, override, TYPE_CHECKING
 
 from loguru import logger
-from rich.console import RenderableType
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.live import Live
 from rich.tree import Tree
 from rich.panel import Panel
 
+from dot_tools.constants import Status
+
+if TYPE_CHECKING:
+    from loguru import Record, Message
+else:
+    Record = Any
+    Message = Any
+
 branch_stack: list[Tree] = []
 logger_stack: list[int] = []
 
-class Fucky(Progress):
+class ProgressLogger(Progress):
 
     messages: deque[str]
 
@@ -29,16 +35,31 @@ class Fucky(Progress):
         for line in self.messages:
             yield line
 
-    def fuck(self, message: str):
-        self.messages.append(message)
+    def handler(self, message: Message):
+        status: Status | None = message.record["extra"].get("status")
+        stripped_message = message.strip()
+        if status:
+            (symbol, color) = status.value
+            self.messages.append(f"[{color}]{symbol} {stripped_message}[/{color}]")
+        else:
+            self.messages.append(f"  {stripped_message}")
 
 
-last_logger: int | None = None
+spin_logger: int | None = None
+
+def filter_spin_log(record: Record) -> bool:
+    return not record.get("extra", {}).get("spin", False)
+
 
 @contextmanager
-def spinner(text: str):
-    progress = Fucky(SpinnerColumn(), TextColumn("[progress.description]{task.description}"))
+def spinner(text: str, context_level: str = "INFO"):
+    progress = ProgressLogger(SpinnerColumn(), TextColumn("[progress.description]{task.description}"))
     progress.add_task(text)
+    global spin_logger
+    if spin_logger:
+        logger.remove(spin_logger)
+
+    spin_logger = logger.add(progress.handler, filter=filter_spin_log, format="{message}")
 
     live: Live | None = None
     if len(branch_stack) == 0:
@@ -49,34 +70,21 @@ def spinner(text: str):
     else:
         branch_stack.append(branch_stack[-1].add(progress))
 
-    global last_logger
-    if last_logger is not None:
-        logger.remove(last_logger)
-
-    last_logger = logger.add(progress.fuck)
-
-    yield
-
-    if last_logger is not None:
-        logger.remove(last_logger)
-        last_logger = None
+    logger.log(context_level, f"Commenced: {text}", spin=True)
+    try:
+        yield
+    except Exception as err:
+        logger.error(f"Failed: {text} - {err}", exc_info=sys.exc_info(), spin=True)
+        raise
+    else:
+        logger.log(context_level, f"Completed: {text}", spin=True)
+        # TODO: would be fun to include a time elapsed here
+    finally:
+        logger.remove(spin_logger)
+        spin_logger = None
 
     branch_stack.pop()
     if len(branch_stack) > 0:
         branch_stack[-1].children = []
     if live:
         live.stop()
-
-
-@contextmanager
-def report_block(text: str, context_level: str = "INFO"):
-    with spinner(text):
-        logger.log(context_level, f"Commenced: {text}")
-        try:
-            yield
-        except Exception as err:
-            logger.error(f"Failed: {text} - {err}", exc_info=sys.exc_info())
-            raise
-        else:
-            logger.log(context_level, f"Completed: {text}")
-            # TODO: would be fun to include a time elapsed here
