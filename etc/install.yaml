@@ -169,3 +169,26 @@ tools:
           sudo apt update && sudo apt install 1password-cli
       darwin: |
         sudo port -N install 1password-cli
+  - name: pgcli
+    check: "pgcli --version"
+    scripts:
+      linux: |
+        sudo apt install libpq-dev python-dev
+        uv tool install pgcli
+      darwin: |
+        sudo port -N install pgcli
+  - name: usql
+    check: "usql --version"
+    scripts:
+      linux: |
+        go install -tags most github.com/xo/usql@latest
+      darwin: |
+        sudo port -N install usql
+  - name: aws-cli
+    check: "aws --version"
+    scripts:
+      linux: |
+        sudo snap install aws-cli --classic
+      darwin: |
+        curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+        sudo installer -pkg AWSCLIV2.pkg -target /
