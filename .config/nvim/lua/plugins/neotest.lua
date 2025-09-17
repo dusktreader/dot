@@ -7,9 +7,9 @@ return {
     "antoinemadec/FixCursorHold.nvim",
     "nvim-treesitter/nvim-treesitter",
     "nvim-neotest/neotest-python",
-    "nvim-neotest/neotest-go",
+    "fredrikaverpil/neotest-golang",
     "nvim-neotest/neotest-jest",
-    "adrigzr/neotest-mocha",
+    { "dusktreader/neotest-mocha", branch_name="feature/add-test-name-to-context" },
   },
   opts = {
     log_level = "DEBUG",
@@ -26,7 +26,7 @@ return {
             "--verbose",
           },
         }),
-        require("neotest-go")({
+        require("neotest-golang")({
           -- dap = { justMyCode = false },
           args = {
             -- How to verbose?
@@ -50,9 +50,9 @@ return {
                 "--full-trace",
                 "--reporter=json",
                 "--reporter-options=output=" .. context.results_path,
-                "--grep=" .. context.test_name_pattern,
+                "--fgrep=" .. context.test_name,
                 context.path,
-            }
+            };
           end,
         }),
       },

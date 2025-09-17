@@ -31,9 +31,13 @@
     user = dusktreader
 [init]
 	defaultBranch = main
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+[url "ssh://git@github.mheducation.com/"]
+	insteadOf = https://github.mheducation.com/
 [includeIf "gitdir:~/src/dusktreader/"]
-  path = ~/.gitconfig.dusktreader
+	path = ~/.gitconfig.dusktreader
 [includeIf "gitdir:~/git-repos/personal/"]
-  path = ~/.gitconfig.dusktreader
+	path = ~/.gitconfig.dusktreader
 [includeIf "gitdir:~/src/mhe/"]
-  path = ~/.gitconfig.mhe
+	path = ~/.gitconfig.mhe

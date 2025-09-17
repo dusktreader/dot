@@ -1,4 +1,5 @@
 return {
+  -- Code outline window
   "stevearc/aerial.nvim",
   dependencies = {
      "nvim-treesitter/nvim-treesitter",

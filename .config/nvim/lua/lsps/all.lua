@@ -11,11 +11,19 @@ require("lsps.ruff")
 vim.api.nvim_create_autocmd('LspAttach', {
   desc = 'LSP actions',
   callback = function(event)
-    vim.lsp.set_log_level("debug")
+    -- vim.lsp.set_log_level("debug")
     local opts = {buffer = event.buf}
 
     vim.keymap.set('n', '<leader>K',  vim.lsp.buf.hover, opts)
     vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition, opts)
+    vim.keymap.set('n', '<leader>gsd', function ()
+      vim.cmd('vsplit')
+      vim.lsp.buf.definition()
+    end, opts)
+    vim.keymap.set('n', '<leader>gvd', function ()
+      vim.cmd('vsplit')
+      vim.lsp.buf.definition()
+    end, opts)
     vim.keymap.set('n', '<leader>gD', vim.lsp.buf.declaration, opts)
     vim.keymap.set('n', '<leader>gi', vim.lsp.buf.implementation, opts)
     vim.keymap.set('n', '<leader>go', vim.lsp.buf.type_definition, opts)
@@ -23,7 +31,9 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', '<leader>gs', vim.lsp.buf.signature_help, opts)
     vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
     vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
-    vim.keymap.set({"n", "x"}, "<leader>FF", function() vim.lsp.buf.format({async = true}) end, opts)
+
+    -- Conflicts with conform....but maybe we should use none-ls instead?
+    -- vim.keymap.set({"n", "x"}, "<leader>FF", function() vim.lsp.buf.format({async = true}) end, opts)
 
   end,
 })

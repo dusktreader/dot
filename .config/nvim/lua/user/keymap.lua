@@ -129,3 +129,9 @@ vim.keymap.set("n", "<leader>n", "<cmd>Noice dismiss<cr>", { noremap = true })
 
 -- Toggle render-markdown
 vim.keymap.set("n", "<leader>M", "<cmd>RenderMarkdown toggle<cr>", { noremap = true })
+
+-- Format current buffer
+vim.keymap.set("n", "<leader>FF", require("conform").format, { noremap = true })
+
+-- Dummy Test Binding
+vim.keymap.set("n", "<M-d>", function () vim.print("FUCK YOU!!!") end)

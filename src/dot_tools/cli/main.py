@@ -1,7 +1,10 @@
 import json
+import sys
+import urllib.parse
 from pathlib import Path
 from typing import Annotated
 
+import pyperclip
 import typer
 from typerdrive import (
     add_logs_subcommand,
@@ -94,3 +97,20 @@ def configure(
     """
     installer = DotInstaller(root=root, override_home=override_home)
     installer.install_dot()
+
+
+@cli.command()
+@handle_errors("Failed to url encode the provided string", do_except=log_error)
+@attach_logging()
+def urlencode(
+    ctx: typer.Context,
+    text: Annotated[str | None, typer.Argument(help="Text to url encode. If not provided, read from stdin")] = None,
+):
+    """
+    URL Encode the provided text
+    """
+    if text is None:
+        text = input()
+    dump = urllib.parse.quote(text)
+    print(dump)
+    pyperclip.copy(dump)

@@ -26,6 +26,9 @@ return {
 
       -- Formatters
       'prettierd',
+
+      -- Other
+      'tree-sitter-cli',
     },
   },
 }

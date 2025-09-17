@@ -2,8 +2,8 @@
 
 debug_out "Processing main dot configuration"
 
-export PAGER='less -R'
-export LESS='SX'
+export PAGER='less'
+export LESS='RSX'
 export HISTCONTROL=ignorespace:ignoredups
 if [[ "$OSTYPE" == "darwin"* ]]
 then
@@ -68,7 +68,7 @@ alias egit='$EDITOR $DOT_HOME/.gitconfig'
 
 if [[ "$OSTYPE" == "darwin"* ]]
 then
-    rc="$HOME/.zsh"
+    rc="$HOME/.zshrc"
 else
     rc="$HOME/.bashrc"
 fi

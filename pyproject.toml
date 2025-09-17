@@ -13,6 +13,7 @@ dependencies = [
     "pprintpp>=0.4.0",
     "py-buzz~=7.3",
     "pydantic>=2.11.4",
+    "pyperclip>=1.9.0",
     "pyyaml>=6.0.2",
     "snick>=2.2.0",
     "typer~=0.15",

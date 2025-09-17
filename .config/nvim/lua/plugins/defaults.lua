@@ -18,7 +18,7 @@ return {
   { "nvim-tree/nvim-web-devicons" },
 
   -- CSV Reader with color and formatting
-  { "mechatroner/rainbow_csv" },
+  { "hat0uma/csvview.nvim" },
 
   -- Use pep8 style indentation for python
   { "Vimjas/vim-python-pep8-indent" },

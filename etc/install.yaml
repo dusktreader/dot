@@ -1,7 +1,6 @@
 link_paths:
   - .ackrc
   - .psqlrc
-  - .npmrc
   - .gitconfig
   - .gitconfig.dusktreader
   - .systemd-env
@@ -19,6 +18,7 @@ dotfile_paths:
   - .dot_tools_helpers
   - .dot_colors
   - .dotrc
+  - .dot_zshrc
 mkdir_paths:
   - .vim/local/backup
   - .vim/local/swap
@@ -56,6 +56,13 @@ tools:
         sudo snap install go --classic
       darwin: |
         sudo port -N install go
+  - name: golangci-lint
+    check: "golangci-lint --version"
+    scripts:
+      linux: |
+        sudo apt install golangci-lint
+      darwin: |
+        sudo port -N install golangci-lint
   - name: ripgrep
     check: "rg --version"
     scripts:
@@ -86,21 +93,17 @@ tools:
         sudo apt install -y lynx
       darwin: |
         sudo port -N install lynx
-  - name: volta
-    check: "volta --version"
+  - name: nvm
+    check: "nvm --version"
     scripts:
       generic: |
-        curl https://get.volta.sh | bash
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
   - name: node
     check: "node --version"
     scripts:
       generic: |
-        volta install node@20
-  - name: npm
-    check: "npm --version"
-    scripts:
-      generic: |
-        volta install npm@11.1
+        nvm install 20
+        nvm use 20
   - name: angular
     check: "ng --version"
     scripts:

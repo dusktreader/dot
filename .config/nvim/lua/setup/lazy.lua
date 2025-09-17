@@ -15,16 +15,55 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Setup lazy.nvim
+local disable_plugins = vim.env.LAZY_DISABLE_PLUGINS == "1"
+
+if disable_plugins then
+    vim.notify("Plugins disabled - use :LazyPick to load individual plugins")
+    
+    _G.lazy_load_picker = function() 
+        local names = {}
+        local ok_cfg, cfg = pcall(require, "lazy.core.config")
+        if ok_cfg and cfg and cfg.plugins then
+            for name, _ in pairs(cfg.plugins) do
+                table.insert(names, name)
+            end
+        end
+        
+        if vim.tbl_isempty(names) then 
+            vim.notify("No plugins configured", vim.log.levels.WARN) 
+            return 
+        end 
+        
+        vim.ui.select(
+            names, 
+            { prompt = "Load plugin:" }, 
+            function(choice) 
+                if not choice then 
+                    return 
+                end 
+                local ok, err = pcall(require("lazy").load, { plugins = { choice } }) 
+                if ok then 
+                    vim.notify("Loaded plugin: " .. choice, vim.log.levels.INFO) 
+                else 
+                    vim.notify("Failed to load " .. choice .. ": " .. tostring(err), vim.log.levels.ERROR) 
+                end 
+            end
+        ) 
+    end
+    vim.api.nvim_create_user_command("LazyPick", function() _G.lazy_load_picker() end, {})
+end
+
+-- Setup lazy.nvim - always load specs but conditionally enable plugins
 require("lazy").setup({
-  spec = {
-    -- import your plugins
-    { import = "plugins" },
+  spec = { 
+    { import = "plugins" } 
   },
-  -- automatically check for plugin updates
+  defaults = { 
+    lazy = true,
+    enabled = not disable_plugins,
+  },
   checker = {
     enabled = false,
-    -- concurrency = nil,
     notify = true,
     frequency = 3600,
     check_pinned = false,

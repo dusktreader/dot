@@ -53,3 +53,30 @@ vim.api.nvim_create_autocmd(
     end
   }
 )
+
+local function ShowNeotestAdapterRoots()
+  local ok, neotest = pcall(require, "neotest")
+  if not ok then
+    print("neotest not loaded")
+    return
+  end
+  local path = vim.api.nvim_buf_get_name(0)
+  print("File: " .. path)
+  local adapters = neotest._config and neotest._config.adapters or {}
+  print("Config: " .. #neotest._config)
+  print("Adapters: " .. #adapters)
+  -- adapters may be an array of adapter objects or constructor-returned tables
+  for _, adapter in ipairs(adapters) do
+    print("Processing adapter : " .. (adapter.name or "<unnamed adapter>"));
+    if type(adapter) == "table" and adapter.root then
+      local ok2, r = pcall(adapter.root, path)
+      if ok2 and r then
+        print( (adapter.name or "<unnamed adapter>") .. " root: " .. r)
+      else
+        print( (adapter.name or "<unnamed adapter>") .. " root: (nil)")
+      end
+    end
+  end
+end
+
+vim.api.nvim_create_user_command("NeotestAdapterRoots", ShowNeotestAdapterRoots, {})
