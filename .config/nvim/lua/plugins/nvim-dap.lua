@@ -6,6 +6,19 @@ return {
       opts = {
 
       }
+    }, {
+      "mfussenegger/nvim-dap-python",
+      config = function(_, opts)
+        -- Note that opts isn't used by this fucking plugin
+        require('dap-python').setup("uv")
+      end,
+    }, {
+      "leoluz/nvim-dap-go",
+      opts = {
+        tests = {
+          verbose = true,
+        }
+      },
     },
   },
   opts = {},
@@ -14,6 +27,15 @@ return {
     local dap, dapview = require("dap"), require("dap-view")
     dap.set_log_level("DEBUG")
     dap.adapters["pwa-node"] = {
+      type = "server",
+      host = "localhost",
+      port = "${port}",
+      executable = {
+        command = "node",
+        args = { vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter/js-debug/src/dapDebugServer.js", "${port}" },
+      },
+    }
+    dap.adapters.java = {
       type = "server",
       host = "localhost",
       port = "${port}",

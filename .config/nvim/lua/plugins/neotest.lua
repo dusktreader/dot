@@ -7,9 +7,13 @@ return {
     "antoinemadec/FixCursorHold.nvim",
     "nvim-treesitter/nvim-treesitter",
     "nvim-neotest/neotest-python",
-    "fredrikaverpil/neotest-golang",
     "nvim-neotest/neotest-jest",
-    { "dusktreader/neotest-mocha", branch_name="feature/add-test-name-to-context" },
+    "nvim-neotest/neotest-plenary",
+    "dusktreader/neotest-mocha",
+    {
+      "fredrikaverpil/neotest-golang",
+      version = "*",
+    },
   },
   opts = {
     log_level = "DEBUG",
@@ -44,7 +48,7 @@ return {
           -- dap = { justMyCode = false },
           command = "npx mocha",
           command_args = function(context)
-            return {
+            local args = {
                 "--require=babel-core/register",
                 "--recursive",
                 "--full-trace",
@@ -52,9 +56,11 @@ return {
                 "--reporter-options=output=" .. context.results_path,
                 "--fgrep=" .. context.test_name,
                 context.path,
-            };
+            }
+            return args
           end,
         }),
+        require('neotest-plenary'),
       },
     })
   end,

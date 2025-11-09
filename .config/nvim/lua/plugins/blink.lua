@@ -38,6 +38,9 @@ return {
     },
     sources = {
       default = { "lsp", "path", "buffer", "copilot", "avante" },
+      per_filetype = {
+        sql = { "dadbod", "buffer" },
+      },
       providers = {
         lsp = {
           score_offset = 1,
@@ -59,7 +62,11 @@ return {
         avante = {
           module = "blink-cmp-avante",
           name = "avante",
-        }
+        },
+        dadbod = {
+          name = "dadbod",
+          module = "vim_dadbod_completion.blink",
+        },
       },
     },
   },

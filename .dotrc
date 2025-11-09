@@ -118,6 +118,7 @@ alias gti='git'
 alias nofail='py.test test* --maxfail=1 -m "not slow"'
 alias nofailall='py.test test --maxfail=1'
 
+alias terraform="terraform1.13"
 alias tfm='terraform'
 
 alias dc='docker compose'
@@ -155,6 +156,16 @@ then
 else
     eval "$(nodenv init -)"
     debug_out "Finished initializing nodenv"
+fi
+
+debug_out "Initializing jenv"
+which jenv > /dev/null 2>&1
+if (( $? ))
+then
+    debug_out "Did not detect jenv. Skipping"
+else
+    eval "$(jenv init -)"
+    debug_out "Finished initializing jenv"
 fi
 
 debug_out "Detecting which ack"

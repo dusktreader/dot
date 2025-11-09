@@ -227,6 +227,7 @@ class DotInstaller:
             startup_file.write(
                 snick.dedent(
                     f"""
+
                     # EXTRA DOTFILES START
                     if [[ -e {extra_dotfiles_path} ]]
                     then
@@ -234,7 +235,9 @@ class DotInstaller:
                         source {extra_dotfiles_path}
                     fi
                     # EXTRA DOTFILES END
-                    """
+
+                    """,
+                    should_strip=False,
                 )
             )
 

@@ -135,3 +135,10 @@ vim.keymap.set("n", "<leader>FF", require("conform").format, { noremap = true })
 
 -- Dummy Test Binding
 vim.keymap.set("n", "<M-d>", function () vim.print("FUCK YOU!!!") end)
+
+
+-- Toggles postgres expanded mode for dadbod.
+vim.keymap.set('n', '<leader>dx', function() require('config.user.dadbod_psql').toggle_expanded() end, {
+  desc = "Toggle dadbod psql expanded output (-x)",
+})
+

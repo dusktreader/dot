@@ -1,2 +1,4 @@
 bindkey "^[[H" beginning-of-line
 bindkey "^[[F" end-of-line
+
+source /opt/local/share/fzf/shell/key-bindings.zsh

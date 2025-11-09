@@ -19,8 +19,8 @@ local disable_plugins = vim.env.LAZY_DISABLE_PLUGINS == "1"
 
 if disable_plugins then
     vim.notify("Plugins disabled - use :LazyPick to load individual plugins")
-    
-    _G.lazy_load_picker = function() 
+
+    _G.lazy_load_picker = function()
         local names = {}
         local ok_cfg, cfg = pcall(require, "lazy.core.config")
         if ok_cfg and cfg and cfg.plugins then
@@ -28,38 +28,38 @@ if disable_plugins then
                 table.insert(names, name)
             end
         end
-        
-        if vim.tbl_isempty(names) then 
-            vim.notify("No plugins configured", vim.log.levels.WARN) 
-            return 
-        end 
-        
+
+        if vim.tbl_isempty(names) then
+            vim.notify("No plugins configured", vim.log.levels.WARN)
+            return
+        end
+
         vim.ui.select(
-            names, 
-            { prompt = "Load plugin:" }, 
-            function(choice) 
-                if not choice then 
-                    return 
-                end 
-                local ok, err = pcall(require("lazy").load, { plugins = { choice } }) 
-                if ok then 
-                    vim.notify("Loaded plugin: " .. choice, vim.log.levels.INFO) 
-                else 
-                    vim.notify("Failed to load " .. choice .. ": " .. tostring(err), vim.log.levels.ERROR) 
-                end 
+            names,
+            { prompt = "Load plugin:" },
+            function(choice)
+                if not choice then
+                    return
+                end
+                local ok, err = pcall(require("lazy").load, { plugins = { choice } })
+                if ok then
+                    vim.notify("Loaded plugin: " .. choice, vim.log.levels.INFO)
+                else
+                    vim.notify("Failed to load " .. choice .. ": " .. tostring(err), vim.log.levels.ERROR)
+                end
             end
-        ) 
+        )
     end
     vim.api.nvim_create_user_command("LazyPick", function() _G.lazy_load_picker() end, {})
 end
 
 -- Setup lazy.nvim - always load specs but conditionally enable plugins
 require("lazy").setup({
-  spec = { 
-    { import = "plugins" } 
+  spec = {
+    { import = "plugins" }
   },
-  defaults = { 
-    lazy = true,
+  defaults = {
+    -- lazy = true,
     enabled = not disable_plugins,
   },
   checker = {
@@ -67,5 +67,9 @@ require("lazy").setup({
     notify = true,
     frequency = 3600,
     check_pinned = false,
+  },
+  dev = {
+    path = "~/src/dusktreader",
+    patterns = {},
   },
 })

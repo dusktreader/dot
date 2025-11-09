@@ -1,6 +1,7 @@
 vim.lsp.config(
-  "lua_ls",
+  "lua-language-server",
   {
+    cmd = { "lua-language-server" },
     capabilities = require("blink.cmp").get_lsp_capabilities(),
     filetypes = { "lua" },
     on_init = function(client)
@@ -25,4 +26,4 @@ vim.lsp.config(
     },
   }
 )
-vim.lsp.enable({"lua_ls"})
+vim.lsp.enable({"lua-language-server"})

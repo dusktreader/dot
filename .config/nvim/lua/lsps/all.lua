@@ -7,8 +7,10 @@ require("lsps.typos")
 require("lsps.angularls")
 require("lsps.lemminx")
 require("lsps.ruff")
+require("lsps.terraform_ls")
 
 vim.api.nvim_create_autocmd('LspAttach', {
+
   desc = 'LSP actions',
   callback = function(event)
     -- vim.lsp.set_log_level("debug")

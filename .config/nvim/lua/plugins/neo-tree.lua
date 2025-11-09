@@ -5,7 +5,6 @@ return {
     "nvim-lua/plenary.nvim",
     "nvim-tree/nvim-web-devicons",
     "MunifTanjim/nui.nvim",
-    -- {"3rd/image.nvim", opts = {}}, -- Optional image support in preview window: See `# Preview Mode` for more information
   },
   lazy = false,
   opts = {
@@ -14,10 +13,12 @@ return {
       width = 80,
     },
     filesystem = {
-      -- This doesn't seem to work at all
-      cwd_target = {
-        sidebar = "window",
+      follow_current_file = {
+        enabled = true,
+        leave_dirs_open = true,
       },
+    },
+    buffers = {
       follow_current_file = {
         enabled = true,
         leave_dirs_open = true,

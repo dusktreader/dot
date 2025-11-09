@@ -7,6 +7,7 @@ link_paths:
   - .config/terminator
   - .config/nvim/init.lua
   - .config/nvim/lua
+  - .config/nvim/autoload
   - .config/oh-my-posh/dusktreader.omp.yaml
 copy_paths:
   - path: .ssh/config
@@ -24,12 +25,6 @@ mkdir_paths:
   - .vim/local/swap
   - .vim/undodir
 tools:
-  - name: fucky
-    check: "fucky"
-    scripts:
-      generic: |
-        sleep 1
-        fucky fuck fuck
   - name: poetry
     check: "poetry --version"
     scripts:
@@ -94,7 +89,7 @@ tools:
       darwin: |
         sudo port -N install lynx
   - name: nvm
-    check: "nvm --version"
+    check: "nvm version"
     scripts:
       generic: |
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
@@ -130,17 +125,28 @@ tools:
         ver=$(lua -v | awk '{print $2}' | cut -d. -f1,2)
         sudo apt install -y liblua${ver}-dev && \
         pushd /tmp && \
-        wget https://luarocks.org/releases/luarocks-3.11.1.tar.gz && \
-        tar zxpf luarocks-3.11.1.tar.gz && \
-        cd luarocks-3.11.1 && \
-        ./configure && \
+        wget https://luarocks.org/releases/luarocks-3.12.2.tar.gz && \
+        tar zxpf luarocks-3.12.2.tar.gz && \
+        cd luarocks-3.12.2 && \
+        ./configure --lua-version=5.3 && \
         make && \
         sudo make install && \
         popd
       darwin: |
-        ver=$(lua -v | awk '{print $2}' | cut -d. -f1,2)
-        pkg=$(echo $ver | perl -pe 's/(\d)\.(\d)/lua\1\2-luarocks/g')
-        sudo port -N install $pkg
+        sudo port install wget
+        pushd /tmp && \
+        wget https://luarocks.org/releases/luarocks-3.12.2.tar.gz && \
+        tar zxpf luarocks-3.12.2.tar.gz && \
+        cd luarocks-3.12.2 && \
+        ./configure --lua-version=5.3 && \
+        make && \
+        sudo make install && \
+        popd
+  - name: busted
+    check: busted --version
+    scripts:
+      generic:
+        sudo luarocks install busted
   - name: rustup
     check: "rustup --version"
     scripts:
@@ -161,6 +167,11 @@ tools:
         sudo apt install gh -y
       darwin: |
         sudo port -N install gh
+  - name: copilot cli
+    check: "copilot --version"
+    scripts:
+      generic: |
+        npm install -g @github/copilot
   - name: 1password-cli
     check: "op --version"
     scripts:

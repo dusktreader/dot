@@ -13,6 +13,7 @@ return {
       'lua-language-server',
       'python-lsp-server',
       'typescript-language-server',
+      'terraform-ls',
       -- 'typescript-tools',
 
       -- Other LSPs
@@ -20,6 +21,9 @@ return {
       'typos-lsp',
       'ruff',
       'lemminx', -- XML
+
+      -- AI
+      'copilot-language-server',
 
       -- DAPs
       'js-debug-adapter',
