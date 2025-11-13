@@ -2,13 +2,35 @@ return {
   -- Powerful treesitter integration into neovim
   "nvim-treesitter/nvim-treesitter",
   branch = "main",
+  version = false,
   build = ":TSUpdate",
   lazy = false,
   opts = {
+    ensure_installed = {
+      "bash",
+      "c",
+      "cpp",
+      "css",
+      "go",
+      "html",
+      "javascript",
+      "json",
+      "lua",
+      "markdown",
+      "markdown_inline",
+      "python",
+      "query",
+      "regex",
+      "rust",
+      "typescript",
+      "yaml",
+      "vim",
+      "vimdoc",
+    },
     auto_install = true,
     indent = {
       enable = true,
       disable = { "python" },
-    }
+    },
   },
 }

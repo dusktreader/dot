@@ -42,22 +42,22 @@ return {
         sql = { "dadbod", "buffer" },
       },
       providers = {
-        lsp = {
-          score_offset = 1,
-        },
-        path = {
-          score_offset = 2,
-        },
-        buffer = {
-          score_offset = 3,
-        },
         copilot = {
           name = "copilot",
           module = "blink-copilot",
-          score_offset = 4,
+          score_offset = 1,
           enabled = true,
           async = true,
           opts = {},
+        },
+        lsp = {
+          score_offset = 2,
+        },
+        path = {
+          score_offset = 3,
+        },
+        buffer = {
+          score_offset = 4,
         },
         avante = {
           module = "blink-cmp-avante",
