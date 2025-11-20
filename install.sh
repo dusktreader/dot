@@ -41,22 +41,6 @@ else
     confirm "$USER is already a sudoer"
 fi
 
-check "Checking if ssh key-pair has already been created for $USER"
-sudo grep $USER /etc/sudoers > /dev/null 2>&1
-if [[ ! -f "$home/.ssh/$USER.ed25519" ]]
-then
-    status "Creating ssh key-pair for $USER"
-    ssh-keygen -t ed25519 -f $home/.ssh/$USER.ed25519 -N ""
-    if (( $? ))
-    then
-        fail "Failed to create ssh key-pair! Aborting..."
-    else
-        confirm "Added key-pair for $USER at $home/.ssh/$USER.ed25519"
-    fi
-else
-    confirm "$USER already has an ssh key-pair"
-fi
-
 check "Checking if uv is installed"
 uv version > /dev/null 2>&1
 if (( $? ))

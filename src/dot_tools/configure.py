@@ -241,6 +241,27 @@ class DotInstaller:
                 )
             )
 
+    def _github_cli_login(self):
+        with spinner("Logging into github in CLI", context_level="DEBUG"):
+            result = subprocess.run("gh login" , shell=True)
+            DotError.require_condition(result.returncode == 0, f"Could not log in to github via cli: {result.stderr.decode()}")
+
+    def _add_ssh_keys(self):
+        user = os.getlogin()
+        ssh_path = self.home / ".ssh"
+        key_path = ssh_path / f"{user}.ed25519"
+        hostname = platform.node()
+        with spinner(f"Adding ssh keys for {user}", context_level="DEBUG"):
+            if key_path.exists():
+                logger.debug(f"SSH key {key_path} already exists. Skipping")
+                return
+            result = subprocess.run(f"ssh-keygen -t ed25519 -f {key_path} -N ''" , shell=True)
+            DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
+
+        with spinner("Adding ssh keys to github", context_level="DEBUG"):
+            result = subprocess.run(f"gh ssh-key add {key_path} --title {user}@{hostname}" , shell=True)
+            DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
+
     def _startup(self):
         with spinner(f"Using {self.startup_config} as startup config file", context_level="DEBUG"):
             if not self.startup_config.exists():
@@ -257,6 +278,8 @@ class DotInstaller:
                 self._copy_files()
                 self._install_tools()
                 self._update_dotfiles()
+                self._github_cli_login()
+                self._add_ssh_keys()
                 self._startup()
 
         terminal_message(
