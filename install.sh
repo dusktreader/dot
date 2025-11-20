@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
 source ./.dot_colors
-home=$(echo "$HOME" | sed 's:/*$::')
-python_version="3.13"
-export EDITOR=vim
 
 check () {
     message=$1
@@ -25,6 +22,12 @@ fail () {
     echo -e "${COLOR_RED}  ${1} Aborting...${COLOR_OFF}"
     exit 1
 }
+
+check "Setting up variables"
+home=$(echo "$HOME" | sed 's:/*$::')
+python_version="3.13"
+export EDITOR=vim
+confirm "Setup complete"
 
 check "Checking if $USER has already been added to sudoers"
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
