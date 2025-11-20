@@ -3,6 +3,7 @@
 source ./.dot_colors
 home=$(echo "$HOME" | sed 's:/*$::')
 python_version="3.13"
+export EDITOR=vim
 
 check () {
     message=$1
