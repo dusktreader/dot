@@ -32,6 +32,7 @@ check "Setting up variables"
 home=$(echo "$HOME" | sed 's:/*$::')
 python_version="3.13"
 export EDITOR=vim
+export PATH="$home/.local/bin:$PATH"
 confirm "Setup complete"
 
 check "Checking if $USER has already been added to sudoers"
@@ -114,7 +115,7 @@ check "Checking if dot is cloned to this machine yet"
 if [[ ! -d "$home/src/dusktreader/dot" ]]
 then
     status "Cloning dot repository (via https)"
-    git clone https://github.com/dusktreader/dot.git $home/src/dusktreader/dot
+    git -C $home/src/dusktreader clone https://github.com/dusktreader/dot.git
     if (( $? ))
     then
         fail "Failed to clone dot repository!"
