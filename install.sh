@@ -34,13 +34,12 @@ python_version="3.13"
 export EDITOR=vim
 confirm "Setup complete"
 
-print "STARTING FIRST TASK"
 check "Checking if $USER has already been added to sudoers"
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
 then
     status "Making passwordless sudo"
-    echo "$USER ALL=(ALL) NOPASSWD: ALL" | (EDITOR="tee -a" sudo visudo)
+    echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$USER > /dev/null
     if (( $? ))
     then
         fail "Failed to configure sudo! Aborting..."
@@ -50,9 +49,6 @@ then
 else
     confirm "$USER is already a sudoer"
 fi
-
-print "GOT HERE...WHAT HAPPENED?"
-exit 1
 
 check "Checking if uv is installed"
 uv version > /dev/null 2>&1
