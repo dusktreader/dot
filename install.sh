@@ -51,7 +51,7 @@ else
 fi
 
 check "Checking if uv is installed"
-uv version > /dev/null 2>&1
+command -v uv > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing uv"
