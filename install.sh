@@ -34,6 +34,7 @@ python_version="3.13"
 export EDITOR=vim
 confirm "Setup complete"
 
+print "STARTING FIRST TASK"
 check "Checking if $USER has already been added to sudoers"
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
