@@ -123,7 +123,7 @@ then
     fi
 
     status "Changing dot origin url to use ssh for future access"
-    git remote set-url origin git@github.com:dusktreader/dot.git
+    git -C $home/src/dusktreader/dot remote set-url origin git@github.com:dusktreader/dot.git
     if (( $? ))
     then
         fail "Failed to change origin to ssh url!"
