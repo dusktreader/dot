@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+echo "STARTING DOT INSTALLATION SCRIPT"
+
 source ./.dot_colors
+
+echo "SOURCED DOT COLORS"
 
 check () {
     message=$1
@@ -23,11 +27,15 @@ fail () {
     exit 1
 }
 
+echo "SETTING UP VARIABLES"
+
 check "Setting up variables"
 home=$(echo "$HOME" | sed 's:/*$::')
 python_version="3.13"
 export EDITOR=vim
 confirm "Setup complete"
+
+echo "STARTING WORK"
 
 check "Checking if $USER has already been added to sudoers"
 sudo grep $USER /etc/sudoers > /dev/null 2>&1

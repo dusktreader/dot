@@ -32,6 +32,9 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH=$PATH:~/bin:/Applications/Postgres.app/Contents/Versions/latest/bin
 export PATH=$PATH:~/.local/bin
 
+export GOENV_ROOT="$HOME/.goenv"
+export PATH="$PATH:$GOENV_ROOT/bin"
+
 export PATH=$PATH:~/.local/share/npm/bin
 
 # Add yarn binaries to the path
@@ -341,3 +344,5 @@ then
 else
     eval "$(oh-my-posh init bash --config ~/.config/oh-my-posh/dusktreader.omp.yaml)"
 fi
+
+eval "$(goenv init -)"
