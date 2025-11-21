@@ -113,13 +113,22 @@ mkdir -p $home/src/dusktreader
 check "Checking if dot is cloned to this machine yet"
 if [[ ! -d "$home/src/dusktreader/dot" ]]
 then
-    status "Cloning dot repository"
-    git clone git@github.com:dusktreader/dot.git $home/src/dusktreader/dot
+    status "Cloning dot repository (via https)"
+    git clone https://github.com/dusktreader/dot.git $home/src/dusktreader/dot
     if (( $? ))
     then
         fail "Failed to clone dot repository!"
     else
         confirm "Cloned dot repository"
+    fi
+
+    status "Changing dot origin url to use ssh for future access"
+    git remote set-url origin git@github.com:dusktreader/dot.git
+    if (( $? ))
+    then
+        fail "Failed to change origin to ssh url!"
+    else
+        confirm "Updated origin url"
     fi
 else
     confirm "dot is already cloned on this machine"
