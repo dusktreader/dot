@@ -49,6 +49,8 @@ then
 else
     confirm "$USER is already a sudoer"
 fi
+
+print "GOT HERE...WHAT HAPPENED?"
 exit 1
 
 check "Checking if uv is installed"
