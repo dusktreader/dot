@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export EDITOR=vim
 COLOR_RED="\033[0;31m"
 COLOR_GREEN="\033[0;32m"
 COLOR_YELLOW="\033[1;33m"
