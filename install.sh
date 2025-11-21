@@ -9,34 +9,29 @@ COLOR_OFF="\033[0m"
 
 check () {
     message=$1
-    echo -e "${COLOR_YELLOW}  ${1}${COLOR_OFF}"
+    echo -e "${COLOR_YELLOW}?  ${1}${COLOR_OFF}"
 }
 
 status () {
     message=$1
-    echo -e "${COLOR_BLUE}►  ${1}${COLOR_OFF}"
+    echo -e "${COLOR_BLUE}>  ${1}${COLOR_OFF}"
 }
 
 confirm () {
     message=$1
-    echo -e "${COLOR_GREEN}  ${1}${COLOR_OFF}"
+    echo -e "${COLOR_GREEN}+  ${1}${COLOR_OFF}"
 }
 
 fail () {
     message=$1
-    echo -e "${COLOR_RED}  ${1} Aborting...${COLOR_OFF}"
+    echo -e "${COLOR_RED}X  ${1} Aborting...${COLOR_OFF}"
     exit 1
 }
 
-echo "SETTING UP VARIABLES"
-
-check "Setting up variables"
 home=$(echo "$HOME" | sed 's:/*$::')
 python_version="3.13"
 export EDITOR=vim
 confirm "Setup complete"
-
-echo "STARTING WORK"
 
 exit 1
 check "Checking if $USER has already been added to sudoers"
