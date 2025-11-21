@@ -28,12 +28,12 @@ fail () {
     exit 1
 }
 
+check "Setting up variables"
 home=$(echo "$HOME" | sed 's:/*$::')
 python_version="3.13"
 export EDITOR=vim
 confirm "Setup complete"
 
-exit 1
 check "Checking if $USER has already been added to sudoers"
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
@@ -49,6 +49,7 @@ then
 else
     confirm "$USER is already a sudoer"
 fi
+exit 1
 
 check "Checking if uv is installed"
 uv version > /dev/null 2>&1
