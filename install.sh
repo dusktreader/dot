@@ -38,6 +38,7 @@ confirm "Setup complete"
 
 echo "STARTING WORK"
 
+exit 1
 check "Checking if $USER has already been added to sudoers"
 sudo grep $USER /etc/sudoers > /dev/null 2>&1
 if (( $? ))
