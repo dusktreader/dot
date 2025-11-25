@@ -7,7 +7,6 @@ link_paths:
   - .config/terminator
   - .config/nvim/init.lua
   - .config/nvim/lua
-  - .config/nvim/autoload
   - .config/oh-my-posh/dusktreader.omp.yaml
 copy_paths:
   - path: .ssh/config
