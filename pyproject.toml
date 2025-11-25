@@ -18,6 +18,7 @@ dependencies = [
     "snick>=2.2.0",
     "typer~=0.15",
     "typerdrive~=0.7",
+    "xdg-base-dirs>=6.0.2",
 ]
 
 [tool.uv]

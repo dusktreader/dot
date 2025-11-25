@@ -47,6 +47,12 @@ export PATH="$HOME/go/bin:$PATH"
 # Add generic binaries to the path
 export PATH="~/bin:$PATH"
 
+ppath () {
+    echo "Current directories in path:"
+    echo "----------------------------"
+    echo "$PATH" | tr ":" "\n"
+}
+
 if [[ -n "$WSL_DISTRO_NAME" ]]
 then
     export BROWSER="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
@@ -59,6 +65,7 @@ raw_vim_command='nvim'
 
 alias vi='nvim'
 alias evim='$EDITOR $DOT_HOME/.config/nvim/init.lua'
+alias fvim='nvim $(fzf --preview="cat {}")'
 alias cplug='cd $DOT_HOME/.config/nvim/lua/plugins/'
 alias eplug='$EDITOR $DOT_HOME/.config/nvim/lua/plugins/'
 alias ekeys='$EDITOR $DOT_HOME/.config/nvim/lua/user/keymap.lua'

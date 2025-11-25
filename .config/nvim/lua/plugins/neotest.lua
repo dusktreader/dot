@@ -14,6 +14,7 @@ return {
       "fredrikaverpil/neotest-golang",
       version = "*",
     },
+    "MisanthropicBit/neotest-busted",
   },
   opts = {
     log_level = "DEBUG",
@@ -40,10 +41,6 @@ return {
           dap = { justMyCode = false },
           jestCommand = "npm test --",
         }),
-        -- require("neotest-plenary"),
-        -- require("neotest-vim-test")({
-        --   ignore_file_types = { "python", "vim", "lua" },
-        -- }),
         require('neotest-mocha')({
           -- dap = { justMyCode = false },
           command = "npx mocha",
@@ -60,7 +57,9 @@ return {
             return args
           end,
         }),
-        require('neotest-plenary'),
+        require('neotest-busted')({
+          local_luarocks_only = false,
+        }),
       },
     })
   end,
