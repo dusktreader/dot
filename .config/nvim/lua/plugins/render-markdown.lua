@@ -10,6 +10,6 @@ return {
   },
   ft = {
     "markdown",
-    "Avante",
+    "codecompanion",
   },
 }

@@ -37,31 +37,28 @@ return {
       ['<pagedown>'] = { 'scroll_documentation_down', 'fallback' },
     },
     sources = {
-      default = { "lsp", "path", "buffer", "copilot", "avante" },
+      default = { "lsp", "path", "buffer", "copilot" },
       per_filetype = {
         sql = { "dadbod", "buffer" },
+        codecompanion = { "codecompanion" },
       },
       providers = {
         copilot = {
           name = "copilot",
           module = "blink-copilot",
-          score_offset = 1,
+          score_offset = 10,
           enabled = true,
           async = true,
           opts = {},
         },
         lsp = {
-          score_offset = 2,
+          score_offset = 5,
         },
         path = {
           score_offset = 3,
         },
         buffer = {
-          score_offset = 4,
-        },
-        avante = {
-          module = "blink-cmp-avante",
-          name = "avante",
+          score_offset = 2,
         },
         dadbod = {
           name = "dadbod",

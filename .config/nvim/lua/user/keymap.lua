@@ -115,9 +115,6 @@ vim.keymap.set("n", "<leader>u", vim.cmd.UndotreeToggle)
 -- Dropbar mappings
 vim.keymap.set('n', '<Leader>;', function () require("dropbar.api").pick() end, { noremap = true })
 
--- Mappings for Copilot Chat
-vim.keymap.set("n", "<leader>AA", "<cmd>CopilotChatOpen<cr>", { noremap = true })
-
 -- Restart LSP
 vim.keymap.set("n", "<leader>ll", "<cmd>RestartLSP<cr>", { noremap = true })
 
@@ -132,10 +129,6 @@ vim.keymap.set("n", "<leader>M", "<cmd>RenderMarkdown toggle<cr>", { noremap = t
 
 -- Format current buffer
 vim.keymap.set("n", "<leader>FF", require("conform").format, { noremap = true })
-
--- Dummy Test Binding
-vim.keymap.set("n", "<M-d>", function () vim.print("FUCK YOU!!!") end)
-
 
 -- Toggles postgres expanded mode for dadbod.
 vim.keymap.set('n', '<leader>dx', function() require('config.user.dadbod_psql').toggle_expanded() end, {

@@ -24,10 +24,13 @@ return {
   { "Vimjas/vim-python-pep8-indent" },
 
   -- Extend a/i textobjects
-  { "echasnovski/mini.ai" },
+  { "nvim-mini/mini.ai" },
 
   -- Align text
-  { "echasnovski/mini.align" },
+  { "nvim-mini/mini.align" },
+
+  -- Better diff
+  { "nvim-mini/mini.diff" },
 
   -- Add a view/manager for undo trees
   { "mbbill/undotree" },
