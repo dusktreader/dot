@@ -80,3 +80,4 @@ local function ShowNeotestAdapterRoots()
 end
 
 vim.api.nvim_create_user_command("NeotestAdapterRoots", ShowNeotestAdapterRoots, {})
+

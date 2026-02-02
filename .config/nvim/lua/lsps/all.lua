@@ -1,7 +1,6 @@
-require("lsps.basedpyright")
+require("lsps.ty")
 require("lsps.lua_ls")
 require("lsps.gopls")
-require("lsps.pylsp")
 require("lsps.ts_ls")
 require("lsps.typos")
 require("lsps.angularls")

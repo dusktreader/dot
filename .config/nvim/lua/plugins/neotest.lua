@@ -32,10 +32,16 @@ return {
           },
         }),
         require("neotest-golang")({
-          -- dap = { justMyCode = false },
-          args = {
-            -- How to verbose?
+          go_test_args = {
+            "-v",
+            "-race",
+            "-count=1",
+            "-timeout=60s",
           },
+          dap_go_enabled = true,
+          testify_enabled = true,
+          warn_test_name_dupes = true,
+          warn_test_not_executed = true,
         }),
         require("neotest-jest")({
           dap = { justMyCode = false },

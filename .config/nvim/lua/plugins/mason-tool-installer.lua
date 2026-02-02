@@ -8,10 +8,9 @@ return {
     ensure_installed = {
 
       -- Language LSPs
-      'basedpyright',
+      'ty',
       'gopls',
       'lua-language-server',
-      'python-lsp-server',
       'typescript-language-server',
       'terraform-ls',
       -- 'typescript-tools',
@@ -32,7 +31,10 @@ return {
       'prettierd',
 
       -- Other
-      'tree-sitter-cli',
+      -- NOTE: tree-sitter-cli removed - on Apple Silicon, Mason installs x86_64 version
+      -- which causes nvim-treesitter to compile parsers for wrong architecture.
+      -- nvim-treesitter will clone and compile parsers directly instead (prefer_git = true)
+      -- 'tree-sitter-cli',
     },
   },
 }

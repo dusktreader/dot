@@ -26,10 +26,8 @@ package = true
 
 [dependency-groups]
 dev = [
-    "basedpyright~=1.29",
     "debugpy~=1.8",
     "ipython~=9.2",
-    "mypy~=1.5",
     "pyclean~=3.1",
     "pytest~=8.3",
     "pytest-cov~=6.1",
@@ -38,6 +36,7 @@ dev = [
     "pytest-random-order~=1.1",
     "respx>=0.22.0",
     "ruff~=0.11",
+    "ty>=0.0.14",
     "typos~=1.32",
 ]
 
@@ -59,22 +58,15 @@ addopts = [
 line-length = 120
 src = ["src/dot_tools", "tests"]
 
-[tool.mypy]
-plugins = ["pydantic.mypy"]
-pretty = true
-check_untyped_defs = true
-files = ["src/dot_tools", "tests"]
+[tool.ty]
+# ty configuration - similar settings to your previous basedpyright config
+# See https://docs.astral.sh/ty/reference/configuration/ for all options
 
-[[tool.mypy.overrides]]
-module = [
-    "giturlparse",
-]
-ignore_missing_imports = true
-
-[tool.basedpyright]
-reportAny = false
-reportExplicitAny = false
-reportUnusedCallResult = false
+[tool.ty.rules]
+# Disable "reportAny" equivalent rules
+any-implicit = "ignore"
+any-explicit = "ignore"
+unused-call-result = "ignore"
 
 [build-system]
 requires = ["uv_build>=0.7.6,<0.8.0"]
