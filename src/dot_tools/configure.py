@@ -2,6 +2,7 @@ import filecmp
 import fileinput
 import os
 import platform
+import select
 import shutil
 import subprocess
 import sys
@@ -222,20 +223,31 @@ class DotInstaller:
 
                         logger.debug(f"Running installation script for {tool.name}")
                         output_lines: list[str] = []
+
                         proc = subprocess.Popen(
                             script,
                             shell=True,
                             stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT,
+                            stderr=subprocess.PIPE,
                             env=install_env,
                             text=True,
                         )
                         assert proc.stdout is not None
-                        for line in proc.stdout:
-                            stripped = line.rstrip()
-                            output_lines.append(stripped)
-                            logger.debug(stripped)
+                        assert proc.stderr is not None
+
+                        open_streams = [proc.stdout, proc.stderr]
+                        while open_streams:
+                            readable, _, _ = select.select(open_streams, [], [])
+                            for stream in readable:
+                                line = stream.readline()
+                                if line:
+                                    stripped = line.rstrip()
+                                    output_lines.append(stripped)
+                                    logger.debug(stripped)
+                                else:
+                                    open_streams.remove(stream)
                         proc.wait()
+
                         if proc.returncode != 0:
                             last_lines = "\n".join(output_lines[-20:])
                             raise DotError(f"Failed to install {tool.name}:\n{last_lines}")
