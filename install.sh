@@ -51,6 +51,29 @@ else
     confirm "$USER is already a sudoer"
 fi
 
+
+check "Checking if git is installed"
+command -v uv > /dev/null 2>&1
+if (( $? ))
+then
+    status "Installing git"
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        sudo port -N install git
+    else
+        sudo apt install git
+    fi
+    if (( $? ))
+    then
+        fail "Failed to install git!"
+    else
+        confirm "Installed git"
+    fi
+else
+    confirm "git is already installed"
+fi
+
+
 check "Checking if uv is installed"
 command -v uv > /dev/null 2>&1
 if (( $? ))

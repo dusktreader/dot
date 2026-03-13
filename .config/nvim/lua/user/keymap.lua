@@ -19,7 +19,7 @@ vim.keymap.set("n", "<leader>e", ":Neotree<CR>", { noremap = true })
 
 
 -- Mapping to reload init script
-vim.keymap.set("n", "<leader>RR", function() require('config.user.reload').Reload() end)
+vim.keymap.set("n", "<leader>RR", function() require('user.reload').Reload() end)
 
 
 -- Mapping to edit vim config

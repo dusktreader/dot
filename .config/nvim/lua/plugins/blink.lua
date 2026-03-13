@@ -39,7 +39,6 @@ return {
     sources = {
       default = { "lsp", "path", "buffer", "copilot" },
       per_filetype = {
-        sql = { "dadbod", "buffer" },
         codecompanion = { "codecompanion" },
       },
       providers = {
@@ -59,10 +58,6 @@ return {
         },
         buffer = {
           score_offset = 2,
-        },
-        dadbod = {
-          name = "dadbod",
-          module = "vim_dadbod_completion.blink",
         },
       },
     },
