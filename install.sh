@@ -32,7 +32,8 @@ check "Setting up variables"
 home=$(echo "$HOME" | sed 's:/*$::')
 python_version="3.13"
 export EDITOR=vim
-export PATH="$home/.local/bin:$PATH"
+export XDG_BIN_HOME="${XDG_BIN_HOME:-$home/.local/bin}"
+export PATH="$XDG_BIN_HOME:$PATH"
 confirm "Setup complete"
 
 check "Checking if $USER has already been added to sudoers"
@@ -91,10 +92,9 @@ then
     else
         confirm "Installed uv"
     fi
-    source $home/.local/bin/env
+    source "$XDG_BIN_HOME/env"
 else
     confirm "uv is already installed."
-    source $home/.local/bin/env
 fi
 
 # I'm not sure that this is still needed. Need to check on a fresh Ubuntu install
