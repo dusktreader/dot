@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import urllib.parse
 from pathlib import Path
@@ -48,7 +49,7 @@ def main(
     if ctx.invoked_subcommand is None:
         ctx.get_help()
         terminal_message(
-"No command provided. Please check [bold magenta]usage[/bold magenta]",
+            "No command provided. Please check [bold magenta]usage[/bold magenta]",
             subject="Need a dot-tools command",
         )
         ctx.exit()
@@ -84,18 +85,17 @@ def line_length(ctx: typer.Context):
 def configure(
     ctx: typer.Context,
     root: Annotated[
-        Path,
-        typer.Option(
-            help="Root directory for dot",
-            default_factory=lambda: Path.home() / "src/dusktreader/dot"
-        )
+        Path, typer.Option(help="Root directory for dot", default_factory=lambda: Path.home() / "src/dusktreader/dot")
     ],
     override_home: Annotated[Path | None, typer.Option(help="Install to this path instead of home")] = None,
+    force: Annotated[bool, typer.Option(help="Overwrite destination files that differ from source")] = bool(
+        os.environ.get("DOT_FORCE")
+    ),
 ):
     """
     Configure dot in your system.
     """
-    installer = DotInstaller(root=root, override_home=override_home)
+    installer = DotInstaller(root=root, override_home=override_home, force=force)
     installer.install_dot()
 
 

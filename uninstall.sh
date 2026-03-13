@@ -211,17 +211,4 @@ else
 fi
 
 
-# --- sudoers entry ---
-
-check "Checking if $USER has a sudoers entry created by install.sh"
-if [[ -f "/etc/sudoers.d/$USER" ]]
-then
-    status "Removing /etc/sudoers.d/$USER"
-    sudo rm "/etc/sudoers.d/$USER"
-    confirm "Removed sudoers entry for $USER"
-else
-    skip "No sudoers entry found at /etc/sudoers.d/$USER"
-fi
-
-
 confirm "Uninstall complete"

@@ -4,6 +4,7 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 from typing import Annotated
 
 import buzz
@@ -54,8 +55,10 @@ class DotInstaller:
     home: Path
     startup_config: Path
     install_manifest: InstallManifest
+    force: bool
 
-    def __init__(self, root: Path, override_home: Path | None = None):
+    def __init__(self, root: Path, override_home: Path | None = None, force: bool = False):
+        self.force = force
         self.root = root.expanduser().resolve().absolute()
         if override_home:
             self.home = override_home.expanduser().resolve().absolute()
@@ -123,6 +126,19 @@ class DotInstaller:
                 logger.debug(f"Checking/making target directory {target_path}")
                 target_path.mkdir(parents=True, exist_ok=True)
 
+    def _git_committed_content(self, path: Path) -> bytes | None:
+        """Return the last-committed content of a path relative to self.root, or None if untracked."""
+        rel = path.relative_to(self.root)
+        result = subprocess.run(
+            ["git", "show", f"HEAD:{rel}"],
+            cwd=self.root,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if result.returncode != 0:
+            return None
+        return result.stdout
+
     def _copy_files(self):
         with spinner("Copying files from manifest", context_level="DEBUG"):
             for item in self.install_manifest.copy_paths:
@@ -142,18 +158,35 @@ class DotInstaller:
                 logger.debug(f"Preparing to copy file {src_path} -> {dst_path}")
 
                 if dst_path.exists():
-                    DotError.require_condition(
-                        filecmp.cmp(src_path, dst_path, shallow=False),
-                        f"File exists at destination {dst_path} but doesn't match",
-                    )
-                    logger.debug(f"Skipping {path} it was already installed")
-                else:
-                    logger.debug(f"Copying {path}")
-                    dst_path.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy(src_path, dst_path)
-                    if perms is not None:
-                        logger.debug(f"Updating permissions for file {dst_path}")
-                        dst_path.chmod(perms)
+                    if filecmp.cmp(src_path, dst_path, shallow=False):
+                        logger.debug(f"Skipping {path} — already installed and identical")
+                        continue
+
+                    if self.force:
+                        logger.warning(f"File at {dst_path} differs from source, overwriting (--force)")
+                    else:
+                        # Check if dst matches the last committed version of src.
+                        # If it does, the user hasn't touched it — safe to overwrite with the new src.
+                        # If it doesn't, the user has local changes — refuse to clobber.
+                        committed = self._git_committed_content(src_path)
+                        if committed is None:
+                            raise DotError(
+                                f"{src_path} is not tracked by git. Cannot determine if {dst_path} has local changes. Use --force to overwrite."
+                            )
+                        dst_content = dst_path.read_bytes()
+                        if dst_content != committed:
+                            raise DotError(
+                                f"{dst_path} has local changes (differs from last committed version in dot repo). "
+                                f"Resolve manually or use --force to overwrite."
+                            )
+                        logger.debug(f"{dst_path} matches last committed version — upstream changed, safe to overwrite")
+
+                logger.debug(f"Copying {path}")
+                dst_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(src_path, dst_path)
+                if perms is not None:
+                    logger.debug(f"Updating permissions for file {dst_path}")
+                    dst_path.chmod(perms)
 
     def _install_tools(self):
         def _log_fail(dep: buzz.DoExceptParams):
@@ -278,7 +311,8 @@ class DotInstaller:
     def install_dot(self):
         with spinner("Installing dot", context_level="INFO"):
             with DotError.handle_errors(
-                "Install failed. Aborting", do_except=lambda dep: logger.error(dep.final_message)
+                "Install failed. Aborting",
+                do_except=lambda dep: print(dep.final_message, file=sys.stderr),
             ):
                 self._make_dirs()
                 self._make_links()

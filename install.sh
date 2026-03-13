@@ -175,7 +175,7 @@ else
 fi
 
 status "Configuring dot"
-dt configure --root=$home/src/dusktreader/dot
+dt configure --root=$home/src/dusktreader/dot ${DOT_FORCE:+--force}
 if (( $? ))
 then
     fail "Failed to configure dot!"
