@@ -54,7 +54,7 @@ tools:
     check: "golangci-lint --version"
     scripts:
       linux: |
-        sudo apt install golangci-lint
+        sudo snap install golangci-lint
       darwin: |
         sudo port -N install golangci-lint
   - name: ripgrep
