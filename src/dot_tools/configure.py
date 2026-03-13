@@ -224,7 +224,10 @@ class DotInstaller:
                         result = subprocess.run(
                             script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env
                         )
-                        DotError.require_condition(result.returncode == 0, result.stdout.decode())
+                        if result.returncode != 0:
+                            output = result.stdout.decode()
+                            last_lines = "\n".join(output.splitlines()[-20:])
+                            raise DotError(f"Failed to install {tool.name}:\n{last_lines}")
                         logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
 
     def _update_dotfiles(self):

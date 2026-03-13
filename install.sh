@@ -171,7 +171,7 @@ else
     elif [[ "$local_ref" != "$remote_ref" ]]
     then
         status "dot repository is behind upstream, pulling"
-        git -C $home/src/dusktreader/dot pull --ff-only origin
+        git -C $home/src/dusktreader/dot pull --ff-only https://github.com/dusktreader/dot.git
         if (( $? ))
         then
             fail "Failed to pull dot repository! Resolve conflicts and re-run."
