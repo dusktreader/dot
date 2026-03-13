@@ -156,6 +156,31 @@ then
     fi
 else
     confirm "dot is already cloned on this machine"
+
+    check "Checking if dot repository needs to be updated"
+    git -C $home/src/dusktreader/dot fetch origin > /dev/null 2>&1
+    if (( $? ))
+    then
+        fail "Failed to fetch from origin!"
+    fi
+    local_ref=$(git -C $home/src/dusktreader/dot rev-parse HEAD)
+    remote_ref=$(git -C $home/src/dusktreader/dot rev-parse @{u} 2>/dev/null)
+    if [[ -z "$remote_ref" ]]
+    then
+        confirm "dot repository has no upstream tracking branch, skipping pull"
+    elif [[ "$local_ref" != "$remote_ref" ]]
+    then
+        status "dot repository is behind upstream, pulling"
+        git -C $home/src/dusktreader/dot pull --ff-only origin
+        if (( $? ))
+        then
+            fail "Failed to pull dot repository! Resolve conflicts and re-run."
+        else
+            confirm "Pulled dot repository"
+        fi
+    else
+        confirm "dot repository is up to date"
+    fi
 fi
 
 check "Checking if dot is installed yet"
