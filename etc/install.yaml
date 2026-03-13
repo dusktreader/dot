@@ -40,7 +40,7 @@ tools:
     check: "oh-my-posh version"
     scripts:
       linux: |
-        curl -shttps://github.com/dusktreader https://ohmyposh.dev/install.sh | bash -s
+        curl -s https://ohmyposh.dev/install.sh | bash -s
       darwin: |
         sudo port -N install oh-my-posh
   - name: go
