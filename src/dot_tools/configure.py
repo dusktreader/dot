@@ -63,7 +63,7 @@ class DotInstaller:
             self.home = Path.home()
         logger.debug(f"Initializing with {self.home} as home, {self.root} as root")
 
-        if platform.system() == 'Darwin':
+        if platform.system() == "Darwin":
             rc_path = self.home / ".zshrc"
         else:
             rc_path = self.home / ".bashrc"
@@ -156,7 +156,6 @@ class DotInstaller:
                         dst_path.chmod(perms)
 
     def _install_tools(self):
-
         def _log_fail(dep: buzz.DoExceptParams):
             logger.error(dep.final_message, status=Status.FAIL)
 
@@ -167,7 +166,9 @@ class DotInstaller:
                 with spinner(f"Installing {tool.name}", context_level="DEBUG"):
                     with DotError.handle_errors(f"Failed to install tool {tool.name}", do_except=_log_fail):
                         logger.debug(f"Checking if {tool.name} is installed", status=Status.CHECK)
-                        result = subprocess.run(tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        result = subprocess.run(
+                            tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                        )
                         if result.returncode == 0:
                             logger.debug(f"{tool.name} is already installed", status=Status.CONFIRM)
                             continue
@@ -177,17 +178,19 @@ class DotInstaller:
                         if tool.scripts.generic:
                             logger.debug("Using generic script for tool installation")
                             script = tool.scripts.generic
-                        elif platform.system() == 'Linux':
+                        elif platform.system() == "Linux":
                             logger.debug("Using linux script for tool installation")
                             script = DotError.enforce_defined(tool.scripts.linux, "No linux script defined for tool")
-                        elif platform.system() == 'Darwin':
+                        elif platform.system() == "Darwin":
                             logger.debug("Using darwin script for tool installation")
                             script = DotError.enforce_defined(tool.scripts.darwin, "No darwin script defined for tool")
                         else:
                             raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
 
                         logger.debug(f"Running installation script for {tool.name}")
-                        result = subprocess.run(script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env)
+                        result = subprocess.run(
+                            script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env
+                        )
                         DotError.require_condition(result.returncode == 0, result.stdout.decode())
                         logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
 
@@ -197,7 +200,7 @@ class DotInstaller:
             if not dotfile_list_path.exists():
                 dotfile_list_path.touch()
 
-            with open(dotfile_list_path, 'r+') as dotfile_list_file:
+            with open(dotfile_list_path, "r+") as dotfile_list_file:
                 all_entries = [l.strip() for l in dotfile_list_file.readlines()]
 
                 for path in self.install_manifest.dotfile_paths:
@@ -213,17 +216,17 @@ class DotInstaller:
         logger.debug(f"Scrubbing extra dotfiles block from {self.startup_config}")
         in_extra_block = False
         for line in fileinput.input(self.startup_config, inplace=True):
-            if 'EXTRA DOTFILES START' in line:
+            if "EXTRA DOTFILES START" in line:
                 in_extra_block = True
             if not in_extra_block:
-                print(line, end='')
-            if 'EXTRA DOTFILES END' in line:
+                print(line, end="")
+            if "EXTRA DOTFILES END" in line:
                 in_extra_block = False
 
     def _add_extra_dotfiles_block(self):
         logger.debug(f"Adding extra dotfiles to startup in {self.startup_config}")
         extra_dotfiles_path = self.home / ".extra_dotfiles"
-        with open(self.startup_config, 'a') as startup_file:
+        with open(self.startup_config, "a") as startup_file:
             startup_file.write(
                 snick.dedent(
                     f"""
@@ -243,8 +246,10 @@ class DotInstaller:
 
     def _github_cli_login(self):
         with spinner("Logging into github in CLI", context_level="DEBUG"):
-            result = subprocess.run("gh login" , shell=True)
-            DotError.require_condition(result.returncode == 0, f"Could not log in to github via cli: {result.stderr.decode()}")
+            result = subprocess.run("gh login", shell=True)
+            DotError.require_condition(
+                result.returncode == 0, f"Could not log in to github via cli: {result.stderr.decode()}"
+            )
 
     def _add_ssh_keys(self):
         user = os.getlogin()
@@ -255,11 +260,11 @@ class DotInstaller:
             if key_path.exists():
                 logger.debug(f"SSH key {key_path} already exists. Skipping")
                 return
-            result = subprocess.run(f"ssh-keygen -t ed25519 -f {key_path} -N ''" , shell=True)
+            result = subprocess.run(f"ssh-keygen -t ed25519 -f {key_path} -N ''", shell=True)
             DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
         with spinner("Adding ssh keys to github", context_level="DEBUG"):
-            result = subprocess.run(f"gh ssh-key add {key_path} --title {user}@{hostname}" , shell=True)
+            result = subprocess.run(f"gh ssh-key add {key_path} --title {user}@{hostname}", shell=True)
             DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
     def _startup(self):
@@ -272,7 +277,9 @@ class DotInstaller:
 
     def install_dot(self):
         with spinner("Installing dot", context_level="INFO"):
-            with DotError.handle_errors("Install failed. Aborting"):
+            with DotError.handle_errors(
+                "Install failed. Aborting", do_except=lambda dep: logger.error(dep.final_message)
+            ):
                 self._make_dirs()
                 self._make_links()
                 self._copy_files()
@@ -290,5 +297,5 @@ class DotInstaller:
             Dot root directory: {self.root}
             """,
             subject="Finished installing dot!",
-            footer=f"Restart your terminal or source {self.startup_config} to apply changes."
+            footer=f"Restart your terminal or source {self.startup_config} to apply changes.",
         )
