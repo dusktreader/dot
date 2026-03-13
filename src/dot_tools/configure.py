@@ -221,12 +221,23 @@ class DotInstaller:
                             raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
 
                         logger.debug(f"Running installation script for {tool.name}")
-                        result = subprocess.run(
-                            script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env
+                        output_lines: list[str] = []
+                        proc = subprocess.Popen(
+                            script,
+                            shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            env=install_env,
+                            text=True,
                         )
-                        if result.returncode != 0:
-                            output = result.stdout.decode()
-                            last_lines = "\n".join(output.splitlines()[-20:])
+                        assert proc.stdout is not None
+                        for line in proc.stdout:
+                            stripped = line.rstrip()
+                            output_lines.append(stripped)
+                            logger.debug(stripped)
+                        proc.wait()
+                        if proc.returncode != 0:
+                            last_lines = "\n".join(output_lines[-20:])
                             raise DotError(f"Failed to install {tool.name}:\n{last_lines}")
                         logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
 
