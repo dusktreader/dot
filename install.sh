@@ -158,13 +158,13 @@ else
     confirm "dot is already cloned on this machine"
 
     check "Checking if dot repository needs to be updated"
-    git -C $home/src/dusktreader/dot fetch origin > /dev/null 2>&1
+    git -C $home/src/dusktreader/dot fetch https://github.com/dusktreader/dot.git > /dev/null 2>&1
     if (( $? ))
     then
         fail "Failed to fetch from origin!"
     fi
     local_ref=$(git -C $home/src/dusktreader/dot rev-parse HEAD)
-    remote_ref=$(git -C $home/src/dusktreader/dot rev-parse @{u} 2>/dev/null)
+    remote_ref=$(git -C $home/src/dusktreader/dot rev-parse FETCH_HEAD 2>/dev/null)
     if [[ -z "$remote_ref" ]]
     then
         confirm "dot repository has no upstream tracking branch, skipping pull"
