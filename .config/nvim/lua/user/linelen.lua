@@ -1,18 +1,21 @@
-local exports = {}
+local textwidth = vim.opt.textwidth:get()
+local overlength_pattern = string.format("\\%%%dv.\\+", textwidth + 1)
 
-function exports.set()
-  -- local result = vim.system({"get-config-line-length"}, { text = true }):wait()
-  -- vim.print(result)
-  -- local line_length = tonumber(vim.trim(result["stdout"]))
-  -- local range = {}
-  -- for i=line_length + 1, 1335 do
-  --   table.insert(range, i)
-  -- end
-  -- local columns = table.concat(range, ",")
-  -- vim.opt.colorcolumn = columns
-  -- vim.opt.textwidth = line_length
-end
+local overlength_group = vim.api.nvim_create_augroup("OverLength", { clear = true })
 
-exports.set()
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = overlength_group,
+  callback = function()
+    vim.api.nvim_set_hl(0, "OverLength", { bg = "#ff0000", fg = "#ffffff" })
+  end,
+})
 
-return exports
+vim.api.nvim_create_autocmd("BufWinEnter", {
+  group = overlength_group,
+  callback = function()
+    vim.fn.matchadd("OverLength", overlength_pattern)
+  end,
+})
+
+vim.api.nvim_set_hl(0, "OverLength", { bg = "#ff0000", fg = "#ffffff" })
+vim.fn.matchadd("OverLength", overlength_pattern)
