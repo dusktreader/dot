@@ -62,10 +62,8 @@ tools:
     scripts:
       linux: |
         sudo apt install -y ripgrep
-        source $HOME/.local/bin/env
       darwin: |
         sudo port -N install ripgrep
-        source $HOME/.local/bin/env
   - name: fd-find
     check: "fd --version"
     scripts:
@@ -88,20 +86,25 @@ tools:
       darwin: |
         sudo port -N install lynx
   - name: nvm
-    check: "nvm version"
+    check: "test -s $HOME/.nvm/nvm.sh"
     scripts:
       generic: |
+        GIT_CONFIG_COUNT=1 \
+        GIT_CONFIG_KEY_0=url.https://github.com/.insteadOf \
+        GIT_CONFIG_VALUE_0=git@github.com: \
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
   - name: node
     check: "node --version"
     scripts:
       generic: |
+        . "$HOME/.nvm/nvm.sh"
         nvm install 20
         nvm use 20
   - name: angular
     check: "ng --version"
     scripts:
       generic: |
+        . "$HOME/.nvm/nvm.sh"
         npm install -g @angular/cli
   - name: neovim
     check: "nvim --version"
