@@ -4,10 +4,12 @@ link_paths:
   - .gitconfig
   - .gitconfig.dusktreader
   - .systemd-env
+  - .agents
   - .config/terminator
   - .config/nvim/init.lua
   - .config/nvim/lua
   - .config/oh-my-posh/dusktreader.omp.yaml
+  - .config/opencode/AGENTS.md
 copy_paths:
   - path: .ssh/config
     perms: 0o600

@@ -79,10 +79,7 @@ vim.opt.switchbuf = "useopen,uselast"
 
 local function get_textwidth()
   local result = vim.system({'dt', 'line-length'}, { text = true }):wait()
-  vim.print(result)
-  local line_length = tonumber(vim.trim(result["stdout"]))
-  vim.print(line_length)
-  return line_length
+  return tonumber(vim.trim(result["stdout"]))
 end
 
 local textwidth = get_textwidth()

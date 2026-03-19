@@ -19,9 +19,24 @@ else:
 
 branch_stack: list[Tree] = []
 logger_stack: list[int] = []
+active_live: Live | None = None
+
+
+@contextmanager
+def pause_live():
+    """Temporarily stop the active Live display, yield, then restart it."""
+    global active_live
+    live = active_live
+    if live:
+        live.stop()
+    try:
+        yield
+    finally:
+        if live:
+            live.start()
+
 
 class ProgressLogger(Progress):
-
     messages: deque[str]
 
     def __init__(self, *args: Any, **kwargs: Any):
@@ -47,6 +62,7 @@ class ProgressLogger(Progress):
 
 spin_logger: int | None = None
 
+
 def filter_spin_log(record: Record) -> bool:
     return not record.get("extra", {}).get("spin", False)
 
@@ -56,6 +72,7 @@ def spinner(text: str, context_level: str = "INFO"):
     progress = ProgressLogger(SpinnerColumn(), TextColumn("[progress.description]{task.description}"))
     progress.add_task(text)
     global spin_logger
+    global active_live
     if spin_logger:
         logger.remove(spin_logger)
 
@@ -66,6 +83,7 @@ def spinner(text: str, context_level: str = "INFO"):
         root_tree = Tree(progress)
         branch_stack.append(root_tree)
         live = Live(Panel(root_tree), transient=True)
+        active_live = live
         live.start()
     else:
         branch_stack.append(branch_stack[-1].add(progress))
@@ -87,4 +105,5 @@ def spinner(text: str, context_level: str = "INFO"):
     if len(branch_stack) > 0:
         branch_stack[-1].children = []
     if live:
+        active_live = None
         live.stop()

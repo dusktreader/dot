@@ -17,7 +17,7 @@ from pathlib import Path
 from typerdrive import terminal_message
 
 from dot_tools.exceptions import DotError
-from dot_tools.spinner import spinner
+from dot_tools.spinner import spinner, pause_live
 from dot_tools.constants import Status
 
 
@@ -305,10 +305,17 @@ class DotInstaller:
 
     def _github_cli_login(self):
         with spinner("Logging into github in CLI", context_level="DEBUG"):
-            result = subprocess.run("gh login", shell=True)
-            DotError.require_condition(
-                result.returncode == 0, f"Could not log in to github via cli: {result.stderr.decode()}"
+            already_logged_in = (
+                subprocess.run(["gh", "auth", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
             )
+            if already_logged_in:
+                logger.debug("Already logged in to github via cli. Skipping")
+                return
+            with pause_live():
+                result = subprocess.run(
+                    ["gh", "auth", "login", "--hostname", "github.com", "--git-protocol", "https", "--web"]
+                )
+            DotError.require_condition(result.returncode == 0, "Could not log in to github via cli")
 
     def _add_ssh_keys(self):
         user = os.getlogin()
@@ -319,11 +326,13 @@ class DotInstaller:
             if key_path.exists():
                 logger.debug(f"SSH key {key_path} already exists. Skipping")
                 return
-            result = subprocess.run(f"ssh-keygen -t ed25519 -f {key_path} -N ''", shell=True)
+            result = subprocess.run(f"ssh-keygen -t ed25519 -f {key_path} -N ''", shell=True, stderr=subprocess.PIPE)
             DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
         with spinner("Adding ssh keys to github", context_level="DEBUG"):
-            result = subprocess.run(f"gh ssh-key add {key_path} --title {user}@{hostname}", shell=True)
+            result = subprocess.run(
+                f"gh ssh-key add {key_path} --title {user}@{hostname}", shell=True, stderr=subprocess.PIPE
+            )
             DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
     def _startup(self):
