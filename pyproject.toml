@@ -58,12 +58,7 @@ addopts = [
 line-length = 120
 src = ["src/dot_tools", "tests"]
 
-[tool.ty]
-# ty configuration - similar settings to your previous basedpyright config
-# See https://docs.astral.sh/ty/reference/configuration/ for all options
-
 [tool.ty.rules]
-# Disable "reportAny" equivalent rules
 any-implicit = "ignore"
 any-explicit = "ignore"
 unused-call-result = "ignore"
