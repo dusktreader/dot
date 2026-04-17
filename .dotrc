@@ -143,6 +143,8 @@ alias mk='microk8s.kubectl'
 
 alias wjst='watch -n 1 -c juju status --color'
 
+alias bfg='java -jar $DOT_HOME/bin/bfg-1.15.0.jar'
+
 dcup () {
     services=$@
     docker compose up --detach $@ && docker compose logs --follow --tail=30 $@

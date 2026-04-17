@@ -154,3 +154,4 @@ Wrap all prose lines at 120 characters. Code blocks and tables are exempt.
 - Inconsistent bullet markers (`-` vs `*` in the same file)
 - Trailing whitespace
 - Lines exceeding 120 characters (outside code blocks and tables)
+- Raw HTML — never embed `<tags>` in Markdown files for any reason

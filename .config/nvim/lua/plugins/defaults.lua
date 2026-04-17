@@ -9,7 +9,8 @@ return {
   { "tpope/vim-fugitive" },
 
   -- Show git status line-by-line in the gutter
-  { "airblade/vim-gitgutter" },
+  -- NOTE: disabled while evaluating lewis6991/gitsigns.nvim as a replacement
+  { "airblade/vim-gitgutter", enabled = false },
 
   -- A bunch of stuff that's used by a lot of plugins
   { "nvim-lua/plenary.nvim" },
@@ -18,10 +19,10 @@ return {
   { "nvim-tree/nvim-web-devicons" },
 
   -- CSV Reader with color and formatting
-  { "hat0uma/csvview.nvim" },
+  { "hat0uma/csvview.nvim", ft = { "csv" } },
 
   -- Use pep8 style indentation for python
-  { "Vimjas/vim-python-pep8-indent" },
+  { "Vimjas/vim-python-pep8-indent", ft = { "python" } },
 
   -- Extend a/i textobjects
   { "nvim-mini/mini.ai" },
@@ -42,10 +43,10 @@ return {
   { "fang2hou/blink-copilot" },
 
   -- Add a repl for lua
-  { 'ii14/neorepl.nvim' },
+  { 'ii14/neorepl.nvim', event = "VeryLazy" },
 
   -- Show virtual text with locals values in dap mode
-  { 'theHamsta/nvim-dap-virtual-text' },
+  { 'theHamsta/nvim-dap-virtual-text', event = "VeryLazy" },
 
   -- lspconfig...sigh...do I really need this?
   { 'neovim/nvim-lspconfig' },

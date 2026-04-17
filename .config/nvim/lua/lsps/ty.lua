@@ -19,13 +19,18 @@ vim.lsp.config(
         end
       end
 
-      if not uses_poetry then
-        return
+      local env = ""
+      if uses_poetry then
+        env = vim.trim(
+          vim.fn.system('cd "' .. client.root_dir .. '" && poetry env info --path 2>/dev/null')
+        )
+      else
+        -- uv / generic venv: prefer .venv in the project root
+        local venv_python = client.root_dir .. "/.venv/bin/python"
+        if vim.fn.filereadable(venv_python) == 1 then
+          env = client.root_dir .. "/.venv"
+        end
       end
-
-      local env = vim.trim(
-        vim.fn.system('cd "' .. client.root_dir .. '" && poetry env info --path 2>/dev/null')
-      )
 
       if string.len(env) > 0 then
         if client.settings.python == nil then

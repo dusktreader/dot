@@ -81,3 +81,11 @@ end
 
 vim.api.nvim_create_user_command("NeotestAdapterRoots", ShowNeotestAdapterRoots, {})
 
+-- Automatically enter terminal mode when focusing a terminal buffer
+vim.api.nvim_create_autocmd("BufEnter", {
+  pattern = "term://*",
+  callback = function()
+    vim.cmd("startinsert")
+  end,
+})
+

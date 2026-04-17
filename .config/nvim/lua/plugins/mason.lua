@@ -1,6 +1,7 @@
 return {
   -- A portable package manager for neovim external dependencies
   "williamboman/mason.nvim",
+  event = "VeryLazy",
   opts = {
     ui = {
       icons = {

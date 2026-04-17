@@ -7,6 +7,11 @@ return {
     "MunifTanjim/nui.nvim",
   },
   lazy = false,
+  keys = {
+    { "<leader>e",  ":Neotree<CR>",                                    desc = "Neotree Open",           noremap = true },
+    { "<leader>E-", function() vim.cmd("split")  vim.cmd("Neotree") end, desc = "Neotree Horizontal Split", noremap = true },
+    { "<leader>E|", function() vim.cmd("vsplit") vim.cmd("Neotree") end, desc = "Neotree Vertical Split",   noremap = true },
+  },
   opts = {
     close_if_last_window = true,
     window = {

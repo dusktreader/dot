@@ -77,10 +77,27 @@ vim.opt.termguicolors = true
 -- Prevent DAP from changing the current buffer to a breakpoint if the file is already open in another buffer
 vim.opt.switchbuf = "useopen,uselast"
 
-local function get_textwidth()
-  local result = vim.system({'dt', 'line-length'}, { text = true }):wait()
-  return tonumber(vim.trim(result["stdout"]))
-end
-
-local textwidth = get_textwidth()
-vim.opt.textwidth = textwidth
+vim.api.nvim_create_autocmd("VimEnter", {
+  once = true,
+  callback = function()
+    vim.system({ "dt", "line-length" }, { text = true }, function(result)
+      if result.code ~= 0 then
+        vim.schedule(function()
+          vim.notify("get_textwidth: 'dt line-length' failed; colorcolumn disabled", vim.log.levels.WARN)
+        end)
+        return
+      end
+      local width = tonumber(vim.trim(result.stdout))
+      if not width then
+        vim.schedule(function()
+          vim.notify("get_textwidth: could not parse output of 'dt line-length'; colorcolumn disabled", vim.log.levels.WARN)
+        end)
+        return
+      end
+      vim.schedule(function()
+        vim.opt.textwidth = width
+        vim.opt.colorcolumn = "+0"
+      end)
+    end)
+  end,
+})

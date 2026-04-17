@@ -1,6 +1,7 @@
 return {
   -- automated mason tool installation
   "WhoIsSethDaniel/mason-tool-installer.nvim",
+  event = "VeryLazy",
   dependencies = {
     "williamboman/mason.nvim",
   },

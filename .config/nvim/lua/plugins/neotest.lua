@@ -16,6 +16,17 @@ return {
     },
     "MisanthropicBit/neotest-busted",
   },
+  keys = {
+    { "<leader>t",  function() require("neotest").run.run() end,                                        desc = "Neotest Run Nearest" },
+    { "<leader>T",  function() require("neotest").run.run(vim.fn.expand("%")) end,                      desc = "Neotest Run File" },
+    { "<leader>TT", function() require("neotest").run.run(vim.uv.cwd()) end,                            desc = "Neotest Run All" },
+    { "<leader>tl", function() require("neotest").run.run_last() end,                                   desc = "Neotest Run Last" },
+    { "<leader>to", function() require("neotest").output.open({ enter = true, auto_close = true }) end, desc = "Neotest Output" },
+    { "<leader>tp", function() require("neotest").output_panel.toggle() end,                            desc = "Neotest Output Panel" },
+    { "<leader>ts", function() require("neotest").summary.toggle() end,                                 desc = "Neotest Summary" },
+    { "<leader>tw", function() require("neotest").watch.toggle(vim.fn.expand("%")) end,                 desc = "Neotest Watch File" },
+    { "<leader>td", function() require("neotest").run.run({ strategy = "dap" }) end,                   desc = "Neotest Run DAP" },
+  },
   opts = {
     log_level = "DEBUG",
   },

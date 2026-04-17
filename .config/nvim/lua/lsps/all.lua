@@ -38,8 +38,13 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
   end,
 })
-vim.lsp.buf.hover({
-  border = "rounded",
+vim.lsp.config('*', {
+  handlers = {
+    [vim.lsp.protocol.Methods.textDocument_hover] = vim.lsp.with(
+      vim.lsp.handlers.hover,
+      { border = "rounded" }
+    ),
+  },
 })
 
 function RestartLSP()

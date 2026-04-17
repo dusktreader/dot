@@ -1,10 +1,6 @@
 return {
-  -- Configures the LuaLS for edting neovim configs
+  -- Configures the LuaLS for editing neovim configs
   "folke/lazydev.nvim",
-  dependencies = {
-    "rcarriga/nvim-dap-ui",
-  },
-  opts = {
-    library = { "nvim-dap-ui" },
-  },
+  ft = "lua",
+  opts = {},
 }

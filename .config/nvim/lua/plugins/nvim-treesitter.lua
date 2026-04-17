@@ -35,7 +35,7 @@ return {
   },
   config = function(_, opts)
     -- On Apple Silicon, ensure parsers are compiled for ARM64
-    if vim.fn.has("mac") == 1 and vim.fn.system("uname -m"):match("arm64") then
+    if vim.fn.has("mac") == 1 and vim.uv.os_uname().machine == "arm64" then
       vim.fn.setenv("CFLAGS", "-arch arm64")
       -- Prefer git clones over tree-sitter CLI to avoid x86_64 CLI issues from Mason
       local ok, install = pcall(require, "nvim-treesitter.install")

@@ -80,6 +80,13 @@ tools:
         sudo apt install -y fzf
       darwin: |
         sudo port -N install fzf
+  - name: watch
+    check: "command -v watch"
+    scripts:
+      linux: |
+        sudo apt install -y watch
+      darwin: |
+        sudo port -N install watch
   - name: lynx
     check: "lynx --version"
     scripts:
@@ -216,3 +223,9 @@ tools:
       darwin: |
         curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
         sudo installer -pkg AWSCLIV2.pkg -target /
+  - name: devspace
+    check: "command -v devspace"
+    scripts:
+      generic: |
+        . "$HOME/.nvm/nvm.sh"
+        npm install -g devspace

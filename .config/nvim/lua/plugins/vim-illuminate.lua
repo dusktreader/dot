@@ -1,6 +1,7 @@
 return {
   -- Highlight the currently selected word and show where else it's used
   "RRethy/vim-illuminate",
+  event = "BufReadPost",
   opts = {
     -- Disable illuminate in insert mode
     modes_denylist = { 'i' },

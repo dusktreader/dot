@@ -8,6 +8,9 @@ return {
     nes = {
       enabled = false,
     },
+    cli = {
+      default = "opencode",
+    },
   },
   keys = {
     {
