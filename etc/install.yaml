@@ -28,6 +28,11 @@ mkdir_paths:
   - .vim/local/swap
   - .vim/undodir
 tools:
+  - name: build-essentials
+    check: "command -v make"
+    scripts:
+      linux: |
+        sudo apt install build-essentials
   - name: poetry
     check: "poetry --version"
     scripts:
