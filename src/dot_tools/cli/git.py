@@ -45,6 +45,19 @@ def issue(
 
 
 @cli.command()
+@handle_errors("Couldn't resolve conflicts")
+@attach_logging()
+def crack(ctx: typer.Context):
+    """
+    Resolve merge conflicts by opening each conflicting file in $EDITOR.
+
+    Files modified on exit are staged automatically. Prints git status when done.
+    """
+    git_man = GitManager()
+    git_man.resolve_conflicts()
+
+
+@cli.command()
 @handle_errors("Couldn't find git toplevel")
 @attach_logging()
 def toplevel(

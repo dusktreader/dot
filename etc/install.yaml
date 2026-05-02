@@ -10,6 +10,8 @@ link_paths:
   - .config/nvim/lua
   - .config/oh-my-posh/dusktreader.omp.yaml
   - .config/opencode/AGENTS.md
+  - .config/traefik
+  - .config/dnsmasq
 copy_paths:
   - path: .ssh/config
     perms: 0o600
@@ -229,3 +231,30 @@ tools:
       generic: |
         . "$HOME/.nvm/nvm.sh"
         npm install -g devspace
+  - name: traefik
+    check: "traefik version"
+    scripts:
+      linux: |
+        sudo apt install -y traefik
+      darwin: |
+        sudo port -N install traefik
+  - name: dnsmasq
+    check: "dnsmasq --version"
+    scripts:
+      linux: |
+        sudo apt install -y dnsmasq
+      darwin: |
+        sudo port -N install dnsmasq
+services:
+  - name: traefik
+    label: local.traefik
+    executable: traefik
+    config_template: .config/traefik/traefik.yaml
+    args:
+      - "--configFile=$CONFIG"
+  - name: dnsmasq
+    label: local.dnsmasq
+    executable: dnsmasq
+    args:
+      - "--conf-file=$HOME/.config/dnsmasq/dnsmasq.conf"
+      - "--keep-in-foreground"

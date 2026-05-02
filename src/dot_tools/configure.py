@@ -43,12 +43,21 @@ class ToolSpecs(pydantic.BaseModel):
     scripts: ScriptSpecs
 
 
+class ServiceSpecs(pydantic.BaseModel):
+    name: str
+    label: str
+    executable: str
+    args: Annotated[list[str], pydantic.Field(default_factory=lambda: [])]
+    config_template: Path | None = None
+
+
 class InstallManifest(pydantic.BaseModel):
     link_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
     copy_paths: Annotated[list[Path | FileSpecs], pydantic.Field(default_factory=lambda: [])]
     dotfile_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
     mkdir_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
     tools: Annotated[list[ToolSpecs], pydantic.Field(default_factory=lambda: [])]
+    services: Annotated[list[ServiceSpecs], pydantic.Field(default_factory=lambda: [])]
 
 
 class DotInstaller:
@@ -227,6 +236,7 @@ class DotInstaller:
                         proc = subprocess.Popen(
                             script,
                             shell=True,
+                            executable="/bin/bash",
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
                             env=install_env,
@@ -335,6 +345,253 @@ class DotInstaller:
             )
             DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
+    def _install_services(self):
+        def _launchd_plist(service: ServiceSpecs, executable: str, args: list[str]) -> str:
+            args_xml = "\n".join(
+                f"        <string>{arg}</string>" for arg in args
+            )
+            return snick.dedent(
+                f"""
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+                  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+                <plist version="1.0">
+                <dict>
+                    <key>Label</key>
+                    <string>{service.label}</string>
+                    <key>ProgramArguments</key>
+                    <array>
+                        <string>{executable}</string>
+                {args_xml}
+                    </array>
+                    <key>RunAtLoad</key>
+                    <true/>
+                    <key>KeepAlive</key>
+                    <true/>
+                    <key>StandardOutPath</key>
+                    <string>{self.home}/Library/Logs/{service.label}.log</string>
+                    <key>StandardErrorPath</key>
+                    <string>{self.home}/Library/Logs/{service.label}.error.log</string>
+                </dict>
+                </plist>
+                """
+            )
+
+        def _systemd_unit(service: ServiceSpecs, executable: str, args: list[str]) -> str:
+            args_str = " ".join(args)
+            exec_start = f"{executable} {args_str}".strip()
+            return snick.dedent(
+                f"""
+                [Unit]
+                Description={service.name}
+                After=network.target
+
+                [Service]
+                ExecStart={exec_start}
+                Restart=always
+                RestartSec=5
+
+                [Install]
+                WantedBy=default.target
+                """
+            )
+
+        with spinner("Installing services", context_level="DEBUG"):
+            for service in self.install_manifest.services:
+                with spinner(f"Installing service {service.name}", context_level="DEBUG"):
+                    executable = shutil.which(service.executable)
+                    DotError.require_condition(
+                        executable is not None,
+                        f"Executable '{service.executable}' not found on PATH for service {service.name}. "
+                        "Ensure the tool is installed before registering its service.",
+                    )
+                    assert executable is not None  # for type narrowing
+
+                    expanded_args = [arg.replace("$HOME", str(self.home)) for arg in service.args]
+
+                    if service.config_template is not None:
+                        template_path = self.home / service.config_template
+                        DotError.require_condition(
+                            template_path.exists(),
+                            f"config_template {template_path} not found for service {service.name}",
+                        )
+                        resolved_path = template_path.parent / (template_path.stem + "-resolved" + template_path.suffix)
+                        resolved_content = template_path.read_text().replace("$HOME", str(self.home))
+                        if not resolved_path.exists() or resolved_path.read_text() != resolved_content:
+                            logger.debug(f"Writing resolved config for {service.name} to {resolved_path}")
+                            resolved_path.write_text(resolved_content)
+                        expanded_args = [arg.replace("$CONFIG", str(resolved_path)) for arg in expanded_args]
+
+                    if platform.system() == "Darwin":
+                        agents_dir = self.home / "Library" / "LaunchAgents"
+                        agents_dir.mkdir(parents=True, exist_ok=True)
+                        plist_path = agents_dir / f"{service.label}.plist"
+                        plist_content = _launchd_plist(service, executable, expanded_args)
+
+                        needs_reload = False
+                        if plist_path.exists():
+                            if plist_path.read_text() == plist_content:
+                                logger.debug(f"Service {service.name} plist is already up to date")
+                            else:
+                                logger.debug(f"Service {service.name} plist changed; unloading")
+                                subprocess.run(
+                                    ["launchctl", "unload", str(plist_path)],
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE,
+                                )
+                                needs_reload = True
+                        else:
+                            needs_reload = True
+
+                        if needs_reload:
+                            logger.debug(f"Writing plist for service {service.name} to {plist_path}")
+                            plist_path.write_text(plist_content)
+                            result = subprocess.run(
+                                ["launchctl", "load", "-w", str(plist_path)],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                            )
+                            DotError.require_condition(
+                                result.returncode == 0,
+                                f"Failed to load launchd service {service.name}: {result.stderr.decode()}",
+                            )
+                            logger.debug(f"Loaded launchd service {service.name}", status=Status.CONFIRM)
+
+                    elif platform.system() == "Linux":
+                        unit_dir = self.home / ".config" / "systemd" / "user"
+                        unit_dir.mkdir(parents=True, exist_ok=True)
+                        unit_path = unit_dir / f"{service.label}.service"
+                        unit_content = _systemd_unit(service, executable, expanded_args)
+
+                        needs_reload = False
+                        if unit_path.exists():
+                            if unit_path.read_text() == unit_content:
+                                logger.debug(f"Service {service.name} unit is already up to date")
+                            else:
+                                logger.debug(f"Service {service.name} unit changed; reloading")
+                                needs_reload = True
+                        else:
+                            needs_reload = True
+
+                        if needs_reload:
+                            logger.debug(f"Writing systemd unit for service {service.name} to {unit_path}")
+                            unit_path.write_text(unit_content)
+                            subprocess.run(
+                                ["systemctl", "--user", "daemon-reload"],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                            )
+                            result = subprocess.run(
+                                ["systemctl", "--user", "enable", "--now", f"{service.label}.service"],
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                            )
+                            DotError.require_condition(
+                                result.returncode == 0,
+                                f"Failed to enable systemd service {service.name}: {result.stderr.decode()}",
+                            )
+                            logger.debug(f"Enabled systemd service {service.name}", status=Status.CONFIRM)
+                    else:
+                        raise DotError(f"Unsupported platform {platform.system()} for service {service.name}")
+
+    def _configure_dns_resolver(self):
+        """Point the OS resolver at dnsmasq for *.localhost subdomain queries."""
+        dnsmasq_conf = self.home / ".config" / "dnsmasq" / "dnsmasq.conf"
+        DotError.require_condition(
+            dnsmasq_conf.exists(),
+            f"dnsmasq config not found at {dnsmasq_conf}. Ensure .config/dnsmasq is linked.",
+        )
+
+        with spinner("Configuring DNS resolver for *.localhost", context_level="DEBUG"):
+            if platform.system() == "Darwin":
+                # macOS: drop a file in /etc/resolver/ named after the domain.
+                # The OS will send all *.localhost queries to the nameserver listed there.
+                resolver_dir = Path("/etc/resolver")
+                resolver_file = resolver_dir / "localhost"
+                resolver_content = snick.dedent(
+                    """
+                    nameserver 127.0.0.1
+                    port 5353
+                    """
+                )
+                if resolver_file.exists() and resolver_file.read_text() == resolver_content:
+                    logger.debug("macOS resolver for *.localhost is already configured")
+                else:
+                    logger.debug(f"Writing macOS resolver drop-in to {resolver_file}")
+                    result = subprocess.run(
+                        ["sudo", "mkdir", "-p", str(resolver_dir)],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    DotError.require_condition(result.returncode == 0, "Failed to create /etc/resolver directory")
+                    write_proc = subprocess.run(
+                        ["sudo", "tee", str(resolver_file)],
+                        input=resolver_content.encode(),
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    DotError.require_condition(
+                        write_proc.returncode == 0,
+                        f"Failed to write {resolver_file}: {write_proc.stderr.decode()}",
+                    )
+                    logger.debug("macOS resolver for *.localhost configured", status=Status.CONFIRM)
+
+            elif platform.system() == "Linux":
+                # Linux: try systemd-resolved first, fall back to resolvconf.
+                resolved_dir = Path("/etc/systemd/resolved.conf.d")
+                drop_in = resolved_dir / "localhost-subdomains.conf"
+                drop_in_content = snick.dedent(
+                    """
+                    [Resolve]
+                    DNS=127.0.0.1:5353
+                    Domains=~localhost
+                    """
+                )
+                resolvconf_available = (
+                    subprocess.run(
+                        ["command", "-v", "resolvconf"], shell=False,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    ).returncode == 0
+                )
+                resolved_available = resolved_dir.parent.exists()
+
+                if resolved_available:
+                    if drop_in.exists() and drop_in.read_text() == drop_in_content:
+                        logger.debug("systemd-resolved drop-in for *.localhost is already configured")
+                    else:
+                        logger.debug(f"Writing systemd-resolved drop-in to {drop_in}")
+                        subprocess.run(
+                            ["sudo", "mkdir", "-p", str(resolved_dir)],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        )
+                        write_proc = subprocess.run(
+                            ["sudo", "tee", str(drop_in)],
+                            input=drop_in_content.encode(),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        )
+                        DotError.require_condition(
+                            write_proc.returncode == 0,
+                            f"Failed to write {drop_in}: {write_proc.stderr.decode()}",
+                        )
+                        subprocess.run(
+                            ["sudo", "systemctl", "restart", "systemd-resolved"],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                        )
+                        logger.debug("systemd-resolved configured for *.localhost", status=Status.CONFIRM)
+                elif resolvconf_available:
+                    logger.warning(
+                        "systemd-resolved not found; resolvconf is present but automatic "
+                        "per-domain DNS routing is not supported. Add 'nameserver 127.0.0.1' "
+                        "to /etc/resolvconf/resolv.conf.d/head manually."
+                    )
+                else:
+                    logger.warning(
+                        "Neither systemd-resolved nor resolvconf found. "
+                        "Configure your DNS resolver manually to forward *.localhost to 127.0.0.1:5353."
+                    )
+            else:
+                raise DotError(f"Unsupported platform {platform.system()} for DNS resolver configuration")
+
     def _startup(self):
         with spinner(f"Using {self.startup_config} as startup config file", context_level="DEBUG"):
             if not self.startup_config.exists():
@@ -357,6 +614,8 @@ class DotInstaller:
                 self._github_cli_login()
                 self._add_ssh_keys()
                 self._startup()
+                self._configure_dns_resolver()
+                self._install_services()
 
         terminal_message(
             f"""

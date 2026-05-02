@@ -112,7 +112,7 @@ alias grep='egrep --color=auto'
 
 alias fvim='fzf --print0 | xargs -0 -o nvim'
 
-alias cojira='checkout-branch-by-pattern'
+alias cojira='dt git cojira'
 alias cb='current-branch'
 
 alias sl='ls'

@@ -1,0 +1,25 @@
+# Traefik dynamic configuration — HTTP routers and services.
+# Add an entry here for each local hostname alias you want to proxy.
+
+http:
+  routers:
+    liza:
+      rule: "Host(`liza.localhost`)"
+      entryPoints:
+        - web
+      service: liza
+    devspace:
+      rule: "Host(`devspace.localhost`)"
+      entryPoints:
+        - web
+      service: devspace
+
+  services:
+    liza:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:5173"
+    devspace:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8090"

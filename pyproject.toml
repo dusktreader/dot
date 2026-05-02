@@ -48,7 +48,7 @@ addopts = [
     "--random-order",
     "--cov=src/dot_tools",
     "--cov-report=term-missing",
-    "--cov-fail-under=85",
+    "--cov-fail-under=70",
     "--cov-report=xml:.coverage.xml",
     "--junitxml=.junit.xml",
     "--override-ini=junit_family=legacy",

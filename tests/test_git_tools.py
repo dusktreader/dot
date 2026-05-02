@@ -1,6 +1,7 @@
 from collections.abc import Generator
 from pathlib import Path
 from typing import cast
+from unittest.mock import patch, MagicMock
 
 import git
 import pytest
@@ -149,6 +150,39 @@ class TestGitManager:
         monkeypatch.chdir(test_path)
         found_path = git_man.toplevel()
         assert found_path == fake_root
+
+    def test_remote__returns_remote_by_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_origin: Path):
+        fake_root = tmp_path / "fake_root"
+        init_empty_repo(fake_root)
+        repo = git.Repo(fake_root)
+        repo.create_remote("origin", str(fake_origin))
+
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        remote = git_man.remote("origin")
+        assert remote.name == "origin"
+
+    def test_remote_url__returns_url_of_origin(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_origin: Path):
+        fake_root = tmp_path / "fake_root"
+        init_empty_repo(fake_root)
+        repo = git.Repo(fake_root)
+        repo.create_remote("origin", str(fake_origin))
+
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        assert git_man.remote_url() == str(fake_origin)
+
+    def test_remote_url__raises_when_no_origin(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        fake_root = tmp_path / "fake_root"
+        init_empty_repo(fake_root)
+
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        with pytest.raises(Exception):
+            git_man.remote_url()
 
     def test_is_github_repo__returns_true_if_repo_is_cloned_from_github(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         fake_root = tmp_path / "fake_root"
@@ -308,3 +342,155 @@ class TestGitManager:
 
         with pytest.raises(GitError, match="Couldn't find exactly one branch"):
             git_man.checkout_branch_by_pattern("other")
+
+
+def init_conflicted_repo(path: Path) -> git.Repo:
+    """Create a repo with a single unresolved merge conflict in ``battle.txt``."""
+    repo = init_empty_repo(path)
+
+    # git binary commands (e.g. merge) require committer identity in the repo config
+    with repo.config_writer() as cfg:
+        cfg.set_value("user", "name", "Test User")
+        cfg.set_value("user", "email", "test@example.com")
+
+    battle = path / "battle.txt"
+    battle.write_text("both branches start here\n")
+    repo.index.add(str(battle))
+    repo.index.commit("Add battle.txt")
+
+    # diverge on a feature branch
+    feature = repo.create_head("feature")
+    feature.checkout()
+    battle.write_text("feature branch wins\n")
+    repo.index.add(str(battle))
+    repo.index.commit("Feature edit")
+
+    # diverge on main
+    repo.heads["main"].checkout()
+    battle.write_text("main branch wins\n")
+    repo.index.add(str(battle))
+    repo.index.commit("Main edit")
+
+    # merge without committing — leaves conflict markers in the working tree
+    # exit code 1 means conflict; suppress the exception
+    try:
+        repo.git.merge("feature", "--no-commit", "--no-ff")
+    except git.GitCommandError:
+        pass
+
+    return repo
+
+
+@pytest.fixture()
+def conflicted_repo(tmp_path: Path) -> Generator[tuple[git.Repo, Path], None, None]:
+    fake_root = tmp_path / "conflicted"
+    repo = init_conflicted_repo(fake_root)
+    yield repo, fake_root
+
+
+class TestGitManagerConflicts:
+
+    def test_conflicting_files__returns_conflicting_paths(
+        self,
+        conflicted_repo: tuple[git.Repo, Path],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        _, fake_root = conflicted_repo
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        conflicts = git_man.conflicting_files()
+
+        assert len(conflicts) == 1
+        assert conflicts[0] == fake_root / "battle.txt"
+
+    def test_conflicting_files__returns_empty_list_when_no_conflicts(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        fake_root = tmp_path / "clean"
+        init_filled_repo(fake_root)
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        assert git_man.conflicting_files() == []
+
+    def test_resolve_conflicts__opens_each_file_and_stages_modified(
+        self,
+        conflicted_repo: tuple[git.Repo, Path],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        _, fake_root = conflicted_repo
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        battle = fake_root / "battle.txt"
+
+        def side_effect(cmd, **kwargs):
+            if isinstance(cmd, list) and cmd[0] != "git":
+                # editor invocation — simulate the user resolving the conflict
+                battle.write_text("resolved\n")
+
+        with patch("subprocess.call") as mock_call:
+            mock_call.side_effect = side_effect
+            git_man.resolve_conflicts()
+
+        # Verify that `git add <path>` was called for the modified file
+        add_calls = [
+            c for c in mock_call.call_args_list
+            if c.args[0][0] == "git" and "add" in c.args[0]
+        ]
+        assert len(add_calls) == 1
+        assert str(battle) in add_calls[0].args[0]
+
+    def test_resolve_conflicts__skips_staging_unmodified_file(
+        self,
+        conflicted_repo: tuple[git.Repo, Path],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        _, fake_root = conflicted_repo
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        with patch("subprocess.call") as mock_call:
+            # editor does nothing — file is not modified
+            git_man.resolve_conflicts()
+
+        # `git add` should not have been called
+        add_calls = [
+            c for c in mock_call.call_args_list
+            if c.args[0][0] == "git" and "add" in c.args[0]
+        ]
+        assert len(add_calls) == 0
+
+    def test_resolve_conflicts__raises_error_when_no_conflicts(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        fake_root = tmp_path / "clean"
+        init_filled_repo(fake_root)
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        with pytest.raises(GitError, match="No conflicting files found"):
+            git_man.resolve_conflicts()
+
+    def test_resolve_conflicts__calls_git_status_at_end(
+        self,
+        conflicted_repo: tuple[git.Repo, Path],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        _, fake_root = conflicted_repo
+        monkeypatch.chdir(fake_root)
+        git_man = GitManager()
+
+        with patch("subprocess.call") as mock_call:
+            git_man.resolve_conflicts()
+
+        status_calls = [
+            c for c in mock_call.call_args_list
+            if c.args[0][0] == "git" and "status" in c.args[0]
+        ]
+        assert len(status_calls) == 1

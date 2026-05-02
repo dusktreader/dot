@@ -1,0 +1,16 @@
+# Traefik static configuration
+# Proxies local hostnames to development servers running on localhost.
+# /Users/tucker.beck is replaced with the actual home directory by `dt configure`.
+
+api:
+  insecure: true
+  dashboard: true
+
+entryPoints:
+  web:
+    address: ":80"
+
+providers:
+  file:
+    directory: "/Users/tucker.beck/.config/traefik/conf.d"
+    watch: true

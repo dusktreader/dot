@@ -1,4 +1,6 @@
+import os
 import re
+import subprocess
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from pathlib import Path
@@ -182,6 +184,34 @@ class GitManager:
 #         logger.debug(f"branch name built as {branch_name}")
 #         self.checkout_new_branch(branch_name, base=base)
 #
+    def conflicting_files(self) -> list[Path]:
+        """Return paths of all unmerged (conflicting) files in the working tree."""
+        unmerged: list[Path] = []
+        for item in self.repo.index.unmerged_blobs():
+            unmerged.append(Path(self.repo.working_dir) / item)
+        return unmerged
+
+    def resolve_conflicts(self) -> None:
+        """Open each conflicting file in $EDITOR one at a time.
+
+        If the file is modified after the editor exits it is staged.
+        After all files have been visited, prints ``git status``.
+        """
+        editor = os.environ.get("EDITOR", "vi")
+        conflicts = self.conflicting_files()
+        GitError.require_condition(bool(conflicts), "No conflicting files found")
+
+        for path in conflicts:
+            mtime_before = path.stat().st_mtime
+            subprocess.call([editor, str(path)])
+            if path.stat().st_mtime != mtime_before:
+                logger.debug(f"Staging {path} (modified)")
+                subprocess.call(["git", "-C", str(self.repo.working_dir), "add", str(path)])
+            else:
+                logger.debug(f"Skipping {path} (unchanged)")
+
+        subprocess.call(["git", "-C", str(self.repo.working_dir), "status"])
+
     def checkout_branch_by_pattern(self, pattern: str):
         matching_refs: list[git.Head | git.SymbolicReference] = [
             b for b in self.repo.heads if re.search(pattern, b.name, re.IGNORECASE)
