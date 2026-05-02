@@ -494,104 +494,6 @@ class DotInstaller:
                     else:
                         raise DotError(f"Unsupported platform {platform.system()} for service {service.name}")
 
-    def _configure_dns_resolver(self):
-        """Point the OS resolver at dnsmasq for *.localhost subdomain queries."""
-        dnsmasq_conf = self.home / ".config" / "dnsmasq" / "dnsmasq.conf"
-        DotError.require_condition(
-            dnsmasq_conf.exists(),
-            f"dnsmasq config not found at {dnsmasq_conf}. Ensure .config/dnsmasq is linked.",
-        )
-
-        with spinner("Configuring DNS resolver for *.localhost", context_level="DEBUG"):
-            if platform.system() == "Darwin":
-                # macOS: drop a file in /etc/resolver/ named after the domain.
-                # The OS will send all *.localhost queries to the nameserver listed there.
-                resolver_dir = Path("/etc/resolver")
-                resolver_file = resolver_dir / "localhost"
-                resolver_content = snick.dedent(
-                    """
-                    nameserver 127.0.0.1
-                    port 5353
-                    """
-                )
-                if resolver_file.exists() and resolver_file.read_text() == resolver_content:
-                    logger.debug("macOS resolver for *.localhost is already configured")
-                else:
-                    logger.debug(f"Writing macOS resolver drop-in to {resolver_file}")
-                    result = subprocess.run(
-                        ["sudo", "mkdir", "-p", str(resolver_dir)],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                    )
-                    DotError.require_condition(result.returncode == 0, "Failed to create /etc/resolver directory")
-                    write_proc = subprocess.run(
-                        ["sudo", "tee", str(resolver_file)],
-                        input=resolver_content.encode(),
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                    )
-                    DotError.require_condition(
-                        write_proc.returncode == 0,
-                        f"Failed to write {resolver_file}: {write_proc.stderr.decode()}",
-                    )
-                    logger.debug("macOS resolver for *.localhost configured", status=Status.CONFIRM)
-
-            elif platform.system() == "Linux":
-                # Linux: try systemd-resolved first, fall back to resolvconf.
-                resolved_dir = Path("/etc/systemd/resolved.conf.d")
-                drop_in = resolved_dir / "localhost-subdomains.conf"
-                drop_in_content = snick.dedent(
-                    """
-                    [Resolve]
-                    DNS=127.0.0.1:5353
-                    Domains=~localhost
-                    """
-                )
-                resolvconf_available = (
-                    subprocess.run(
-                        ["command", "-v", "resolvconf"], shell=False,
-                        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                    ).returncode == 0
-                )
-                resolved_available = resolved_dir.parent.exists()
-
-                if resolved_available:
-                    if drop_in.exists() and drop_in.read_text() == drop_in_content:
-                        logger.debug("systemd-resolved drop-in for *.localhost is already configured")
-                    else:
-                        logger.debug(f"Writing systemd-resolved drop-in to {drop_in}")
-                        subprocess.run(
-                            ["sudo", "mkdir", "-p", str(resolved_dir)],
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                        )
-                        write_proc = subprocess.run(
-                            ["sudo", "tee", str(drop_in)],
-                            input=drop_in_content.encode(),
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                        )
-                        DotError.require_condition(
-                            write_proc.returncode == 0,
-                            f"Failed to write {drop_in}: {write_proc.stderr.decode()}",
-                        )
-                        subprocess.run(
-                            ["sudo", "systemctl", "restart", "systemd-resolved"],
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                        )
-                        logger.debug("systemd-resolved configured for *.localhost", status=Status.CONFIRM)
-                elif resolvconf_available:
-                    logger.warning(
-                        "systemd-resolved not found; resolvconf is present but automatic "
-                        "per-domain DNS routing is not supported. Add 'nameserver 127.0.0.1' "
-                        "to /etc/resolvconf/resolv.conf.d/head manually."
-                    )
-                else:
-                    logger.warning(
-                        "Neither systemd-resolved nor resolvconf found. "
-                        "Configure your DNS resolver manually to forward *.localhost to 127.0.0.1:5353."
-                    )
-            else:
-                raise DotError(f"Unsupported platform {platform.system()} for DNS resolver configuration")
-
     def _startup(self):
         with spinner(f"Using {self.startup_config} as startup config file", context_level="DEBUG"):
             if not self.startup_config.exists():
@@ -614,7 +516,6 @@ class DotInstaller:
                 self._github_cli_login()
                 self._add_ssh_keys()
                 self._startup()
-                self._configure_dns_resolver()
                 self._install_services()
 
         terminal_message(
