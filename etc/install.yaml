@@ -185,11 +185,11 @@ tools:
         sudo apt install gh -y
       darwin: |
         sudo port -N install gh
-  - name: copilot cli
-    check: "copilot --version"
+  - name: opencode
+    check: "command -v opencode"
     scripts:
       generic: |
-        npm install -g @github/copilot
+        curl -fsSL https://opencode.ai/install | bash
   - name: 1password-cli
     check: "op --version"
     scripts:
