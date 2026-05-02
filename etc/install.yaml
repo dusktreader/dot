@@ -32,7 +32,7 @@ tools:
     check: "command -v make"
     scripts:
       linux: |
-        sudo apt install build-essentials
+        sudo apt install build-essential
   - name: poetry
     check: "poetry --version"
     scripts:
