@@ -242,4 +242,18 @@ tools:
       generic:
         git clone https://github.com/go-nv/goenv.git ~/.goenv
         export GOENV_PATH_ORDER=front' >> "$HOME/.goenvrc"
+  - name: firacode nerdfont
+    check: "fc-list | grep -i firacode"
+    scripts:
+      linux: |
+        mkdir -p "$HOME/.local/share/fonts"
+        wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.206/FiraCode.zip" -O /tmp/FiraCode.zip
+        unzip -o /tmp/FiraCode.zip -d "$HOME/.local/share/fonts/FiraCode"
+        rm /tmp/FiraCode.zip
+        fc-cache -fv
+      macos: |
+        mkdir -p "$HOME/Library/Fonts"
+        wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.206/FiraCode.zip" -O /tmp/FiraCode.zip
+        unzip -o /tmp/FiraCode.zip -d "$HOME/Library/Fonts/FiraCode"
+        rm /tmp/FiraCode.zip
 services: []
