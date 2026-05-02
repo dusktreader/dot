@@ -199,69 +199,65 @@ class DotInstaller:
                     dst_path.chmod(perms)
 
     def _install_tools(self):
-        def _log_fail(dep: buzz.DoExceptParams):
-            logger.error(dep.final_message, status=Status.FAIL)
-
         install_env = os.environ.copy()
         install_env["PYTHON_VERSION"] = platform.python_version()
         with spinner("Installing tools", context_level="DEBUG"):
             for tool in self.install_manifest.tools:
                 with spinner(f"Installing {tool.name}", context_level="DEBUG"):
-                    with DotError.handle_errors(f"Failed to install tool {tool.name}", do_except=_log_fail):
-                        logger.debug(f"Checking if {tool.name} is installed", status=Status.CHECK)
-                        result = subprocess.run(
-                            tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-                        )
-                        if result.returncode == 0:
-                            logger.debug(f"{tool.name} is already installed", status=Status.CONFIRM)
-                            continue
+                    logger.debug(f"Checking if {tool.name} is installed", status=Status.CHECK)
+                    result = subprocess.run(
+                        tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                    )
+                    if result.returncode == 0:
+                        logger.debug(f"{tool.name} is already installed", status=Status.CONFIRM)
+                        continue
 
-                        logger.debug(f"{tool.name} is not yet installed", status=Status.MISSING)
-                        script: str
-                        if tool.scripts.generic:
-                            logger.debug("Using generic script for tool installation")
-                            script = tool.scripts.generic
-                        elif platform.system() == "Linux":
-                            logger.debug("Using linux script for tool installation")
-                            script = DotError.enforce_defined(tool.scripts.linux, "No linux script defined for tool")
-                        elif platform.system() == "Darwin":
-                            logger.debug("Using darwin script for tool installation")
-                            script = DotError.enforce_defined(tool.scripts.darwin, "No darwin script defined for tool")
-                        else:
-                            raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
+                    logger.debug(f"{tool.name} is not yet installed", status=Status.MISSING)
+                    script: str
+                    if tool.scripts.generic:
+                        logger.debug("Using generic script for tool installation")
+                        script = tool.scripts.generic
+                    elif platform.system() == "Linux":
+                        logger.debug("Using linux script for tool installation")
+                        script = DotError.enforce_defined(tool.scripts.linux, "No linux script defined for tool")
+                    elif platform.system() == "Darwin":
+                        logger.debug("Using darwin script for tool installation")
+                        script = DotError.enforce_defined(tool.scripts.darwin, "No darwin script defined for tool")
+                    else:
+                        raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
 
-                        logger.debug(f"Running installation script for {tool.name}")
-                        output_lines: list[str] = []
+                    logger.debug(f"Running installation script for {tool.name}")
+                    output_lines: list[str] = []
 
-                        proc = subprocess.Popen(
-                            script,
-                            shell=True,
-                            executable="/bin/bash",
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            env=install_env,
-                            text=True,
-                        )
-                        assert proc.stdout is not None
-                        assert proc.stderr is not None
+                    proc = subprocess.Popen(
+                        script,
+                        shell=True,
+                        executable="/bin/bash",
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        env=install_env,
+                        text=True,
+                    )
+                    assert proc.stdout is not None
+                    assert proc.stderr is not None
 
-                        open_streams = [proc.stdout, proc.stderr]
-                        while open_streams:
-                            readable, _, _ = select.select(open_streams, [], [])
-                            for stream in readable:
-                                line = stream.readline()
-                                if line:
-                                    stripped = line.rstrip()
-                                    output_lines.append(stripped)
-                                    logger.debug(stripped)
-                                else:
-                                    open_streams.remove(stream)
-                        proc.wait()
+                    open_streams = [proc.stdout, proc.stderr]
+                    while open_streams:
+                        readable, _, _ = select.select(open_streams, [], [])
+                        for stream in readable:
+                            line = stream.readline()
+                            if line:
+                                stripped = line.rstrip()
+                                output_lines.append(stripped)
+                                logger.debug(stripped)
+                            else:
+                                open_streams.remove(stream)
+                    proc.wait()
 
-                        if proc.returncode != 0:
-                            last_lines = "\n".join(output_lines[-20:])
-                            raise DotError(f"Failed to install {tool.name}:\n{last_lines}")
-                        logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
+                    if proc.returncode != 0:
+                        last_lines = "\n".join(output_lines[-20:])
+                        raise DotError(f"Failed to install {tool.name}:\n{last_lines}")
+                    logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
 
     def _update_dotfiles(self):
         with spinner("Adding dotfiles from manifest", context_level="DEBUG"):
