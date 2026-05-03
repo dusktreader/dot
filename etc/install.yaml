@@ -238,9 +238,9 @@ tools:
   - name: goenv
     check: "command -v goenv"
     scripts:
-      generic:
+      generic: |
         git clone https://github.com/go-nv/goenv.git ~/.goenv
-        export GOENV_PATH_ORDER=front' >> "$HOME/.goenvrc"
+        echo "export GOENV_PATH_ORDER=front" >> "$HOME/.goenvrc"
   - name: firacode nerdfont
     check: "fc-list | grep -i firacode"
     scripts:
