@@ -266,6 +266,13 @@ tools:
         cp -R "/Volumes/Ghostty/Ghostty.app" /Applications/
         hdiutil detach "/Volumes/Ghostty" -quiet
         rm /tmp/Ghostty.dmg
+  - name: btop
+    check: "command -v btop"
+    scripts:
+      linux: |
+        sudo apt install btop
+      darwin: s|
+        sudo port install btop
 settings:
   - name: capslock-to-escape
     check: "grep -q 'caps:escape' /etc/default/keyboard"
@@ -273,4 +280,5 @@ settings:
       linux: |
         sudo sed -i 's/^XKBOPTIONS=.*/XKBOPTIONS="caps:escape"/' /etc/default/keyboard
         sudo dpkg-reconfigure -f noninteractive keyboard-configuration
+        sudo udevadm trigger --subsystem-match=input --action=change
 services: []
