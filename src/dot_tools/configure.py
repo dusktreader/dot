@@ -393,7 +393,13 @@ class DotInstaller:
                 return
             with pause_live():
                 result = subprocess.run(
-                    ["gh", "auth", "login", "--hostname", "github.com", "--git-protocol", "https", "--web"]
+                    [
+                        "gh", "auth", "login",
+                        "--hostname", "github.com",
+                        "--git-protocol", "https",
+                        "--scopes", "admin:public_key",
+                        "--web",
+                    ]
                 )
             DotError.require_condition(result.returncode == 0, "Could not log in to github via cli")
 
