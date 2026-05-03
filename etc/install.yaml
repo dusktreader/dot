@@ -247,13 +247,13 @@ tools:
     scripts:
       linux: |
         mkdir -p "$HOME/.local/share/fonts"
-        curl -L "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.206/FiraCode.zip" -o /tmp/FiraCode.zip
+        curl -fL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip" -o /tmp/FiraCode.zip
         unzip -jo /tmp/FiraCode.zip "*.ttf" -d "$HOME/.local/share/fonts/FiraCode/"
         rm /tmp/FiraCode.zip
         fc-cache -fv
-      macos: |
+      darwin: |
         mkdir -p "$HOME/Library/Fonts"
-        wget -q "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.206/FiraCode.zip" -O /tmp/FiraCode.zip
+        curl -fL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip" -o /tmp/FiraCode.zip
         unzip -jo /tmp/FiraCode.zip "*.ttf" -d "$HOME/Library/Fonts/FiraCode"
         rm /tmp/FiraCode.zip
 services: []
