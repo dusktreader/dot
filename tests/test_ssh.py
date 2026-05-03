@@ -51,30 +51,32 @@ class TestAddSshConfigEntry:
     def test_add_entry__writes_correct_block(self, tmp_path: Path, key_path: Path):
         config = tmp_path / "config"
         _add_ssh_config_entry("myhost", "192.168.1.1", "bob", 22, key_path, ssh_config_path=config)
-        content = config.read_text()
-        assert "Host myhost" in content
-        assert "HostName 192.168.1.1" in content
-        assert "User bob" in content
-        assert "Port 22" in content
-        assert str(key_path) in content
+        entry = (tmp_path / "config.d" / "myhost").read_text()
+        assert "Host myhost" in entry
+        assert "HostName 192.168.1.1" in entry
+        assert "User bob" in entry
+        assert "Port 22" in entry
+        assert str(key_path) in entry
 
     def test_add_entry__skips_if_alias_already_present(self, tmp_path: Path, key_path: Path):
         config = tmp_path / "config"
-        config.write_text("Host myhost\n    HostName 1.2.3.4\n")
+        entry_path = tmp_path / "config.d" / "myhost"
+        entry_path.parent.mkdir(parents=True, exist_ok=True)
+        entry_path.write_text("Host myhost\n    HostName 1.2.3.4\n")
         _add_ssh_config_entry("myhost", "192.168.1.1", "bob", 22, key_path, ssh_config_path=config)
-        # should still only have one Host myhost entry
-        assert config.read_text().count("Host myhost") == 1
+        assert entry_path.read_text().count("Host myhost") == 1
 
-    def test_add_entry__creates_config_if_missing(self, tmp_path: Path, key_path: Path):
+    def test_add_entry__creates_config_d_if_missing(self, tmp_path: Path, key_path: Path):
         config = tmp_path / "subdir" / "config"
         _add_ssh_config_entry("newhost", "10.0.0.1", "alice", 2222, key_path, ssh_config_path=config)
-        assert config.exists()
-        assert "Host newhost" in config.read_text()
+        entry = (tmp_path / "subdir" / "config.d" / "newhost").read_text()
+        assert "Host newhost" in entry
 
     def test_add_entry__uses_custom_port(self, tmp_path: Path, key_path: Path):
         config = tmp_path / "config"
         _add_ssh_config_entry("myhost", "10.0.0.1", "alice", 2222, key_path, ssh_config_path=config)
-        assert "Port 2222" in config.read_text()
+        entry = (tmp_path / "config.d" / "myhost").read_text()
+        assert "Port 2222" in entry
 
 
 class TestGenerateKeypair:
@@ -140,7 +142,7 @@ class TestConnectHost:
         mock_client.connect.assert_called_once_with(
             hostname="192.168.1.1", port=22, username="bob", password="password"
         )
-        assert "Host myalias" in config.read_text()
+        assert "Host myalias" in (tmp_path / "config.d" / "myalias").read_text()
 
     def test_connect_host__skips_write_if_key_already_present(self, tmp_path: Path, key_path: Path):
         config = tmp_path / "config"

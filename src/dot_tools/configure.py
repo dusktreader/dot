@@ -5,7 +5,6 @@ import platform
 import select
 import shutil
 import subprocess
-import sys
 from typing import Annotated
 
 import buzz
@@ -229,18 +228,20 @@ class DotInstaller:
                         continue
 
                     logger.debug(f"{tool.name} is not yet installed", status=Status.MISSING)
-                    script: str
+                    script: str | None
                     if tool.scripts.generic:
                         logger.debug("Using generic script for tool installation")
                         script = tool.scripts.generic
                     elif platform.system() == "Linux":
-                        logger.debug("Using linux script for tool installation")
-                        script = DotError.enforce_defined(tool.scripts.linux, "No linux script defined for tool")
+                        script = tool.scripts.linux
                     elif platform.system() == "Darwin":
-                        logger.debug("Using darwin script for tool installation")
-                        script = DotError.enforce_defined(tool.scripts.darwin, "No darwin script defined for tool")
+                        script = tool.scripts.darwin
                     else:
                         raise DotError(f"Unsupported platform {platform.system()} for tool {tool.name}")
+
+                    if script is None:
+                        logger.warning(f"No {platform.system()} script defined for tool '{tool.name}' — skipping")
+                        continue
 
                     logger.debug(f"Running installation script for {tool.name}")
                     output_lines: list[str] = []
@@ -288,16 +289,20 @@ class DotInstaller:
                         continue
 
                     logger.debug(f"{setting.name} is not yet applied", status=Status.MISSING)
-                    script: str
+                    script: str | None
                     if setting.scripts.generic:
                         logger.debug("Using generic script for setting")
                         script = setting.scripts.generic
                     elif platform.system() == "Linux":
-                        logger.debug("Using linux script for setting")
-                        script = DotError.enforce_defined(setting.scripts.linux, "No linux script defined for setting")
+                        script = setting.scripts.linux
                     elif platform.system() == "Darwin":
-                        logger.debug("Using darwin script for setting")
-                        script = DotError.enforce_defined(setting.scripts.darwin, "No darwin script defined for setting")
+                        script = setting.scripts.darwin
+                    else:
+                        raise DotError(f"Unsupported platform {platform.system()} for setting {setting.name}")
+
+                    if script is None:
+                        logger.warning(f"No {platform.system()} script defined for setting '{setting.name}' — skipping")
+                        continue
                     else:
                         raise DotError(f"Unsupported platform {platform.system()} for setting {setting.name}")
 
@@ -591,20 +596,31 @@ class DotInstaller:
             config_d.mkdir(exist_ok=True)
 
             config_path = ssh_dir / "config"
+            config_base_path = ssh_dir / "config.base"
+
+            expected_stub = snick.dedent(
+                f"""
+                Include {ssh_dir}/config.base
+                Include {config_d}/*
+                """,
+                should_strip=True,
+            )
+
             if config_path.exists():
-                logger.debug(f"{config_path} already exists, skipping")
-                return
+                current = config_path.read_text()
+                if current.strip() == expected_stub.strip():
+                    logger.debug(f"{config_path} already contains expected includes, skipping")
+                    return
+                # Migrate: existing config predates the config.base split
+                if not config_base_path.exists():
+                    logger.debug(f"Migrating {config_path} to {config_base_path}")
+                    config_path.rename(config_base_path)
+                    config_base_path.chmod(0o600)
+                else:
+                    logger.debug(f"{config_path} exists but is not the expected stub; overwriting")
 
             logger.debug(f"Writing {config_path} with includes")
-            config_path.write_text(
-                snick.dedent(
-                    f"""
-                    Include {ssh_dir}/config.base
-                    Include {config_d}/*
-                    """,
-                    should_strip=True,
-                )
-            )
+            config_path.write_text(expected_stub)
             config_path.chmod(0o600)
 
     def _create_local_agents_file(self):
@@ -656,7 +672,7 @@ class DotInstaller:
         with spinner("Installing dot", context_level="INFO"):
             with DotError.handle_errors(
                 "Install failed. Aborting",
-                do_except=lambda dep: print(dep.final_message, file=sys.stderr),
+                do_except=lambda dep: logger.error(dep.final_message),
             ):
                 self._make_dirs()
                 self._make_links()
