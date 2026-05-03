@@ -17,6 +17,7 @@ from typerdrive import (
 )
 
 from dot_tools.cli.git import cli as git_cli
+from dot_tools.cli.ssh import cli as ssh_cli
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
 from dot_tools.line_length import get_config_line_length
@@ -28,6 +29,7 @@ add_settings_subcommand(cli, Settings)
 add_logs_subcommand(cli)
 
 cli.add_typer(git_cli, name="git")
+cli.add_typer(ssh_cli, name="ssh")
 
 
 @cli.callback(invoke_without_command=True)
@@ -55,7 +57,7 @@ def main(
         ctx.exit()
 
 
-@cli.command()
+@cli.command(no_args_is_help=True)
 def kv(
     kv: Annotated[list[str], typer.Argument(help="Key value pairs to include in the produced json")],
     sep: Annotated[str, typer.Option(help="Separator for key value pairs")] = "->",

@@ -12,7 +12,15 @@ from dot_tools.settings import Settings
 cli = typer.Typer(help="Commands to interact with git")
 
 
-@cli.command()
+@cli.callback(invoke_without_command=True)
+def git_main(ctx: typer.Context):
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
+
+
+
+@cli.command(no_args_is_help=True)
 @handle_errors("Couldn't checkout branch by pattern")
 @attach_logging()
 def cojira(
@@ -26,7 +34,7 @@ def cojira(
     git_man.checkout_branch_by_pattern(pattern)
 
 
-@cli.command()
+@cli.command(no_args_is_help=True)
 @handle_errors("Couldn't get JIRA issue")
 @attach_settings(Settings)
 @attach_logging()
