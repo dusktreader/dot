@@ -147,3 +147,6 @@ dmypy.json
 
 # snapcraft
 /*.snap
+
+# machine-local agent context
+.agents/local.md
