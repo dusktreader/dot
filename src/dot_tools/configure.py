@@ -20,7 +20,6 @@ from dot_tools.exceptions import DotError
 from dot_tools.spinner import spinner, pause_live
 from dot_tools.constants import Status
 from dot_tools.ssh_tools import generate_keypair
-from dot_tools.ssh_tools import generate_keypair
 
 
 def parse_octal(value: str) -> int:
@@ -574,7 +573,11 @@ class DotInstaller:
                 self._make_dirs()
                 self._make_links()
                 self._copy_files()
-                generate_keypair()
+                key_path = Path.home() / ".ssh" / f"{os.getlogin()}.ed25519"
+                if key_path.exists():
+                    logger.warning(f"SSH key {key_path} already exists. Skipping key generation.")
+                else:
+                    generate_keypair()
                 self._install_tools()
                 self._apply_settings()
                 self._update_dotfiles()
