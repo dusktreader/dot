@@ -397,10 +397,10 @@ class DotInstaller:
         hostname = platform.node()
         with spinner(f"Adding ssh keys for {user}", context_level="DEBUG"):
             if key_path.exists():
-                logger.debug(f"SSH key {key_path} already exists. Skipping")
-                return
-            result = subprocess.run(f"ssh-keygen -t ed25519 -f {key_path} -N ''", shell=True, stderr=subprocess.PIPE)
-            DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
+                logger.warning(f"SSH key {key_path} already exists. Skipping key generation.")
+            else:
+                result = subprocess.run(f"ssh-keygen -t ed25519 -f {key_path} -N ''", shell=True, stderr=subprocess.PIPE)
+                DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
         with spinner("Adding ssh keys to github", context_level="DEBUG"):
             result = subprocess.run(
