@@ -10,8 +10,7 @@ link_paths:
   - .config/nvim/lua
   - .config/oh-my-posh/dusktreader.omp.yaml
   - .config/opencode/AGENTS.md
-  - .config/traefik
-  - .config/dnsmasq
+  - .config/ghostty
 copy_paths:
   - path: .ssh/config
     perms: 0o600
@@ -256,4 +255,15 @@ tools:
         curl -fL "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/FiraCode.zip" -o /tmp/FiraCode.zip
         unzip -jo /tmp/FiraCode.zip "*.ttf" -d "$HOME/Library/Fonts/FiraCode"
         rm /tmp/FiraCode.zip
+  - name: ghostty
+    check: "command -v ghostty"
+    scripts:
+      linux: |
+        sudo snap install ghostty --classic
+      darwin: s|
+        curl -fL "https://release.files.ghostty.org/1.3.1/Ghostty.dmg" -o /tmp/Ghostty.dmg
+        hdiutil attach /tmp/Ghostty.dmg -quiet
+        cp -R "/Volumes/Ghostty/Ghostty.app" /Applications/
+        hdiutil detach "/Volumes/Ghostty" -quiet
+        rm /tmp/Ghostty.dmg
 services: []
