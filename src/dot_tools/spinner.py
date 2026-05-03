@@ -100,10 +100,9 @@ def spinner(text: str, context_level: str = "INFO"):
     finally:
         logger.remove(spin_logger)
         spin_logger = None
-
-    branch_stack.pop()
-    if len(branch_stack) > 0:
-        branch_stack[-1].children = []
-    if live:
-        active_live = None
-        live.stop()
+        branch_stack.pop()
+        if len(branch_stack) > 0:
+            branch_stack[-1].children = []
+        if live:
+            active_live = None
+            live.stop()

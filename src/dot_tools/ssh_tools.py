@@ -10,7 +10,9 @@ from dot_tools.exceptions import DotError
 from dot_tools.spinner import spinner
 from dot_tools.constants import Status
 
-SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
+
+def _ssh_config_path() -> Path:
+    return Path.home() / ".ssh" / "config"
 
 
 def _default_key_path() -> Path:
@@ -29,6 +31,7 @@ def connect_host(
     user: str,
     port: int,
     key_path: Path,
+    ssh_config_path: Path | None = None,
 ) -> None:
     pub_key_path = Path(str(key_path) + ".pub")
 
@@ -75,14 +78,29 @@ def connect_host(
         client.close()
 
         with spinner(f"Adding '{alias}' to ~/.ssh/config", context_level="DEBUG"):
-            _add_ssh_config_entry(alias=alias, host=host, user=user, port=port, key_path=key_path)
+            _add_ssh_config_entry(
+                alias=alias,
+                host=host,
+                user=user,
+                port=port,
+                key_path=key_path,
+                ssh_config_path=ssh_config_path,
+            )
 
 
-def _add_ssh_config_entry(alias: str, host: str, user: str, port: int, key_path: Path) -> None:
-    SSH_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SSH_CONFIG_PATH.touch(exist_ok=True)
+def _add_ssh_config_entry(
+    alias: str,
+    host: str,
+    user: str,
+    port: int,
+    key_path: Path,
+    ssh_config_path: Path | None = None,
+) -> None:
+    config_path = ssh_config_path or _ssh_config_path()
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.touch(exist_ok=True)
 
-    existing = SSH_CONFIG_PATH.read_text()
+    existing = config_path.read_text()
 
     if f"Host {alias}" in existing:
         logger.debug(f"Entry for '{alias}' already exists in ssh config", status=Status.CONFIRM)
@@ -96,23 +114,23 @@ def _add_ssh_config_entry(alias: str, host: str, user: str, port: int, key_path:
         f"    IdentityFile {key_path}\n"
     )
 
-    with SSH_CONFIG_PATH.open("a") as f:
+    with config_path.open("a") as f:
         f.write(entry)
 
-    logger.debug(f"Added '{alias}' to {SSH_CONFIG_PATH}", status=Status.CONFIRM)
+    logger.debug(f"Added '{alias}' to {config_path}", status=Status.CONFIRM)
 
 
-def generate_keypair() -> None:
-    key_path = _default_key_path()
+def generate_keypair(key_path: Path | None = None) -> None:
+    resolved_key_path = key_path or _default_key_path()
 
     with spinner("Generating SSH keypair", context_level="INFO"):
         DotError.require_condition(
-            not key_path.exists(),
-            f"Key already exists at {key_path} — delete it first if you want to regenerate",
+            not resolved_key_path.exists(),
+            f"Key already exists at {resolved_key_path} — delete it first if you want to regenerate",
         )
-        key_path.parent.mkdir(parents=True, exist_ok=True)
+        resolved_key_path.parent.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
-            ["ssh-keygen", "-t", "ed25519", "-f", str(key_path), "-N", ""],
+            ["ssh-keygen", "-t", "ed25519", "-f", str(resolved_key_path), "-N", ""],
             capture_output=True,
             text=True,
         )
@@ -120,5 +138,5 @@ def generate_keypair() -> None:
             result.returncode == 0,
             f"ssh-keygen failed:\n{result.stderr}",
         )
-        logger.debug(f"Keypair generated at {key_path}", status=Status.CONFIRM)
-        logger.debug(f"Public key: {key_path}.pub", status=Status.CONFIRM)
+        logger.debug(f"Keypair generated at {resolved_key_path}", status=Status.CONFIRM)
+        logger.debug(f"Public key: {resolved_key_path}.pub", status=Status.CONFIRM)

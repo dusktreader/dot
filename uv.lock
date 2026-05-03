@@ -279,6 +279,15 @@ wheels = [
 ]
 
 [[package]]
+name = "diskcache"
+version = "5.6.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/3f/21/1c1ffc1a039ddcc459db43cc108658f32c57d271d7289a2794e401d0fdb6/diskcache-5.6.3.tar.gz", hash = "sha256:2c3a3fa2743d8535d832ec61c2054a1641f41775aa7c556758a109941e33e4fc", size = 67916, upload-time = "2023-08-31T06:12:00.316Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/27/4570e78fc0bf5ea0ca45eb1de3818a23787af9b390c0b0a0033a1b8236f9/diskcache-5.6.3-py3-none-any.whl", hash = "sha256:5e31b2d5fbad117cc363ebaf6b689474db18a1f6438bc82358b024abd4c2ca19", size = 45550, upload-time = "2023-08-31T06:11:58.822Z" },
+]
+
+[[package]]
 name = "dot-tools"
 version = "5.0.0"
 source = { editable = "." }
@@ -319,7 +328,7 @@ requires-dist = [
     { name = "loguru", specifier = "~=0.7" },
     { name = "paramiko", specifier = "~=3.5" },
     { name = "pprintpp", specifier = ">=0.4.0" },
-    { name = "py-buzz", specifier = "~=7.3" },
+    { name = "py-buzz", specifier = ">=8.0" },
     { name = "pydantic", specifier = ">=2.11.4" },
     { name = "pyperclip", specifier = ">=1.9.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
@@ -636,11 +645,14 @@ wheels = [
 
 [[package]]
 name = "py-buzz"
-version = "7.3.0"
+version = "8.1.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c8/eb/4e40dab7e39e13cc7fb6600e991dce5ea3ec35108367139a03b2bafd6549/py_buzz-7.3.0.tar.gz", hash = "sha256:c20def3b3fb0aab42d20732dc8f27ff6c098082d61b3bd7476d87db5fba5bdcf", size = 573682, upload-time = "2025-04-22T03:49:09.297Z" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/dd/ab/c94f80de2b17d8c612016f667bb23c215e37944996dae8d6589f2afbb184/py_buzz-8.1.2.tar.gz", hash = "sha256:7ca3c8fedc0e2fec9258cd0b3f550cffc785b7094016c5d4174e2c6ebe4ffb17", size = 20158, upload-time = "2026-04-11T01:19:58.61Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/a1/043828a0f3f938dc0f74e4ab85aacd185c933494c2e7f628bf6b36bbe042/py_buzz-7.3.0-py3-none-any.whl", hash = "sha256:e2f77f45ba7362c34d888747e81bfb4a69a1450a1f9f3d981bd4987ca2228ae4", size = 23346, upload-time = "2025-04-22T03:49:07.839Z" },
+    { url = "https://files.pythonhosted.org/packages/2d/9c/24230b1e5255430f42c8d31604287e9b16012de65a5cc4561cb3d9c11a72/py_buzz-8.1.2-py3-none-any.whl", hash = "sha256:217fa7c06467f60eb98c473e95009a951fe759360761070d26640c358018c7b5", size = 29264, upload-time = "2026-04-11T01:19:59.585Z" },
 ]
 
 [[package]]
@@ -906,14 +918,11 @@ wheels = [
 
 [[package]]
 name = "snick"
-version = "2.2.0"
+version = "3.2.0"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pprintpp" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/42/25/4970bb6cf0f0c89294f53f9860ffca2c6f8401f1aac13874454f5218cac8/snick-2.2.0.tar.gz", hash = "sha256:081b2848f124b1b6910c98975e289295e6d8356aba76420979deef724640467b", size = 50737, upload-time = "2025-05-22T22:24:16.537Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/3f/1f541a1759c6e9dfb804a095c92a6b424a8db1f3aa8158185bf78a707900/snick-3.2.0.tar.gz", hash = "sha256:a8711b42a08449ca1ac408f68d6dd536a2d6fbc207ddb31e31802bb19bf6a039", size = 12353, upload-time = "2026-04-28T02:53:23.153Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/64/f436c57bbba05ca0d1ad1abbdcb771729777f3ef77936072afc6a644ff2a/snick-2.2.0-py3-none-any.whl", hash = "sha256:0d96608de3a57f0ae26eb0009f63a7abbe177be7633b82bb6f39b233710e29cf", size = 7719, upload-time = "2025-05-22T22:24:15.299Z" },
+    { url = "https://files.pythonhosted.org/packages/27/45/517235b9479e666265ac94851a78d6d197b3ca6b77861966de565c0a0bf1/snick-3.2.0-py3-none-any.whl", hash = "sha256:fcfd29647c7ed4ed70a14f5b08f5eb667329cb03ba00d97d9ba5716572924e1b", size = 17936, upload-time = "2026-04-28T02:53:24.139Z" },
 ]
 
 [[package]]
@@ -989,7 +998,7 @@ wheels = [
 
 [[package]]
 name = "typer-repyt"
-version = "0.8.1"
+version = "0.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "humanize" },
@@ -999,16 +1008,17 @@ dependencies = [
     { name = "snick" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/99/98/246ba1a841946f5e63f80ffcad9ded8778ec24274a112949e9423dbb8c4d/typer_repyt-0.8.1.tar.gz", hash = "sha256:666d28ab984e98e90198bfa06fa53a97a2da70db2c1f998c33365802a81ff89a", size = 107303, upload-time = "2025-05-22T16:34:03.801Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7f/7d/75f1c2c36938db618177ac9b7fde8e4a3ea605e5633180773dba3e959cbf/typer_repyt-0.9.1.tar.gz", hash = "sha256:6daf36e25a7d22bbda7c47c8da5f3335cc6f50942c2fbf4f3b5cc0f897da962f", size = 10572, upload-time = "2026-03-12T22:35:36.753Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/56/f9/137368d7904ca4025a3103343ee04c52c0915c2d5d125af38b84b195a8cf/typer_repyt-0.8.1-py3-none-any.whl", hash = "sha256:d9e2bd7747bbe7b02b33ccc438144b8fce65af5ad7c3bc7998c4a808324a2178", size = 13499, upload-time = "2025-05-22T16:34:02.578Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/93/279ed69d25a9914f641bb4e5a50ec2caee98763b94519be08aa18a7fd17f/typer_repyt-0.9.1-py3-none-any.whl", hash = "sha256:2b88dd05fed668c5559b603ce3105f7f48a258d506a6a90a8a8cfaa72915c4b4", size = 14125, upload-time = "2026-03-12T22:35:37.684Z" },
 ]
 
 [[package]]
 name = "typerdrive"
-version = "0.7.2"
+version = "0.9.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "diskcache" },
     { name = "httpx" },
     { name = "humanize" },
     { name = "inflection" },
@@ -1016,13 +1026,15 @@ dependencies = [
     { name = "py-buzz" },
     { name = "pydantic" },
     { name = "pyperclip" },
+    { name = "rich" },
     { name = "snick" },
     { name = "typer" },
     { name = "typer-repyt" },
+    { name = "xdg-base-dirs" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/09/2c/95e712bd7519e99ebb4a8d93bf3bcf2abc06be8cda9bdf88b064748985c8/typerdrive-0.7.2.tar.gz", hash = "sha256:5f1619dca53a057339dc49a23804b51475edf35f5382416c861b8973443634cb", size = 215208, upload-time = "2025-05-22T23:15:39.743Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8d/04/ae7c5d27a6ef7f8c5e31d6ce2f3cefc6d1b5b3932d750841c9ac65d96d45/typerdrive-0.9.4.tar.gz", hash = "sha256:f7d669565232cb99c2e7210206e779813ecd2b0a141a0501f16ba5f04ebde3d9", size = 28854, upload-time = "2026-05-03T06:57:44.816Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/31/907d516f687b52f9d8a107bf33b9542b2d49751f3782867e9b6baf0556fe/typerdrive-0.7.2-py3-none-any.whl", hash = "sha256:47bff619fbe0c05d6f9541072e5529d6e7baca25b07b767f55f97f72ee9ffff9", size = 47667, upload-time = "2025-05-22T23:15:38.284Z" },
+    { url = "https://files.pythonhosted.org/packages/80/6b/b15905f4dce10959b7fc47b010a65ab85cfddcf9a0a667346d5e8dc4738a/typerdrive-0.9.4-py3-none-any.whl", hash = "sha256:55330b97347800a5e1787427b0cce03d62cd8e0547f4e76b6584b5afe410fb05", size = 44953, upload-time = "2026-05-03T06:57:45.884Z" },
 ]
 
 [[package]]
