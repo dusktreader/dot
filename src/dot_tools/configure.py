@@ -37,6 +37,12 @@ class ScriptSpecs(pydantic.BaseModel):
     darwin: str | None = None
 
 
+class SettingSpecs(pydantic.BaseModel):
+    name: str
+    check: str
+    scripts: ScriptSpecs
+
+
 class ToolSpecs(pydantic.BaseModel):
     name: str
     check: str
@@ -57,6 +63,7 @@ class InstallManifest(pydantic.BaseModel):
     dotfile_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
     mkdir_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
     tools: Annotated[list[ToolSpecs], pydantic.Field(default_factory=lambda: [])]
+    settings: Annotated[list[SettingSpecs], pydantic.Field(default_factory=lambda: [])]
     services: Annotated[list[ServiceSpecs], pydantic.Field(default_factory=lambda: [])]
 
 
@@ -258,6 +265,64 @@ class DotInstaller:
                         last_lines = "\n".join(output_lines[-20:])
                         raise DotError(f"Failed to install {tool.name}:\n{last_lines}")
                     logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
+
+    def _apply_settings(self):
+        with spinner("Applying settings", context_level="DEBUG"):
+            for setting in self.install_manifest.settings:
+                with spinner(f"Applying {setting.name}", context_level="DEBUG"):
+                    logger.debug(f"Checking if {setting.name} is already applied", status=Status.CHECK)
+                    result = subprocess.run(
+                        setting.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                    )
+                    if result.returncode == 0:
+                        logger.debug(f"{setting.name} is already applied", status=Status.CONFIRM)
+                        continue
+
+                    logger.debug(f"{setting.name} is not yet applied", status=Status.MISSING)
+                    script: str
+                    if setting.scripts.generic:
+                        logger.debug("Using generic script for setting")
+                        script = setting.scripts.generic
+                    elif platform.system() == "Linux":
+                        logger.debug("Using linux script for setting")
+                        script = DotError.enforce_defined(setting.scripts.linux, "No linux script defined for setting")
+                    elif platform.system() == "Darwin":
+                        logger.debug("Using darwin script for setting")
+                        script = DotError.enforce_defined(setting.scripts.darwin, "No darwin script defined for setting")
+                    else:
+                        raise DotError(f"Unsupported platform {platform.system()} for setting {setting.name}")
+
+                    logger.debug(f"Running script for {setting.name}")
+                    output_lines: list[str] = []
+
+                    proc = subprocess.Popen(
+                        script,
+                        shell=True,
+                        executable="/bin/bash",
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                    )
+                    assert proc.stdout is not None
+                    assert proc.stderr is not None
+
+                    open_streams = [proc.stdout, proc.stderr]
+                    while open_streams:
+                        readable, _, _ = select.select(open_streams, [], [])
+                        for stream in readable:
+                            line = stream.readline()
+                            if line:
+                                stripped = line.rstrip()
+                                output_lines.append(stripped)
+                                logger.debug(stripped)
+                            else:
+                                open_streams.remove(stream)
+                    proc.wait()
+
+                    if proc.returncode != 0:
+                        last_lines = "\n".join(output_lines[-20:])
+                        raise DotError(f"Failed to apply {setting.name}:\n{last_lines}")
+                    logger.debug(f"Applied {setting.name}", status=Status.CONFIRM)
 
     def _update_dotfiles(self):
         with spinner("Adding dotfiles from manifest", context_level="DEBUG"):
@@ -508,6 +573,7 @@ class DotInstaller:
                 self._make_links()
                 self._copy_files()
                 self._install_tools()
+                self._apply_settings()
                 self._update_dotfiles()
                 self._github_cli_login()
                 self._add_ssh_keys()

@@ -266,4 +266,11 @@ tools:
         cp -R "/Volumes/Ghostty/Ghostty.app" /Applications/
         hdiutil detach "/Volumes/Ghostty" -quiet
         rm /tmp/Ghostty.dmg
+settings:
+  - name: capslock-to-escape
+    check: "grep -q 'caps:escape' /etc/default/keyboard"
+    scripts:
+      linux: |
+        sudo sed -i 's/^XKBOPTIONS=.*/XKBOPTIONS="caps:escape"/' /etc/default/keyboard
+        sudo dpkg-reconfigure -f noninteractive keyboard-configuration
 services: []
