@@ -1,4 +1,5 @@
 import os
+import subprocess
 from pathlib import Path
 
 import paramiko
@@ -99,3 +100,25 @@ def _add_ssh_config_entry(alias: str, host: str, user: str, port: int, key_path:
         f.write(entry)
 
     logger.debug(f"Added '{alias}' to {SSH_CONFIG_PATH}", status=Status.CONFIRM)
+
+
+def generate_keypair() -> None:
+    key_path = _default_key_path()
+
+    with spinner("Generating SSH keypair", context_level="INFO"):
+        DotError.require_condition(
+            not key_path.exists(),
+            f"Key already exists at {key_path} — delete it first if you want to regenerate",
+        )
+        key_path.parent.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            ["ssh-keygen", "-t", "ed25519", "-f", str(key_path), "-N", ""],
+            capture_output=True,
+            text=True,
+        )
+        DotError.require_condition(
+            result.returncode == 0,
+            f"ssh-keygen failed:\n{result.stderr}",
+        )
+        logger.debug(f"Keypair generated at {key_path}", status=Status.CONFIRM)
+        logger.debug(f"Public key: {key_path}.pub", status=Status.CONFIRM)

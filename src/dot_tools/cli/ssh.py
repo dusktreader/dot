@@ -5,7 +5,7 @@ from typing import Annotated
 import typer
 from typerdrive import attach_logging, handle_errors, log_error
 
-from dot_tools.ssh_tools import connect_host, _default_key_path
+from dot_tools.ssh_tools import connect_host, generate_keypair, _default_key_path
 
 cli = typer.Typer(help="Commands to manage SSH connections")
 
@@ -35,3 +35,13 @@ def connect(
     entry to your local ~/.ssh/config.
     """
     connect_host(host=host, alias=alias, user=user, port=port, key_path=key)
+
+
+@cli.command()
+@handle_errors("Failed to generate SSH keypair", do_except=log_error)
+@attach_logging()
+def keygen(ctx: typer.Context):
+    """
+    Generate an ed25519 SSH keypair at ~/.ssh/<username>.ed25519.
+    """
+    generate_keypair()
