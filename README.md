@@ -25,5 +25,5 @@ curl -L install.dusktreader.dev | bash
 Nuke the installation with:
 
 ```bash
-curl https://raw.githubusercontent.com/dusktreader/dot/refs/heads/main/uninstall.sh | bash
+curl -L uninstall.dusktreader.dev | bash
 ```
