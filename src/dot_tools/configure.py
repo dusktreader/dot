@@ -582,6 +582,76 @@ class DotInstaller:
             self._scrub_extra_dotfiles_block()
             self._add_extra_dotfiles_block()
 
+    def _setup_ssh_config(self):
+        with spinner("Setting up ~/.ssh/config", context_level="DEBUG"):
+            ssh_dir = self.home / ".ssh"
+            ssh_dir.mkdir(parents=True, exist_ok=True)
+
+            config_d = ssh_dir / "config.d"
+            config_d.mkdir(exist_ok=True)
+
+            config_path = ssh_dir / "config"
+            if config_path.exists():
+                logger.debug(f"{config_path} already exists, skipping")
+                return
+
+            logger.debug(f"Writing {config_path} with includes")
+            config_path.write_text(
+                snick.dedent(
+                    f"""
+                    Include {ssh_dir}/config.base
+                    Include {config_d}/*
+                    """,
+                    should_strip=True,
+                )
+            )
+            config_path.chmod(0o600)
+
+    def _create_local_agents_file(self):
+        agents_dir = self.home / ".agents"
+        local_agents_path = agents_dir / "local.md"
+        if local_agents_path.exists():
+            logger.debug(f"{local_agents_path} already exists, skipping stub creation")
+            return
+
+        hostname = platform.node()
+        os_name = platform.system()
+        tool_names = [t.name for t in self.install_manifest.tools]
+
+        content = snick.dedent(
+            f"""
+            # Local machine context: {hostname}
+
+            This file is machine-local and not tracked in the dot repository. Edit it freely
+            to give agents context about this specific machine's setup, quirks, and purpose.
+
+
+            ## System
+
+            - **Hostname**: {hostname}
+            - **OS**: {os_name}
+            - **User**: {os.getlogin()}
+
+
+            ## Tools installed by dt configure
+
+            {chr(10).join(f"- {name}" for name in tool_names)}
+
+
+            ## Notes
+
+            <!-- Add machine-specific notes here, e.g.: -->
+            <!-- - This is a headless Intel NUC used as a home server -->
+            <!-- - No GUI, no display, no fonts needed -->
+            <!-- - Accessible via SSH only -->
+            """,
+            should_strip=True,
+        )
+
+        logger.debug(f"Creating local agents stub at {local_agents_path}")
+        agents_dir.mkdir(parents=True, exist_ok=True)
+        local_agents_path.write_text(content)
+
     def install_dot(self):
         with spinner("Installing dot", context_level="INFO"):
             with DotError.handle_errors(
@@ -591,6 +661,7 @@ class DotInstaller:
                 self._make_dirs()
                 self._make_links()
                 self._copy_files()
+                self._setup_ssh_config()
                 key_path = Path.home() / ".ssh" / f"{os.getlogin()}.ed25519"
                 if key_path.exists():
                     logger.warning(f"SSH key {key_path} already exists. Skipping key generation.")
@@ -603,6 +674,7 @@ class DotInstaller:
                 self._add_ssh_keys()
                 self._startup()
                 self._install_services()
+                self._create_local_agents_file()
 
         terminal_message(
             f"""

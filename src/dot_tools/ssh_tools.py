@@ -15,6 +15,10 @@ def _ssh_config_path() -> Path:
     return Path.home() / ".ssh" / "config"
 
 
+def _ssh_config_d_path() -> Path:
+    return Path.home() / ".ssh" / "config.d"
+
+
 def _default_key_path() -> Path:
     return Path.home() / ".ssh" / f"{os.getlogin()}.ed25519"
 
@@ -96,28 +100,26 @@ def _add_ssh_config_entry(
     key_path: Path,
     ssh_config_path: Path | None = None,
 ) -> None:
-    config_path = ssh_config_path or _ssh_config_path()
-    config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.touch(exist_ok=True)
+    config_d = ssh_config_path.parent / "config.d" if ssh_config_path else _ssh_config_d_path()
+    config_d.mkdir(parents=True, exist_ok=True)
 
-    existing = config_path.read_text()
+    entry_path = config_d / alias
 
-    if f"Host {alias}" in existing:
-        logger.debug(f"Entry for '{alias}' already exists in ssh config", status=Status.CONFIRM)
+    if entry_path.exists():
+        logger.debug(f"Entry for '{alias}' already exists at {entry_path}", status=Status.CONFIRM)
         return
 
     entry = (
-        f"\nHost {alias}\n"
+        f"Host {alias}\n"
         f"    HostName {host}\n"
         f"    User {user}\n"
         f"    Port {port}\n"
         f"    IdentityFile {key_path}\n"
     )
 
-    with config_path.open("a") as f:
-        f.write(entry)
-
-    logger.debug(f"Added '{alias}' to {config_path}", status=Status.CONFIRM)
+    entry_path.write_text(entry)
+    entry_path.chmod(0o600)
+    logger.debug(f"Added '{alias}' to {entry_path}", status=Status.CONFIRM)
 
 
 def generate_keypair(key_path: Path | None = None) -> None:

@@ -12,7 +12,7 @@ link_paths:
   - .config/opencode/AGENTS.md
   - .config/ghostty
 copy_paths:
-  - path: .ssh/config
+  - path: .ssh/config.base
     perms: 0o600
   - path: .ssh/rc
     perms: 0o600
