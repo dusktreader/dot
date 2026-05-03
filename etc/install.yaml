@@ -275,6 +275,15 @@ tools:
         sudo apt install btop
       darwin: s|
         sudo port install btop
+  - name: openssh-server
+    check: "command -v sshd"
+    scripts:
+      linux: |
+        sudo apt install -y openssh-server
+        sudo systemctl enable ssh
+        sudo systemctl start ssh
+      darwin: |
+        sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
 settings:
   - name: capslock-to-escape
     check: "grep -q 'caps:escape' /etc/default/keyboard"
