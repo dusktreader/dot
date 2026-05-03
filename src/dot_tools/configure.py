@@ -48,6 +48,7 @@ class ToolSpecs(pydantic.BaseModel):
     name: str
     check: str
     scripts: ScriptSpecs
+    gui_only: bool = False
 
 
 class ServiceSpecs(pydantic.BaseModel):
@@ -56,6 +57,7 @@ class ServiceSpecs(pydantic.BaseModel):
     executable: str
     args: Annotated[list[str], pydantic.Field(default_factory=lambda: [])]
     config_template: Path | None = None
+    gui_only: bool = False
 
 
 class InstallManifest(pydantic.BaseModel):
@@ -206,12 +208,18 @@ class DotInstaller:
                     logger.debug(f"Updating permissions for file {dst_path}")
                     dst_path.chmod(perms)
 
+    def _is_headless(self) -> bool:
+        return not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
+
     def _install_tools(self):
         install_env = os.environ.copy()
         install_env["PYTHON_VERSION"] = platform.python_version()
         with spinner("Installing tools", context_level="DEBUG"):
             for tool in self.install_manifest.tools:
                 with spinner(f"Installing {tool.name}", context_level="DEBUG"):
+                    if tool.gui_only and self._is_headless():
+                        logger.debug(f"Skipping {tool.name} — gui_only and headless system detected")
+                        continue
                     logger.debug(f"Checking if {tool.name} is installed", status=Status.CHECK)
                     result = subprocess.run(
                         tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
@@ -461,6 +469,9 @@ class DotInstaller:
         with spinner("Installing services", context_level="DEBUG"):
             for service in self.install_manifest.services:
                 with spinner(f"Installing service {service.name}", context_level="DEBUG"):
+                    if service.gui_only and self._is_headless():
+                        logger.debug(f"Skipping service {service.name} — gui_only and headless system detected")
+                        continue
                     executable = shutil.which(service.executable)
                     DotError.require_condition(
                         executable is not None,

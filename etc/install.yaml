@@ -243,6 +243,7 @@ tools:
         echo "export GOENV_PATH_ORDER=front" >> "$HOME/.goenvrc"
   - name: firacode nerdfont
     check: "fc-list | grep -i firacode"
+    gui_only: true
     scripts:
       linux: |
         mkdir -p "$HOME/.local/share/fonts"
@@ -257,6 +258,7 @@ tools:
         rm /tmp/FiraCode.zip
   - name: ghostty
     check: "command -v ghostty"
+    gui_only: true
     scripts:
       linux: |
         sudo snap install ghostty --classic
