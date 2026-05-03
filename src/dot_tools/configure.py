@@ -416,8 +416,9 @@ class DotInstaller:
                 DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
         with spinner("Adding ssh keys to github", context_level="DEBUG"):
+            pub_key_path = Path(f"{key_path}.pub")
             result = subprocess.run(
-                f"gh ssh-key add {key_path} --title {user}@{hostname}", shell=True, stderr=subprocess.PIPE
+                f"gh ssh-key add {pub_key_path} --title {user}@{hostname}", shell=True, stderr=subprocess.PIPE
             )
             DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
