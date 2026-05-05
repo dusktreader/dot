@@ -18,7 +18,7 @@ dependencies = [
     "pyyaml>=6.0.2",
     "snick>=2.2.0",
     "typer~=0.15",
-    "typerdrive>=0.9.5",
+    "typerdrive>=0.9.6",
     "xdg-base-dirs>=6.0.2",
 ]
 

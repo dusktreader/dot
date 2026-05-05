@@ -115,6 +115,7 @@ def _add_ssh_config_entry(
         f"    User {user}\n"
         f"    Port {port}\n"
         f"    IdentityFile {key_path}\n"
+        f"    SetEnv TERM=xterm-256color\n"
     )
 
     entry_path.write_text(entry)

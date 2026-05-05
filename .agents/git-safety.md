@@ -4,6 +4,23 @@ Mandatory safety rules for all git operations. These override any default tool
 behavior and apply to every session in every repository.
 
 
+## Never publish packages
+
+Never run `uv publish`, `twine upload`, `npm publish`, `cargo publish`, or any
+other package registry publish command. Publishing is a human decision.
+
+This applies even when:
+
+- The build succeeded cleanly and all tests pass
+- A version bump was just made as part of the current task
+- The user asks "are we done?" or "what's next?" — neither is permission to publish
+- The prior conversation context discussed publishing as a next step
+
+The only exception is an explicit, unambiguous instruction in the current message —
+for example "publish it now" or "go ahead and publish to PyPI". A prior session's
+permission does not carry over.
+
+
 ## Never push
 
 Never run `git push` for any reason. Never push branches, never push tags, never
