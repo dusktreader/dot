@@ -30,9 +30,6 @@ return {
   -- Align text
   { "nvim-mini/mini.align" },
 
-  -- Better diff
-  { "nvim-mini/mini.diff" },
-
   -- Add a view/manager for undo trees
   { "mbbill/undotree" },
 
