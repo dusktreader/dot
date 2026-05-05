@@ -93,11 +93,12 @@ def configure(
     force: Annotated[bool, typer.Option(help="Overwrite destination files that differ from source")] = bool(
         os.environ.get("DOT_FORCE")
     ),
+    force_ssh: Annotated[bool, typer.Option(help="Overwrite SSH config files that differ from source")] = False,
 ):
     """
     Configure dot in your system.
     """
-    installer = DotInstaller(root=root, override_home=override_home, force=force)
+    installer = DotInstaller(root=root, override_home=override_home, force=force, force_ssh=force_ssh)
     installer.install_dot()
 
 

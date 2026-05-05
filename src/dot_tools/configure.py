@@ -75,9 +75,11 @@ class DotInstaller:
     startup_config: Path
     install_manifest: InstallManifest
     force: bool
+    force_ssh: bool
 
-    def __init__(self, root: Path, override_home: Path | None = None, force: bool = False):
+    def __init__(self, root: Path, override_home: Path | None = None, force: bool = False, force_ssh: bool = False):
         self.force = force
+        self.force_ssh = force_ssh
         self.root = root.expanduser().resolve().absolute()
         if override_home:
             self.home = override_home.expanduser().resolve().absolute()
@@ -182,6 +184,9 @@ class DotInstaller:
                         continue
 
                     if self.force:
+                        logger.warning(f"File at {dst_path} differs from source, overwriting (--force)")
+                    elif self.force_ssh and Path(".ssh") in path.parents:
+                        logger.warning(f"File at {dst_path} differs from source, overwriting (--force-ssh)")
                         logger.warning(f"File at {dst_path} differs from source, overwriting (--force)")
                     else:
                         # Check if dst matches the last committed version of src.
