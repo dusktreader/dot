@@ -334,7 +334,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "snick", specifier = ">=2.2.0" },
     { name = "typer", specifier = "~=0.15" },
-    { name = "typerdrive", specifier = "~=0.7" },
+    { name = "typerdrive", specifier = ">=0.9.5" },
     { name = "xdg-base-dirs", specifier = ">=6.0.2" },
 ]
 
@@ -1015,7 +1015,7 @@ wheels = [
 
 [[package]]
 name = "typerdrive"
-version = "0.9.4"
+version = "0.9.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "diskcache" },
@@ -1032,9 +1032,9 @@ dependencies = [
     { name = "typer-repyt" },
     { name = "xdg-base-dirs" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/04/ae7c5d27a6ef7f8c5e31d6ce2f3cefc6d1b5b3932d750841c9ac65d96d45/typerdrive-0.9.4.tar.gz", hash = "sha256:f7d669565232cb99c2e7210206e779813ecd2b0a141a0501f16ba5f04ebde3d9", size = 28854, upload-time = "2026-05-03T06:57:44.816Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/76/bdb4e7dcd9cc2f01111ede15f57c39100367146176866e88e5c4e509228a/typerdrive-0.9.5.tar.gz", hash = "sha256:310fbfa8f1bce5401de4d3cb7eca5ff3f1ce1a0c782418a52ddda9d1fd4ab9d7", size = 28871, upload-time = "2026-05-05T04:21:37.074Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/80/6b/b15905f4dce10959b7fc47b010a65ab85cfddcf9a0a667346d5e8dc4738a/typerdrive-0.9.4-py3-none-any.whl", hash = "sha256:55330b97347800a5e1787427b0cce03d62cd8e0547f4e76b6584b5afe410fb05", size = 44953, upload-time = "2026-05-03T06:57:45.884Z" },
+    { url = "https://files.pythonhosted.org/packages/23/da/88dd6923343ae49ab80977630b5448d44f6d1576f575fef25cd3976f868e/typerdrive-0.9.5-py3-none-any.whl", hash = "sha256:90f49707a96210667ed434b3aa00c558cf4d0af6fcb3508b86b477e9d86a54cb", size = 45056, upload-time = "2026-05-05T04:21:38.266Z" },
 ]
 
 [[package]]
