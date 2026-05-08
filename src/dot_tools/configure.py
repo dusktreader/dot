@@ -308,8 +308,6 @@ class DotInstaller:
                     if script is None:
                         logger.warning(f"No {platform.system()} script defined for setting '{setting.name}' — skipping")
                         continue
-                    else:
-                        raise DotError(f"Unsupported platform {platform.system()} for setting {setting.name}")
 
                     logger.debug(f"Running script for {setting.name}")
                     output_lines: list[str] = []
@@ -674,10 +672,14 @@ class DotInstaller:
         local_agents_path.write_text(content)
 
     def install_dot(self):
+        def _report_error(dep: object) -> None:
+            with pause_live():
+                logger.error(getattr(dep, "final_message", str(dep)))
+
         with spinner("Installing dot", context_level="INFO"):
             with DotError.handle_errors(
                 "Install failed. Aborting",
-                do_except=lambda dep: logger.error(dep.final_message),
+                do_except=_report_error,
             ):
                 self._make_dirs()
                 self._make_links()
