@@ -6,7 +6,7 @@ return {
   { "rhysd/committia.vim" },
 
   -- Awesome git bindings for vim
-  { "tpope/vim-fugitive" },
+  -- { "tpope/vim-fugitive" },
 
   -- Show git status line-by-line in the gutter
   -- NOTE: disabled while evaluating lewis6991/gitsigns.nvim as a replacement

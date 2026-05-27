@@ -2,7 +2,6 @@ return {
   "folke/sidekick.nvim",
   dependencies = {
     "folke/snacks.nvim",
-
   },
   opts = {
     nes = {
@@ -10,12 +9,17 @@ return {
     },
     cli = {
       default = "opencode",
+      tools = {
+        opencode = {
+          cmd = { "opencode", "--continue" },
+        },
+      },
     },
   },
   keys = {
     {
       "<leader>aa",
-      function() require("sidekick.cli").toggle() end,
+      function() require("sidekick.cli").toggle({ name = "opencode" }) end,
       desc = "Sidekick Toggle CLI",
     },
     {
@@ -33,8 +37,20 @@ return {
     {
       "<leader>at",
       function() require("sidekick.cli").send({ msg = "{this}" }) end,
-      mode = { "x", "n" },
+      mode = { "n" },
       desc = "Send This",
+    },
+    {
+      "<leader>at",
+      function() require("user.opencode").send_selection() end,
+      mode = { "x" },
+      desc = "Send Selection to opencode",
+    },
+    {
+      "<leader>ar",
+      function() require("user.opencode").review_staged() end,
+      mode = { "n" },
+      desc = "Review staged diff in opencode",
     },
     {
       "<leader>af",

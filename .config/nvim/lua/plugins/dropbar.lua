@@ -2,10 +2,7 @@ return {
   -- Interactive breadcrumbs at the top
 
   "Bekaboo/dropbar.nvim",
-  dependencies = {
-    "nvim-telescope/telescope-fzf-native.nvim",
-    build = 'make'
-  },
+  dependencies = {},
   opts = {
     sources = {
       path = {

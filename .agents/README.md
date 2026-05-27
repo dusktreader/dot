@@ -14,12 +14,29 @@ whenever writing a commit message. Read `python.md` before writing or editing an
 Python code or docstrings. Read `local.md` if it exists — it contains context
 specific to the current machine and is not tracked in any repository.
 
-| File        | Topic                                                          |
-|-------------|----------------------------------------------------------------|
-| `editing.md`    | Check file timestamps before every edit — mandatory        |
-| `git-safety.md` | Never push, never commit on main/master — mandatory        |
-| `git.md`        | Commit message style — bullet list bodies, always          |
-| `github.md`     | Which `gh` account to use for which repository owner       |
-| `local.md`      | Machine-local context: hardware, purpose, quirks (optional)|
-| `markdown.md`   | Markdown style rules for all `.agents/` files              |
-| `python.md`     | Python style — no Sphinx markup in docstrings              |
+| File              | Topic                                                        |
+| ----------------- | ------------------------------------------------------------ |
+| `editing.md`      | Check file timestamps before every edit — mandatory          |
+| `git-safety.md`   | Never push, never commit on main/master — mandatory          |
+| `git.md`          | Commit message style — bullet list bodies, always            |
+| `github.md`       | Which `gh` account to use for which repository owner         |
+| `local.md`        | Machine-local context: hardware, purpose, quirks (optional)  |
+| `markdown.md`     | Markdown style rules for all `.agents/` files                |
+| `python.md`       | Python style — no Sphinx markup in docstrings                |
+
+
+## Tools
+
+Executable scripts in `tools/` are available for use via `uv run`.
+
+| Tool                       | Purpose                                                |
+| -------------------------- | ------------------------------------------------------ |
+| `tools/align-md-tables.py` | Rewrite markdown files in place with aligned tables    |
+
+### align-md-tables.py
+
+Run against any markdown file after writing or editing tables:
+
+```shell
+uv run ~/.agents/tools/align-md-tables.py <file> [<file> ...]
+```

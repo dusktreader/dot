@@ -13,3 +13,12 @@ are common across all projects.
 | `~/.agents/README.md`   | Directory index and reading guide                       |
 | `~/.agents/github.md`   | Which `gh` account to use for which repository owner    |
 | `~/.agents/markdown.md` | Markdown style rules for all `.agents/` files           |
+
+## Skills
+
+Skills provide specialized instructions and workflows for specific tasks.
+Use the `skill` tool to load a skill when a task matches its description.
+
+| Skill                  | When to use                                                   |
+|------------------------|---------------------------------------------------------------|
+| `clipboard-screenshot` | User asks you to look at a screenshot or image from clipboard |

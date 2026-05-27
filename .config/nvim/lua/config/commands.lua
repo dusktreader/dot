@@ -89,3 +89,41 @@ vim.api.nvim_create_autocmd("BufEnter", {
   end,
 })
 
+-- Force-close any running terminal jobs when quitting
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  callback = function()
+    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+      if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
+        local job_id = vim.b[buf].terminal_job_id
+        if job_id then
+          pcall(vim.fn.jobstop, job_id)
+        end
+        pcall(vim.api.nvim_buf_delete, buf, { force = true })
+      end
+    end
+  end,
+})
+
+-- Also handle :qa/:xa without waiting for VimLeavePre by mapping them explicitly
+vim.keymap.set("n", "qa", function()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
+      local job_id = vim.b[buf].terminal_job_id
+      if job_id then pcall(vim.fn.jobstop, job_id) end
+      pcall(vim.api.nvim_buf_delete, buf, { force = true })
+    end
+  end
+  vim.cmd("qa")
+end)
+
+vim.keymap.set("n", "xa", function()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
+      local job_id = vim.b[buf].terminal_job_id
+      if job_id then pcall(vim.fn.jobstop, job_id) end
+      pcall(vim.api.nvim_buf_delete, buf, { force = true })
+    end
+  end
+  vim.cmd("xa")
+end)
+
