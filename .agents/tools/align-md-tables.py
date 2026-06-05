@@ -1,23 +1,15 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
+# dependencies = ["typer"]
 # ///
-"""Align markdown tables in one or more files.
-
-Usage:
-    align-md-tables.py <file> [<file> ...]
-
-Each file is rewritten in place. Tables are detected as contiguous blocks of
-lines beginning with `|`. Column widths are computed from the widest cell in
-each column across all rows, including the header. The separator row is
-regenerated to match.
-
-Non-table content is left untouched.
-"""
 
 import re
-import sys
 from pathlib import Path
+
+import typer
+
+app = typer.Typer()
 
 
 def align_table(lines: list[str]) -> list[str]:
@@ -64,19 +56,24 @@ def process_file(path: Path) -> None:
     path.write_text("\n".join(out))
 
 
-def main() -> None:
-    if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <file> [<file> ...]", file=sys.stderr)
-        sys.exit(1)
+@app.command()
+def main(files: list[Path] = typer.Argument(..., help="Markdown files to align in place")) -> None:
+    """Align markdown tables in one or more files.
 
-    for arg in sys.argv[1:]:
-        path = Path(arg)
+    Each file is rewritten in place. Tables are detected as contiguous blocks of
+    lines beginning with '|'. Column widths are computed from the widest cell in
+    each column across all rows, including the header. The separator row is
+    regenerated to match.
+
+    Non-table content is left untouched.
+    """
+    for path in files:
         if not path.is_file():
-            print(f"Not a file: {path}", file=sys.stderr)
-            sys.exit(1)
+            typer.echo(f"Not a file: {path}", err=True)
+            raise typer.Exit(1)
         process_file(path)
-        print(f"aligned: {path}")
+        typer.echo(f"aligned: {path}")
 
 
 if __name__ == "__main__":
-    main()
+    app()

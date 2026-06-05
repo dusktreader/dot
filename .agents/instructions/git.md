@@ -1,10 +1,12 @@
-# Git Commit Style
+# Git Usage
+
+## Commit messages
 
 When writing commit messages, always use a bullet list in the body to describe
 the individual changes. Never write the body as prose.
 
 
-## Format
+### Format
 
 ```text
 <type>(<scope>): <short description>
@@ -18,7 +20,7 @@ The short description is lowercase and does not end with a period. Each bullet
 describes one logical change concisely, also lowercase, no trailing period.
 
 
-## Example
+### Example
 
 ```text
 ci: address cybersecurity findings for docker image vulnerabilities
@@ -30,3 +32,17 @@ ci: address cybersecurity findings for docker image vulnerabilities
 - add docker-scan.yml workflow using anchore/scan-action on Dockerfile.base
 - add infra/scripts/collect-docker-images.py to extract base image for scan workflow
 ```
+
+
+## Pushes
+
+**Never run `git push` (in any form) without explicit confirmation from the user.**
+
+This applies to:
+
+- `git push`
+- `git push -u origin <branch>`
+- `git push --force` / `git push --force-with-lease`
+
+Before pushing, always show the user what will be pushed and ask for confirmation. Only
+push after receiving an unambiguous "yes" for that specific push.

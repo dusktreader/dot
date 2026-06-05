@@ -149,4 +149,4 @@ dmypy.json
 /*.snap
 
 # machine-local agent context
-.agents/local.md
+.agents/instructions/local.md
