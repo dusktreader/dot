@@ -39,6 +39,45 @@ the current message — for example "push this branch now" or "go ahead and push
 A prior session's permission does not carry over.
 
 
+## Never force-push
+
+Never run `git push --force`, `git push --force-with-lease`, or any variant that
+rewrites remote history. Force-pushing is categorically forbidden, regardless of
+branch, context, or apparent safety.
+
+This applies even when:
+
+- The branch is a personal feature branch with no other contributors
+- A prior `git push` was run in the same session and the local branch has since
+  diverged
+- The user says "fix the PR comments" or "amend the commit" — neither is
+  permission to force-push
+- CI asked for a history-clean branch
+
+The only exception is an explicit, unambiguous instruction in the current message —
+for example "force-push this branch now". A prior session's permission does not
+carry over.
+
+
+## Never amend commits
+
+Never run `git commit --amend` for any reason. Amending rewrites history and,
+when the branch has already been pushed, always requires a force-push. Both
+operations are forbidden by these rules.
+
+If a committed change needs correction, create a new commit instead.
+
+This applies even when:
+
+- The prior commit was made in the same session
+- The change is trivially small (a typo, a missing file)
+- The user says "just fix that in the commit" — that is not permission to amend
+
+The only exception is an explicit, unambiguous instruction in the current message —
+for example "amend the last commit". A prior session's permission does not carry
+over.
+
+
 ## Never commit on main or master
 
 Never add commits directly to `main` or `master`, regardless of how trivial the
