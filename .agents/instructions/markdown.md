@@ -67,7 +67,8 @@ before 120 characters, indent the continuation line to align with the start of t
 
 Use `-` (not `*` or `+`).
 
-When useful, use a **bold** summary followed by a colon:
+A **bold** subject followed by a colon is acceptable only when the full item fits on one line (≤ 120
+characters including the leading `- `):
 
 ```markdown
 - **First item**: description of the first item
@@ -75,7 +76,9 @@ When useful, use a **bold** summary followed by a colon:
   - Nested item (two-space indent)
 ```
 
-Do not overuse unordered lists. If items become verbose (longer than 120 characters), consider subsections instead.
+If an item's content would exceed 120 characters or requires more than one sentence, promote it to a
+subsection (`###` or `####`) instead. Never use a bold subject as a quasi-heading for a multi-sentence
+paragraph inside a list.
 
 
 ### Ordered lists
