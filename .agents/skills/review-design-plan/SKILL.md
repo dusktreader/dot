@@ -66,13 +66,26 @@ For each AC:
 Flag any AC that is vague, subjective, redundant, or is not actually AC (e.g. an implementation detail).
 
 
-### 4. Determine architectural clarity
+### 4. Check markdown formatting
+
+Verify the document conforms to the markdown style guide (`~/.agents/instructions/markdown.md`
+and the project's `.agents/docs/standards/markdown.md` if present). Flag violations as findings:
+
+- Lines exceeding 120 characters (outside code blocks and tables)
+- Bold-subject quasi-headings used for multi-sentence content instead of proper `###`/`####`
+  subsections
+- Missing two blank lines before a heading (unless the parent heading has no content)
+- List items using `*` or `+` instead of `-`
+- Fenced code blocks without a language hint
+
+
+### 5. Determine architectural clarity
 
 Ensure that the architecture fully describes the solution. Make sure needed components are identified and that
 unnecessary detail is excluded. Verify that the architecture matches the Goal and AC.
 
 
-### 5. Flag ambiguity
+### 6. Flag ambiguity
 
 Flag instances of:
 
@@ -81,19 +94,19 @@ Flag instances of:
 - Passive constructions hiding the actor ("data is processed" — by what?)
 
 
-### 6. Ensure unknowns relevance
+### 7. Ensure unknowns relevance
 
 Ensure that the listed ambiguities are legitimate. Call out noise in this section. Make sure there is a clear
 resolution possible for each item. Call out any missing ambiguities that need to be addressed.
 
 
-### 7. Categorize findings
+### 8. Categorize findings
 
 Each finding should be given a severity level:
 
 - **Critical**: structure violation (missing/extra sections), untestable ACs, hallucinated project elements.
 - **Significant**: missing modes in AC, ambiguity that would block implementation planning, fuzzy scope.
-- **Trivial**: incorrect grammar, awkward wording, organizational improvements, minor disagreement.
+- **Trivial**: incorrect grammar, awkward wording, markdown formatting violations, minor disagreement.
 
 ----
 

@@ -24,7 +24,6 @@ If not provided, ask before proceeding. Do not guess.
 - You are reviewing an **implementation plan** artifact. Not code.
 - Do NOT run tests, builds, or linters.
 - Do NOT modify the document.
-- You MAY use read-only project skills for wider context.
 
 
 ## Steps
@@ -34,9 +33,8 @@ Track your progress through these steps:
 
 ### 0. Setup
 
-Load the `create-implementation-plan` skill to understand the expected artifact structure. Load any other
-relevant skills for context. Locate the design plan referenced in the implementation plan for higher-level
-context.
+Load the `create-implementation-plan` skill to understand the expected artifact structure. Locate the design
+plan referenced in the implementation plan for higher-level context.
 
 
 ### 1. Resolve prior findings (re-review only)
@@ -64,11 +62,24 @@ hallucinated standards.
 
 ### 4. Check agent skills
 
-Review the `## Relevant Skills` section. Ensure that all relevant skills are enumerated. Flag missing or
-hallucinated skills.
+Review the `## Relevant Skills` section. Ensure that all listed skills actually exist. Flag hallucinated
+skills.
 
 
-### 5. Evaluate execution tasks
+### 5. Check markdown formatting
+
+Verify the document conforms to the markdown style guide (`~/.agents/instructions/markdown.md`
+and the project's `.agents/docs/standards/markdown.md` if present). Flag violations as findings:
+
+- Lines exceeding 120 characters (outside code blocks and tables)
+- Bold-subject quasi-headings used for multi-sentence content instead of proper `###`/`####`
+  subsections
+- Missing two blank lines before a heading (unless the parent heading has no content)
+- List items using `*` or `+` instead of `-`
+- Fenced code blocks without a language hint
+
+
+### 6. Evaluate execution tasks
 
 Step through the `## Execution` section. For each task, review:
 
@@ -93,19 +104,19 @@ For each step:
 
 ----
 
-### 6. Ensure unknowns relevance
+### 7. Ensure unknowns relevance
 
 Ensure that the listed ambiguities are legitimate. Call out noise in this section. Make sure there is a clear
 resolution possible for each item. Call out any missing ambiguities that need to be addressed.
 
 
-### 7. Categorize findings
+### 8. Categorize findings
 
 Each finding should be given a severity level:
 
 - **Critical**: structure violation (missing/extra sections), untestable ACs, hallucinated project elements.
 - **Significant**: missing modes in AC, ambiguity that would block implementation, fuzzy scope.
-- **Trivial**: incorrect grammar, awkward wording, organizational improvements, minor disagreement.
+- **Trivial**: incorrect grammar, awkward wording, markdown formatting violations, minor disagreement.
 
 ----
 
