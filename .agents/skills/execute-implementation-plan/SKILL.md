@@ -25,20 +25,6 @@ containing the implementation plan. Use `.agents/templates/implementation-journa
 Supply the path to your caller on completion.
 
 
-## Relevant Skills
-
-Load all relevant skills before executing the plan following these guidelines:
-
-- Project-local skills (in the working tree) ALWAYS take precedence over global skills covering the same topic.
-- Search available skills by category, not by one hardcoded name.
-- Filter skills by relevance to the project; skills oriented around quality should always be included if relevant.
-- If project docs or skills define stricter standards than nearby existing artifacts, the stricter standards win.
-  Do not preserve weak local patterns just because they exist.
-
-You especially need relevant testing and quality-assurance skills loaded as you will need to run these checks
-throughout the execution process to ensure quality is maintained.
-
-
 ## Scope
 
 The work is complete after the implementation plan is fully executed.
@@ -65,7 +51,6 @@ Follow these steps during execution:
 - Read the complete implementation plan document.
 - Read the corresponding design plan document.
 - Review the project commands. If they are missing from the plan, STOP and report back.
-- Load the relevant skills.
 
 
 ### 2. Choose execution mode

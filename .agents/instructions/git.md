@@ -9,28 +9,31 @@ the individual changes. Never write the body as prose.
 ### Format
 
 ```text
-<type>(<scope>): <short description>
+<type>(<jira-id>): <short description>
 
 - <change 1>
 - <change 2>
 - <change 3>
 ```
 
-The short description is lowercase and does not end with a period. Each bullet
-describes one logical change concisely, also lowercase, no trailing period.
+The Jira ID is extracted from the branch name (e.g. `feature/FUS-123--my-thing` → `FUS-123`).
+If the branch name contains `NO-TICKET`, use `NO-TICKET` as the ID. If there is no recognisable
+ID in the branch name, omit the parenthetical entirely (e.g. `feat: add the jawa feature`).
+
+The short description is lowercase and does not end with a period. Each bullet describes one
+logical change concisely, also lowercase, no trailing period.
 
 
 ### Example
 
 ```text
-ci: address cybersecurity findings for docker image vulnerabilities
+ci(NO-TICKET): redesign github actions workflows
 
-- upgrade postgres service container from 16 to 17 in app-ci.yml
-- switch node base image from alpine3.23 to alpine, patch picomatch GHSA-c2c7-rcm5-vvqj
-- replace docs base image with ubuntu:24.04, install uv via COPY --from
-- migrate sbom.yml from curl+syft install to anchore/sbom-action
-- add docker-scan.yml workflow using anchore/scan-action on Dockerfile.base
-- add infra/scripts/collect-docker-images.py to extract base image for scan workflow
+- replace tag-per-environment deploy model with versioned promotion chain
+- extract docker-publish, verify-images, helm-deploy, ui-sync composite actions
+- migrate ui config from build-time env-cmd to runtime config.json
+- add terraform-deploy.yml for dispatch-based single-environment tf deployments
+- delete merge.yml, fixing unconditional terraform apply on every merge to main
 ```
 
 

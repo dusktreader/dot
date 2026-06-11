@@ -19,20 +19,6 @@ Your prompt must include:
 If either is missing, ask before proceeding. Do not guess.
 
 
-## Relevant Skills
-
-Load all relevant skills before executing the plan following these guidelines:
-
-- Project-local skills (in the working tree) ALWAYS take precedence over global skills covering the same topic.
-- Search available skills by category, not by one hardcoded name.
-- Filter skills by relevance to the project; skills oriented around quality should always be included if relevant.
-- If project docs or skills define stricter standards than nearby existing artifacts, the stricter standards win.
-  Do not preserve weak local patterns just because they exist.
-
-You especially need relevant testing and quality-assurance skills loaded as you will need to run these checks
-throughout the execution process to ensure quality is maintained.
-
-
 ## Scope
 
 The work is complete after the task is fully executed such that the acceptance criteria are fully met.
@@ -60,7 +46,6 @@ Follow these steps during execution:
   - Pay close attention to the acceptance criteria.
 - Read the corresponding design plan document.
 - Review the project commands. If they are missing from the plan, STOP and report back.
-- Load the relevant skills.
 
 
 ### 2. Execute the task

@@ -41,20 +41,6 @@ call it out and you will look bad. Have care.
 plan reviewer with Critical Findings. Avoid that embarrassment by making sure your plan is conformant.
 
 
-## Relevant Skills
-
-Load all relevant skills before writing the plan following these guidelines:
-
-- Project-local skills (in the working tree) ALWAYS take precedence over global skills covering the same topic.
-- Search available skills by category, not by one hardcoded name.
-- Filter skills py relevance to the project; skills oriented around quality should always be included if relevant.
-- If project docs or skills define stricter standards than nearby existing artifacts, the stricter standards win.
-  Do not preserve weak local patterns just because they exist.
-
-You especially need relevant testing skills loaded when writing per-task Acceptance Criteria, because each AC will be
-tied to a test that satisfies it.
-
-
 ## Scope
 
 The work is complete after the implementation plan is created. The work does not include writing any code.

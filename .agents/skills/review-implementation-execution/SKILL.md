@@ -38,13 +38,7 @@ Write the review to `execution-review--{scope-id}--{N}.md` in the same directory
 ## Process
 
 
-### 1. Load skills and read context
-
-Load all relevant skills before reviewing:
-
-- Project-local skills always take precedence over global skills covering the same topic.
-- Load by category: testing, coding standards, language/type safety, architecture, and any technology present
-  in the files under review.
+### 1. Read context
 
 Read the implementation journal. From it, locate and read the implementation plan referenced in the journal's
 `## Source plan` section. If `Project Commands` or `Project Standards` is missing from the plan, report a
@@ -103,7 +97,7 @@ unjustified changes are Significant findings.
 
 ### 6. Review code and test quality
 
-Apply all loaded skills. Also enforce these quality gates regardless of which skills are loaded:
+Enforce these quality gates:
 
 | Standard                                                           | Severity      |
 | ------------------------------------------------------------------ | ------------- |
@@ -121,26 +115,6 @@ Apply all loaded skills. Also enforce these quality gates regardless of which sk
 | No unused imports, functions, or branches                          | Trivial       |
 
 
-### 7. Review code and test quality
-
-Apply all loaded skills. Also enforce these quality gates regardless of which skills are loaded:
-
-| Standard                                                           | Severity      |
-| ------------------------------------------------------------------ | ------------- |
-| Error handling on all external calls (network, fs, db, process)    | Critical      |
-| No type-safety violations without a justification comment          | Critical      |
-| No swallowed exceptions or ignored return values                   | Critical      |
-| New public functions have tests                                    | Critical      |
-| Tests verify behavior, not mock interactions                       | Critical      |
-| No test-only hooks or helpers in production files                  | Critical      |
-| No input validation gaps or injection vectors                      | Critical      |
-| Null/undefined inputs handled where applicable                     | Significant   |
-| Edge cases (empty, boundary, max) covered                          | Significant   |
-| New code paths covered by tests (when coverage tool available)     | Significant   |
-| Logic not placed in wiring/bootstrap files without justification   | Significant   |
-| No unused imports, functions, or branches                          | Trivial       |
-
-
-### 8. Write the review artifact
+### 7. Write the review artifact
 
 Fill in all sections of the template. Store the artifact as described in `## Artifact`.

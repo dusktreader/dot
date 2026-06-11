@@ -11,9 +11,17 @@
 ## Acceptance Criteria
 
 {{
-  Identify clear criteria of success for the project.
+  Identify observable, testable criteria for success. Each AC describes a system behavior or
+  outcome — not a file, class, function, or parameter. If an AC names a specific file or
+  implementation detail, it belongs in the implementation plan, not here.
 
-  For small projects, this may be a bulleted list. For larger projects, this will be a set of h3 subsections.
+  Use a flat bulleted list only when ALL of the following are true:
+  - There are 5 or fewer items
+  - Every item fits on a single line (no wrapping)
+
+  Otherwise, use h3 subsections to group related ACs, with each individual AC as an h4 heading
+  of the form `#### AC{N}: Brief title` followed by its description as a short paragraph. Do not
+  use bullets when items wrap.
 
   Each AC should be numbered as `AC{N}` where N is a 2 digit number.
 
@@ -42,19 +50,22 @@
   - System is secure (vague)
   - Code is clean (subjective)
   - Performance is acceptable (unmeasurable)
+  - `foo/bar.ts` exports a `createFoo()` function (implementation detail — belongs in the impl plan)
 }}
 
 
 ## Architecture
 
 {{
-  Succinctly describe the structure of the project.
+  Succinctly describe the structure of the project at a conceptual level.
 
-  This should include components, modules, types, patterns, etc.
+  Name components, subsystems, and the relationships between them. Describe data flow, control
+  flow, and key design decisions. Include diagrams when it is useful to visualize how components
+  are connected.
 
-  Include diagrams when it is useful to visualize how components are connected.
-
-  Do not describe specific changes to files, code snippets, etc. Those are implementation details.
+  Do NOT name specific files, classes, functions, parameters, or configuration keys. Those are
+  implementation details and belong in the implementation plan. If you find yourself writing a
+  file path or a function signature, stop — reframe it as a component responsibility instead.
 }}
 
 
@@ -63,7 +74,8 @@
 {{
   List ambiguities that need to be resolved before implementation.
 
-  For small projects, this may be a bulleted list. For larger projects, this will be a set of h3 subsections.
+  Use a flat bulleted list only when there are 5 or fewer items and each fits on a single line.
+  Otherwise, use h3 subsections — one per unknown.
 
   Each question should be clear and specific. It should be answerable with a direct, specific conclusion.
 
@@ -74,9 +86,10 @@
 ## Technical Notes
 
 {{
-  Enumerate any additional technical notes that are important for the implementation. This should not include code
-  snippets or implementation details. However, it could go deeper into design patterns, communication protocols, or
-  concurrency models.
+  Enumerate any additional technical notes that are important for the implementation. This should
+  not include code snippets or implementation details. However, it could go deeper into design
+  patterns, communication protocols, or concurrency models.
 
-  For small projects, this mayb be a bulleted list. For larger projects, this will be a set of h3 subsections.
+  Use a flat bulleted list only when there are 5 or fewer items and each fits on a single line.
+  Otherwise, use h3 subsections — one per note.
 }}

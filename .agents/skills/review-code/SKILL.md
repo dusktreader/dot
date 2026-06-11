@@ -37,8 +37,7 @@ Write the review to `code-review--{N}.md` in the project directory. Use
 
 ### 0. Setup
 
-Load relevant skills by category: testing, coding standards, language/type safety, and any technology
-present in the files under review.
+No setup required. Proceed directly to reading the files.
 
 
 ### 1. Read the files

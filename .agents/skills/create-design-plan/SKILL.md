@@ -20,46 +20,47 @@ If not provided, ask before proceeding. Do not guess.
 
 ## Overview
 
-Design plans describe requirements for a feature, a refactor, a new project, etc. They are not implementation plans.
-Design plans describe WHAT will be executed. They do not describe specifics of HOW to execute.
+Design plans describe requirements for a feature, a refactor, a new project, etc. They are not
+implementation plans. Design plans describe WHAT will be built and WHY. They do not describe HOW
+to build it.
+
+The single most important rule: **a design plan must not contain implementation details.** If you
+find yourself writing a file path, a function name, a parameter name, a configuration key, or
+anything that presupposes a specific implementation, stop and reframe it as a behavior or
+outcome instead. Those details belong in the implementation plan.
+
+The line between design and implementation:
+
+| Design plan (correct)                              | Implementation plan (not here)                        |
+| -------------------------------------------------- | ----------------------------------------------------- |
+| The UI fetches runtime config at startup           | `config.ts` calls `fetch('/config.json')` on load     |
+| The release pipeline verifies images before deploy | `verify-images/action.yml` accepts a `sha` input      |
+| Terraform applies are manually triggered only      | `terraform-dev.yml` uses `on: workflow_dispatch`      |
+| The bundle is built once and promoted unchanged    | `release.yml` uploads `ui/dist/` as a workflow artifact |
 
 Implementation plans follow design plans. Those documents explain the HOW.
 
-Design plans should be architecture-level documents.
-
-**The plan MUST conform to the structure defined in the template!** Plans that deviate will be flagged by the
-plan reviewer with Critical Findings. Avoid that embarrassment by making sure your plan is conformant.
-
-
-## Relevant Skills
-
-Load all relevant skills before writing the plan following these guidelines:
-
-- Project-local skills (in the working tree) ALWAYS take precedence over global skills covering the same topic.
-- Search available skills by category, not by one hardcoded name.
-- Filter skills py relevance to the project; skills oriented around quality should always be included if relevant.
-- If project docs or skills define stricter standards than nearby existing artifacts, the stricter standards win.
-  Do not preserve weak local patterns just because they exist.
-
-You especially need relevant testing skills loaded when writing per-task Acceptance Criteria, because each AC will be
-tied to a test that satisfies it.
+**The plan MUST conform to the structure defined in the template!** Plans that deviate will be
+flagged by the plan reviewer with Critical Findings.
 
 
 ## Scope
 
-The work is complete after the design plan is created. The work does not include writing the implementation plan. The
-work should never include creation or modification of product code.
+The work is complete after the design plan is created. The work does not include writing the
+implementation plan. The work should never include creation or modification of product code.
 
 
 ## Structure
 
-Use `.agents/templates/design-plan.md` as a guide for the artifact structure. Each area that should be filled in during
-the construction of the plan artifact is indicated with double curly braces.
+Use `.agents/templates/design-plan.md` as a guide for the artifact structure. Each area that
+should be filled in is indicated with double curly braces.
 
-A good design plan is succinct and clear. It can be consumed by agents and humans alike to understand the scope of the
-project and specific deliverables.
+A good design plan is succinct and clear. It can be consumed by agents and humans alike to
+understand the scope and goals of the project. A reviewer should be able to approve or reject
+the direction without needing to know how any of it will be implemented.
 
 
 ## Artifact
 
-Write the design plan to `{project-dir}/design-plan.md`. Supply the path to your caller on completion.
+Write the design plan to `{project-dir}/design-plan.md`. Supply the path to your caller on
+completion.
