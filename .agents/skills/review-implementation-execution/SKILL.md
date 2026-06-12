@@ -64,12 +64,16 @@ reviewed. Read each file directly. Do not rely solely on the journal's descripti
 
 ### 4. Run verification commands
 
-Run every command in the plan's `Project Commands` section: tests, build, linter, type-checker, and coverage.
-Do not invent commands not documented in the plan. If no coverage command is documented, record
-`skipped (no project-documented command)` in the verification evidence.
+Run `make qa` from the project root first. This is the canonical full-suite command that runs
+typecheck, lint, and tests for every workspace. If `make qa` is not available (non-Makefile
+project), fall back to running every command listed in the plan's `Project Commands` section.
 
-If tests fail or the build is broken: stop, write the review artifact noting the failure output, and return
-"Tests failing / Build broken. Fix before review." Do not continue the review past this point.
+Do not invent commands not documented in the plan or not in the Makefile. If no coverage command
+is documented, record `skipped (no project-documented command)` in the verification evidence.
+
+If `make qa` fails for any reason (type errors, lint errors, test failures, build broken): stop,
+write the review artifact noting the full failure output, and return "QA suite failing. Fix before
+review." Do not continue the review past this point.
 
 
 ### 4. Verify acceptance criteria

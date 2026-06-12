@@ -85,6 +85,22 @@ If the plan does not qualify for "team" mode, execute the steps yourself. We wil
   - Write a journal entry describing the process and results.
 
 
-### 4. Report back
+### 4. Final verification
+
+Before reporting back, run `make qa` from the project root. This is the canonical full-suite
+command that runs typecheck, lint, and tests for every workspace. If `make qa` is not available,
+run every command listed in the plan's `Project Commands` section.
+
+All of the following must pass with zero errors before the work is considered complete:
+- Type checking
+- Linting
+- All tests
+
+If `make qa` reports any failures, fix them before reporting back. Do not report the work as
+complete if `make qa` is failing.
+
+
+### 5. Report back
 
 Report back to the orchestrator. Summarize results and outline challenges, ambiguities, or surprises.
+Include the final `make qa` output to confirm everything is clean.
