@@ -33,10 +33,15 @@ This applies even when:
 - The user asks "are we done?" or "what's next?" — neither is permission to push
 - A PR has been opened and CI is asking for the latest commits
 - The branch is a personal fork branch with no shared history
+- A skill or workflow previously pushed during the same session — that permission
+  was specific to that moment and does not carry forward
 
 The only exception is if the user issues an explicit, unambiguous instruction in
 the current message — for example "push this branch now" or "go ahead and push".
 A prior session's permission does not carry over.
+
+Before running any `git push`, check the current branch with `git branch --show-current`.
+If the branch does not end in `--agents`, do not push — stop and ask the human.
 
 
 ## Never force-push

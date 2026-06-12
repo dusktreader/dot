@@ -89,8 +89,13 @@ Stage-specific commit types and scopes:
 
 The body bullets should summarise what the stage produced — not implementation detail.
 
-Push is permitted as part of this workflow. The global "never push" default is explicitly
-overridden here.
+Push is permitted **only on the `--agents` branch** and **only during the active
+run-implementation workflow**. This is a narrow, explicit override of the global
+"never push" rule in `git-safety.md`. It does not grant permission to push any
+other branch at any time.
+
+Once the squash onto the parent branch is complete, this override expires. Do
+NOT push the parent branch — that is the human's decision.
 
 
 ### Final squash onto parent branch
