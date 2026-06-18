@@ -12,6 +12,7 @@
     branches = "!printf '%15s %-77s %s\n' 'MODIFIED' 'BRANCH NAME' 'LAST COMMIT MESSAGE' && git branch --sort=-authordate --format=\"%(align:right,width=18)%(color:yellow)(%(authordate:relative))%(end) %(align:width=80)%(color:green)%(refname:short)%(end) %(color:magenta)%(subject)\""
     irk = "!git rebase -i HEAD~\"{$1:-2}\" #"
     updiff = "!git diff $(git now) origin/$(git now)"
+    smash = "!f() { git reset --soft HEAD~${1:-1} && git commit --reuse-message=HEAD@{1}; }; f"
 
 [push]
     default = simple

@@ -9,6 +9,22 @@ Coordinate the full bug fix workflow: investigation, implementation planning, ex
 artifacts are stored under `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`.
 
 
+## When to use
+
+Use this skill for a thorough, well-documented bug fix — when the root cause is unknown or
+needs confirmation, and when the fix warrants a full plan-and-review cycle.
+
+This is a standalone skill triggered directly by humans.
+
+Do not use when:
+- Speed is critical and the fix is obvious → use `run-hotfix` instead
+- The bug is a gap in an already-implemented feature → use `run-fix` instead
+- The PR is already open and the fix is in response to a review comment → use `review-pr`
+
+Compared to `run-hotfix`: `run-bug-fix` includes investigation, a full implementation plan,
+and a plan review. `run-hotfix` skips those and goes straight to execution.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -42,8 +58,11 @@ artifacts for this project are stored there.
 Dispatch an `engineer-investigator` subagent with the `investigate-codebase` skill. Direct the
 investigator to determine: root cause, affected code paths, and blast radius.
 
-Synthesize the investigator's findings into `bug-report.md` using `.agents/templates/bug-report.md` as
-the template.
+Synthesize the investigator's findings into `bug-report.md`. Read
+`.agents/artifacts/bug-report/description.md` for the canonical section definitions, and render
+`.agents/artifacts/bug-report/template.md.j2` to produce the initial file. Replace all dummy
+content — every line drawn from the retro encabulator — with real content for this bug. The rendered
+file must contain no placeholder text when submitted.
 
 **Stop.** Present the bug report to the human. Confirm the root cause and scope before proceeding. If the
 root cause is unclear, dispatch the investigator again with a more targeted question.

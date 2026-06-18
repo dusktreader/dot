@@ -47,6 +47,14 @@ prompt that says "implement this" authorizes you to run the workflow — it does
 to skip the human review gates.
 
 
+## Dispatching investigator subagents
+
+When you dispatch an `engineer-investigator` subagent, always instruct it explicitly to return its
+findings as text in its response message. It must not write files, create reports, or save artifacts
+anywhere on disk. You read its response and act on the findings yourself — nothing needs to be
+persisted by the subagent.
+
+
 ## Primary skill
 
 Load the `run-implementation` skill to orchestrate the full workflow. You may also load individual phase

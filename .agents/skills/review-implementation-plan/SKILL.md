@@ -8,6 +8,20 @@ description: Instructions for reviewing implementation plans artifacts. Use when
 Read the provided implementation plan artifact and critique it in a structured review artifact.
 
 
+## When to use
+
+Use this skill to critique an implementation plan artifact for structural completeness, AC
+quality, task ordering, and markdown conformance.
+
+This skill is a sub-skill called by orchestrators:
+- `run-implementation` — after stage 2 (planning) produces an implementation plan
+- `run-bug-fix` — after the bug fix plan is produced
+- `run-fix` — after the scoped fix plan is produced
+
+Do not confuse with `review-design-plan`, which reviews the higher-level design artifact. Use
+this skill only for implementation plan artifacts — those describing HOW to build something.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -33,8 +47,9 @@ Track your progress through these steps:
 
 ### 0. Setup
 
-Load the `create-implementation-plan` skill to understand the expected artifact structure. Locate the design
-plan referenced in the implementation plan for higher-level context.
+Load the `create-implementation-plan` skill for process context. Read
+`.agents/artifacts/implementation-plan/description.md` for the canonical section definitions.
+Locate the design plan referenced in the implementation plan for higher-level context.
 
 
 ### 1. Resolve prior findings (re-review only)
@@ -49,9 +64,9 @@ implementation plan has been updated to address it:
 
 ### 2. Evaluate structural completeness
 
-The document MUST match the `.agents/templates/implementation-plan.md` template.
+The document MUST match the structure defined in `.agents/artifacts/implementation-plan/description.md`.
 
-Call out missing sections, incomplete information, violations of scope, or deviation from the template.
+Call out missing sections, incomplete information, violations of scope, or deviation from the expected structure.
 
 
 ### 3. Find missing standards
@@ -122,5 +137,8 @@ Each finding should be given a severity level:
 
 ## Artifact
 
-Write the review to `implementation-review--{N}.md` in the same directory as the implementation plan. Use
-`.agents/templates/implementation-review.md` as the template. Supply the path to your caller on completion.
+Write the review to `implementation-review--{N}.md` in the same directory as the implementation plan. Read
+`.agents/artifacts/implementation-review/description.md` for the canonical section definitions, and render
+`.agents/artifacts/implementation-review/template.md.j2` to produce the initial file. Replace all dummy
+content — every line drawn from the retro encabulator — with real content for this review. The rendered
+file must contain no placeholder text when submitted. Supply the path to your caller on completion.

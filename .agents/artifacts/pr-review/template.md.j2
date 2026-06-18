@@ -1,0 +1,107 @@
+# PR Review: {{ pr_title }}
+
+**PR**: {{ pr_url }}
+**Cycle**: {{ n }}
+**Branch**: {{ parent_branch }}--agents-review-{{ n }}
+
+
+## Triage
+
+| #  | File                          | Line | Source | Severity    | Disposition | Outcome |
+| -- | ----------------------------- | ---- | ------ | ----------- | ----------- | ------- |
+| 1  | `src/grammeter/grammeter.py`  | 88   | human  | significant | auto-fix    |         |
+| 2  | `src/grammeter/cache.py`      | 34   | human  | critical    | discuss     |         |
+| 3  | `tests/test_grammeter.py`     | 47   | bot    | trivial     | auto-fix    |         |
+
+
+## Comments
+
+### Comment 1
+
+**File**: `src/grammeter/grammeter.py:88`
+**Source**: human
+**Severity**: significant
+**Disposition**: auto-fix
+
+
+#### Issue
+
+The threshold condition `rpm >= 400` should be `rpm > 400`. Readings at exactly 400 RPM
+are valid per the spec but are currently treated as stale.
+
+
+#### Decision
+
+Applied directly — fix is unambiguous. The spec is clear that 400 RPM is the upper valid
+boundary, not the first invalid value.
+
+
+#### Fix
+
+Changed `rpm >= 400` to `rpm > 400` at `src/grammeter/grammeter.py:88`. Updated the
+boundary test in `tests/test_grammeter.py` to assert that 400 RPM returns a valid reading.
+
+
+#### Outcome
+
+
+----
+
+### Comment 2
+
+**File**: `src/grammeter/cache.py:34`
+**Source**: human
+**Severity**: critical
+**Disposition**: discuss
+
+
+#### Issue
+
+`cache.invalidate()` is never called when the RPM threshold is breached. The reviewer asks
+whether we should raise `StaleReadingError` immediately or invalidate the cache and let the
+next `read_tension()` call detect the staleness.
+
+
+#### Decision
+
+Human decision: raise `StaleReadingError` immediately on threshold breach rather than
+passively invalidating. Callers should be forced to handle the stale state explicitly.
+
+
+#### Fix
+
+Added a call to `cache.invalidate()` followed by `raise StaleReadingError()` in the
+threshold breach path at `src/grammeter/cache.py:34`. Added
+`tests/test_grammeter.py::test_stale_reading_raised_above_400_rpm`.
+
+
+#### Outcome
+
+
+----
+
+### Comment 3
+
+**File**: `tests/test_grammeter.py:47`
+**Source**: bot
+**Severity**: trivial
+**Disposition**: auto-fix
+
+
+#### Issue
+
+Copilot flagged a missing assertion in `test_read_tension_at_boundary` — the test calls
+`read_tension()` but does not assert the returned value.
+
+
+#### Decision
+
+Applied directly — fix is unambiguous.
+
+
+#### Fix
+
+Added `assert result == EXPECTED_NOMINAL_TENSION` at `tests/test_grammeter.py:51`.
+
+
+#### Outcome

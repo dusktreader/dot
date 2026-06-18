@@ -10,6 +10,20 @@ structured assessment with problem areas and recommendations. All artifacts are 
 `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`.
 
 
+## When to use
+
+Use this skill when a human wants a structured assessment of a codebase's architecture —
+identifying problem areas, technical debt, and improvement opportunities — without committing
+to implementing any specific change.
+
+This is a standalone skill triggered directly by humans. It does not produce a plan or write
+code. If the audit surfaces specific work to do, follow up with `run-implementation` or
+`run-bug-fix` for those items.
+
+Do not confuse with `run-bug-fix` (targeted fix for a known bug) or `run-implementation`
+(building a feature). Use this skill when the goal is *understanding* rather than *changing*.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -46,7 +60,10 @@ Synthesize all findings before proceeding to the assessment.
 ### 2. Assess
 
 Dispatch an `architect-planner` subagent to produce `architecture-audit.md` from the investigation
-findings. Use `.agents/templates/architecture-audit.md` as the template.
+findings. Read `.agents/artifacts/architecture-audit/description.md` for the canonical section
+definitions, and render `.agents/artifacts/architecture-audit/template.md.j2` to produce the initial
+file. Replace all dummy content — every line drawn from the retro encabulator — with real content for
+this audit. The rendered file must contain no placeholder text when submitted.
 
 **Stop.** Present the audit to the human. Discuss findings and recommendations. If the human requests
 deeper investigation into a specific area, dispatch another `engineer-investigator` and update the audit.

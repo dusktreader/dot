@@ -1,0 +1,141 @@
+# Code Review: {{ title }}
+
+**Iteration {{ n }}**
+
+
+## Source
+
+- `src/tremie/pipe.py`
+- `src/tremie/fault.py`
+- `tests/test_tremie.py`
+
+
+## Verification Evidence
+
+```
+Tests:    make test  → 31 passed, 0 failed
+Build:    make build → OK
+Linter:   make lint  → 0 errors, 0 warnings
+Coverage: make cover → 97% on modified files
+```
+
+
+## Issue Summary
+
+- **Critical**:    1
+- **Significant**: 1
+- **Trivial**:     1
+
+
+## Prior Review Resolution
+
+- **C01** ✓: Girdlespring fault path now raises `TremieFaultError` instead of swallowing
+  the exception.
+- **S01** ⚠: Mid-routing fault test added but does not assert the fault code value.
+
+
+## Findings
+
+### Summary
+
+| Finding | Title                                           | Outcome |
+| ------- | ----------------------------------------------- | ------- |
+| C01     | Exception swallowed in grammeter offline path   |         |
+| S01     | Mid-routing fault test missing fault code assert|         |
+| T01     | Unused import in pipe.py                        |         |
+
+
+### Critical
+
+#### C01: Exception swallowed in grammeter offline path
+
+##### Where
+
+`src/tremie/fault.py:61`
+
+
+##### Issue
+
+The `except Exception` block at line 61 logs the error and returns `None` without re-raising
+or surfacing a fault code. Callers cannot distinguish a grammeter offline event from a
+successful no-op.
+
+
+##### Impact
+
+Any code path that depends on a fault code to halt lotus-o-delta routing will silently
+continue when the grammeter is offline, producing undefined waneshaft behavior.
+
+
+##### Fix
+
+Replace the bare `return None` with `raise TremieFaultError(FaultCode.GRAMMETER_OFFLINE)`.
+Add a test asserting the fault code is raised when the grammeter mock is offline.
+
+
+##### Outcome
+
+
+----
+
+### Significant
+
+#### S01: Mid-routing fault test missing fault code assertion
+
+##### Where
+
+`tests/test_tremie.py:104`
+
+
+##### Issue
+
+`test_mid_route_girdlespring_fault` asserts that `route()` raises an exception but does not
+assert which fault code is raised. Any exception — including an unexpected `RuntimeError` —
+would pass the test.
+
+
+##### Fix
+
+Replace `pytest.raises(Exception)` with `pytest.raises(TremieFaultError)` and add
+`assert exc.code == FaultCode.GIRDLESPRING_FAULT` in the `with` block.
+
+
+##### Outcome
+
+
+----
+
+### Trivial
+
+#### T01: Unused import in pipe.py
+
+##### Where
+
+`src/tremie/pipe.py:4`
+
+
+##### Issue
+
+`import logging` is present but `logging` is never referenced in the file.
+
+
+##### Fix
+
+Remove the import.
+
+
+##### Outcome
+
+----
+
+## Skills Applied
+
+- `review-code`: global fallback
+
+
+## Decision
+
+**BLOCKED — CHANGES REQUIRED**
+
+C01 must be resolved before this review can be approved. S01 should be addressed in the
+same pass. T01 may be applied directly without discussion.

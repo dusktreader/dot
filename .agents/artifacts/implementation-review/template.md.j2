@@ -1,0 +1,157 @@
+# Implementation Plan Review: {{ title }}
+
+**Iteration {{ n }}**
+
+
+## Source Artifact
+
+.agents/work/20260101-120000--turbo-encabulator/implementation-plan.md
+
+
+## Overview
+
+The review surfaced findings:
+
+- **Critical**:    1
+- **Significant**: 1
+- **Trivial**:     2
+
+
+## Prior Review Resolution
+
+- **C01** ✓: Tremie pipe initialization order now documented in Task 01 Technical Notes.
+- **S01** ⚠: Grammeter offline detection steps added but AC03 validation evidence is missing.
+
+
+## Findings
+
+### Summary
+
+| Finding | Title                                              | Outcome |
+| ------- | -------------------------------------------------- | ------- |
+| C01     | Task 02 AC02 is not testable as written            |         |
+| S01     | Project Commands missing coverage command          |         |
+| T01     | Task 01 steps omit linter run after implementation |         |
+| T02     | Technical Notes section uses passive construction  |         |
+
+
+### Critical
+
+#### C01: Task 02 AC02 is not testable as written
+
+##### Where
+
+Execution — Task 02 — Acceptance Criteria — line 61
+
+
+##### Issue
+
+AC02 states "Spurving bearing tension stays within 2% of nominal" without specifying what
+nominal is or how it is measured. There is no reference to a baseline value, a measurement
+command, or a data source. An implementer cannot write a test for this AC.
+
+
+##### Impact
+
+Task 02 cannot be executed to completion. The executor will either skip AC02 or invent a
+nominal value, both of which produce an unverifiable implementation.
+
+
+##### Suggestion
+
+Resolve the grammeter baseline unknown before approving this plan, then rewrite AC02 as:
+"At 100, 200, and 400 RPM, spurving bearing tension as reported by `make measure-tension`
+is within 2% of the values in `etc/grammeter-baseline.json`."
+
+
+##### Outcome
+
+
+----
+
+### Significant
+
+#### S01: Project Commands missing coverage command
+
+##### Where
+
+Project Commands — line 14
+
+
+##### Issue
+
+The plan documents `make qa` and `make test` but omits the coverage command. The
+`execute-implementation-plan` skill requires a documented coverage command or an explicit
+note that none exists.
+
+
+##### Impact
+
+The executor will record `skipped (no project-documented command)` for coverage in the
+journal, and the reviewer will flag this as a gap even if coverage tooling exists.
+
+
+##### Suggestion
+
+Add a `### Run coverage` subsection with the exact command and the expected output threshold.
+
+
+##### Outcome
+
+
+----
+
+### Trivial
+
+#### T01: Task 01 steps omit linter run after implementation
+
+##### Where
+
+Execution — Task 01 — Steps — line 48
+
+
+##### Issue
+
+The steps jump from "run tests and confirm they pass" directly to "run `make qa`". The
+`execute-implementation-plan` skill calls for running the linter after each task, not only
+at the final quality gate.
+
+
+##### Suggestion
+
+Add "Run `make lint` and confirm no errors." after the test pass step.
+
+
+##### Outcome
+
+
+#### T02: Technical Notes uses passive construction
+
+
+##### Where
+
+Technical Notes — line 78
+
+
+##### Issue
+
+"Grammeter readings are invalidated" does not name the actor. It is unclear whether the
+grammeter invalidates its own readings, the waneshaft does so, or the system detects and
+flags them.
+
+
+##### Suggestion
+
+Rewrite as: "Waneshaft operation above 400 RPM causes the grammeter to invalidate its
+current readings."
+
+
+##### Outcome
+
+
+----
+
+## Notes
+
+C01 is a blocker — the plan should not be approved until the grammeter baseline unknown is
+resolved. S01 is straightforward to add and can be done without human input.

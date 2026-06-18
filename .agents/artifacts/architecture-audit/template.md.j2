@@ -1,0 +1,108 @@
+# Architecture Audit: {{ title }}
+
+## Scope
+
+The turbo-encabulator subsystem, specifically the tremie pipe, girdlespring, and waneshaft
+components. The audit excludes the hydrocoptic marzlevane and upper panendermic slot
+configuration, which are managed by a separate team.
+
+
+## Investigation Summary
+
+Examined `src/tremie/`, `src/waneshaft/`, and `src/grammeter/` modules. Read integration
+tests in `tests/integration/`. Reviewed the startup sequence in `src/startup.py` and the
+fault handling registry in `src/faults.py`. No architecture documentation was found.
+
+
+## Current Architecture
+
+The turbo-encabulator is built around three core components:
+
+- **Tremie pipe**: accepts lotus-o-delta input from the stator winding and routes it to the
+  differential girdlespring. Fault detection is inline — faults halt routing immediately.
+- **Differential girdlespring**: receives routed input from the tremie pipe and converts it
+  to spurving bearing tension. Has no awareness of its callers.
+- **Ambifacient lunar waneshaft**: calibrated against grammeter output; controls bearing
+  tension across the 0–400 RPM operating range.
+- **Grammeter**: external calibration data source. Polled by the waneshaft on startup.
+  No retry logic or offline fallback exists.
+
+Components initialize in a fixed sequence enforced by assertions in `src/startup.py`. The
+tremie pipe must be initialized before the girdlespring; the grammeter must be online before
+the waneshaft calibrates.
+
+
+## Strengths
+
+- **Fault isolation**: The tremie pipe halts routing immediately on fault, preventing
+  downstream corruption in the girdlespring.
+- **Fixed startup order**: Explicit ordering assertions in `src/startup.py` prevent the
+  most common class of initialization race conditions.
+
+
+## Problem Areas
+
+### P01: Grammeter has no offline fallback
+
+- **Where**: `src/waneshaft/grammeter.py`
+- **Observation**: Waneshaft calibration blocks indefinitely when the grammeter is
+  unreachable. There is no timeout, retry limit, or cached baseline.
+- **Impact**: A transient grammeter outage prevents the entire system from starting.
+  Severity: Critical
+
+
+### P02: Fault registry is a global mutable singleton
+
+- **Where**: `src/faults.py`
+- **Observation**: `FaultRegistry` is instantiated at module import time and shared across
+  all components. No locking is applied to registry writes.
+- **Impact**: Concurrent fault events from the tremie pipe and waneshaft can produce
+  corrupted registry state under load. Severity: Significant
+
+
+### P03: No integration test covers startup failure paths
+
+- **Where**: `tests/integration/`
+- **Observation**: Integration tests only exercise the happy-path startup sequence. No test
+  covers grammeter offline, initialization order violation, or mid-startup fault.
+- **Impact**: Regressions in startup failure handling will not be caught before production.
+  Severity: Significant
+
+----
+
+## Recommendations
+
+### R01: Add grammeter timeout and cached baseline fallback
+
+- **Addresses**: P01
+- **Recommendation**: Add a configurable timeout to the grammeter poll. On timeout, fall
+  back to a cached baseline stored in `etc/grammeter-baseline.json`. Raise a warning rather
+  than blocking startup.
+- **Effort**: Medium
+- **Risk**: Low
+
+
+### R02: Replace global FaultRegistry with injected instance
+
+- **Addresses**: P02
+- **Recommendation**: Convert `FaultRegistry` from a module-level singleton to a class
+  instance injected into each component at construction time. Add a lock around registry
+  writes.
+- **Effort**: Medium
+- **Risk**: Medium
+
+
+### R03: Add integration tests for startup failure paths
+
+- **Addresses**: P03
+- **Recommendation**: Add integration tests covering: grammeter offline at startup,
+  initialization order violation, and tremie pipe fault during waneshaft calibration.
+- **Effort**: Low
+- **Risk**: Low
+
+----
+
+## Unknowns
+
+- Whether the hydrocoptic marzlevane team has a separate fault registry or shares the
+  global one — this affects the blast radius of P02.

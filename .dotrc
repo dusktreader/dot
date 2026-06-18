@@ -86,25 +86,25 @@ fi
 alias ebash="$EDITOR $rc"
 alias sbash="source $rc"
 
+export SRC_HOME="$HOME/src"
+export WORK_HOME="$SRC_HOME/mhe"
+export DUSK_HOME="$SRC_HOME/dusktreader"
+
 # TODO: this should have a configurable dot location based on dot-configure root
 alias edot="$EDITOR $DOT_HOME/.dotrc"
 alias sdot='source $DOT_HOME/.dotrc'
 alias cdot='cd $DOT_HOME'
 alias pdot='pushd $DOT_HOME'
 
-alias cnotes='cd $HOME/git-repos/personal/notes'
-alias pnotes='pushd $HOME/git-repos/personal/notes'
-alias enotes='$EDITOR $HOME/git-repos/personal/notes'
+alias cnotes='cd $DUSK_HOME/notes'
+alias pnotes='pushd $DUSK_HOME/notes'
+alias enotes='$EDITOR $DUSK_HOME/notes'
 
-alias cdwork='cd $HOME/git-repos/omnivector'
-alias cdmine='cd $HOME/git-repos/personal'
-
-alias ecoc="$EDITOR $DOT_HOME/.config/nvim/coc-settings.json"
+alias cdwork='cd $WORK_HOME'
+alias cdmine='cd $DUSK_HOME'
 
 alias einstall="$EDITOR $DOT_HOME/install.sh"
 alias rinstall="$DOT_HOME/install.sh"
-
-alias elualine="$EDITOR $DOT_HOME/.config/nvim/lualine.lua"
 
 alias eposh="$EDITOR $DOT_HOME/.config/oh-my-posh/dusktreader.omp.yaml"
 

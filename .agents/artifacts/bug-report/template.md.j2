@@ -1,0 +1,50 @@
+# Bug Report: {{ title }}
+
+
+## Description
+
+When the hydrocoptic marzlevane is in the retracted position and the ambifacient lunar
+waneshaft exceeds 400 RPM, the grammeter returns stale readings without invalidating its
+cache. Callers receive outdated spurving bearing tension values and cannot detect that the
+data is stale. Expected behavior: grammeter raises `StaleReadingError` when the waneshaft
+exceeds 400 RPM.
+
+
+## Reproduction Steps
+
+1. Start the turbo-encabulator with the grammeter online and the marzlevane retracted.
+2. Gradually increase waneshaft RPM to 401 via `src/waneshaft/align.py:set_rpm(401)`.
+3. Call `src/grammeter/grammeter.py:read_tension()`.
+4. Observe: returns the last cached tension value with no error or staleness indicator.
+
+
+## Root Cause
+
+- **Confirmed** (`src/grammeter/grammeter.py:88`): The RPM threshold check evaluates
+  `rpm >= 400` but the threshold is exclusive — readings are invalid above 400, not at 400.
+  The condition should be `rpm > 400`.
+- **Confirmed** (`src/grammeter/cache.py:34`): The cache is never invalidated when the
+  threshold is breached. `invalidate()` is only called on grammeter disconnect.
+- **Inferred**: The stale-reading path was never tested because the threshold bug masked
+  it — `set_rpm(400)` never triggered the branch.
+
+
+## Blast Radius
+
+- `src/grammeter/grammeter.py`: threshold condition incorrect
+- `src/grammeter/cache.py`: cache invalidation not called on threshold breach
+- `tests/test_grammeter.py`: no test for RPM > 400 staleness behavior
+- Any caller of `read_tension()` that operates near the 400 RPM boundary
+
+
+## Proposed Approach
+
+Fix the threshold condition to `rpm > 400`. Add a call to `cache.invalidate()` when the
+threshold is breached. Add tests for the boundary at exactly 400 RPM (valid) and 401 RPM
+(stale). No architectural changes are needed.
+
+
+## Unknowns
+
+- Whether any callers of `read_tension()` handle `StaleReadingError` or expect it to be
+  added — needs a blast radius search before the fix is shipped.

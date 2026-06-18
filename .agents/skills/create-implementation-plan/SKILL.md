@@ -8,6 +8,21 @@ description: Instructions for writing good implementation plans artifacts. Use w
 Read the provided design plan artifact and use it to produce an implementation plan artifact.
 
 
+## When to use
+
+Use this skill to translate an approved design plan into a step-by-step implementation plan.
+It is always the second artifact stage in the `run-implementation` workflow, and is also used
+in `run-bug-fix` (where a bug report takes the place of a design plan).
+
+This skill is a sub-skill called by orchestrators:
+- `run-implementation` — stage 2 (planning)
+- `run-bug-fix` — planning stage
+- `run-fix` — fix plan stage
+
+Do not use this skill to write design plans or code. Do not confuse with `create-design-plan`,
+which produces the higher-level artifact that this skill consumes.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -49,5 +64,11 @@ The work is complete after the implementation plan is created. The work does not
 ## Artifact
 
 Write the implementation plan to `{project-dir}/implementation-plan.md`, where `{project-dir}` is the
-directory containing the design plan. Use `.agents/templates/implementation-plan.md` as the template.
-Supply the path to your caller on completion.
+directory containing the design plan. Read `.agents/artifacts/implementation-plan/description.md` for the
+canonical section definitions, and render `.agents/artifacts/implementation-plan/template.md.j2` to produce
+the initial file. Replace all dummy content — every line drawn from the retro encabulator — with real
+content for this project. The rendered file must contain no placeholder text when submitted. Supply the
+path to your caller on completion.
+
+Before writing, read and follow `~/.agents/instructions/markdown.md`. All heading spacing,
+list formatting, line length, and code fence rules apply to every plan artifact.

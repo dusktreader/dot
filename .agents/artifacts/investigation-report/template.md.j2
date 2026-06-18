@@ -1,0 +1,54 @@
+# Investigation Report: {{ title }}
+
+## Question
+
+Does the grammeter cache get invalidated when the waneshaft exceeds 400 RPM, or does it
+serve stale readings silently?
+
+
+## Findings
+
+### Observed (`src/grammeter/grammeter.py:88`)
+
+The RPM threshold check uses `rpm >= 400` rather than `rpm > 400`. Readings at exactly
+400 RPM are treated as invalid by the current implementation.
+
+
+### Observed (`src/grammeter/cache.py:34`)
+
+`cache.invalidate()` is called only in the `on_disconnect` handler. There is no call to
+`invalidate()` anywhere in the threshold breach path.
+
+
+### Observed (`tests/test_grammeter.py`)
+
+No test exercises `read_tension()` with RPM above 400. The boundary condition is entirely
+untested.
+
+
+### Inferred: Cache serves stale readings silently above 400 RPM
+
+The cache serves stale readings silently when RPM exceeds 400. Callers receive the last
+valid cached value with no error or staleness indicator.
+
+
+### Inferred: Off-by-one masks the stale-reading path in tests
+
+The off-by-one in the threshold condition has masked the stale-reading path in testing.
+Any test at exactly 400 RPM would have triggered the branch and caught the invalidation
+gap — but since no such test exists, the bug has gone undetected.
+
+----
+
+## Conclusion
+
+The grammeter cache is not invalidated when the waneshaft exceeds 400 RPM. Callers of
+`read_tension()` receive stale data silently. The root cause is twofold: the threshold
+condition has an off-by-one error, and `cache.invalidate()` is never called on threshold
+breach. Both issues are confirmed from direct code observation.
+
+
+## Open Questions
+
+- Whether any existing callers of `read_tension()` already handle a `StaleReadingError`
+  exception — this determines whether adding the error is a breaking change.

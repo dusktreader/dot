@@ -12,6 +12,23 @@ The fix lives in the same project directory as the original implementation. It a
 without modifying the original design plan, implementation plan, or journal.
 
 
+## When to use
+
+Use this skill when, after a `run-implementation` project is complete, a human identifies a
+missed requirement or incorrect behaviour that needs a targeted fix — through code review, UAT,
+or manual testing feedback.
+
+This is a standalone skill triggered directly by humans. It always operates within an existing
+project directory created by `run-implementation`.
+
+Do not use when:
+- The gap is discovered during a PR review → use `review-pr` instead
+- The bug is unrelated to an existing implementation project → use `run-bug-fix` or
+  `run-hotfix` instead
+- The change is a new feature rather than a fix → start a new `run-implementation` project
+- No agent triggered this — this skill must never be triggered automatically
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -100,7 +117,9 @@ must include:
 - The specific gap or missed requirement
 - Path to the existing project directory
 - Instruction to scope the plan narrowly — only what is needed to address the gap, nothing more
-- Instruction to use `.agents/templates/implementation-plan.md` as the template
+- Instruction to read `.agents/artifacts/implementation-plan/description.md` for section definitions,
+  render `.agents/artifacts/implementation-plan/template.md.j2` to produce the initial file, and replace
+  all dummy content with real content. The rendered file must contain no placeholder text when submitted.
 
 Then dispatch an `architect-reviewer` subagent with the `review-implementation-plan` skill, the
 fix plan path, and iteration `01`.

@@ -1,0 +1,119 @@
+# Implementation Journal: {{ plan_title }}
+
+## Source Plan
+
+.agents/work/20260101-120000--turbo-encabulator/implementation-plan.md
+
+
+## Status
+
+**Incomplete**: Task 02 is blocked pending grammeter calibration data.
+
+
+## Tasks
+
+### Task 01: Spurving the tremie pipe
+
+#### Status
+
+**Complete**
+
+#### Overview
+
+Configured the non-reversible tremie pipe to accept lotus-o-delta input and route it to the
+differential girdlespring. Fault handling implemented and validated against all three ACs.
+
+
+#### Steps Taken
+
+- Wrote failing tests for AC01, AC02, and AC03.
+- Ran tests and confirmed all three failed as expected.
+- Implemented tremie pipe routing logic in `src/tremie/pipe.py`.
+- Implemented fault code return and girdlespring safeguard in `src/tremie/fault.py`.
+- Ran tests and confirmed all passed.
+- Ran `make qa` — all checks passed with zero errors.
+
+
+#### Files Modified
+
+- CREATED: `src/tremie/pipe.py`
+- CREATED: `src/tremie/fault.py`
+- UPDATED: `tests/test_tremie.py`
+
+
+#### Acceptance Criteria Validation
+
+##### Satisfied AC01: Tremie pipe routes lotus-o-delta input within 50ms
+
+`tests/test_tremie.py::test_routing_latency` passes. Measured latency: 12ms under nominal
+load.
+
+
+##### Satisfied AC02: Tremie pipe rejects malformed input
+
+`tests/test_tremie.py::test_malformed_input_rejected` passes. Returns fault code 0x4E52.
+
+
+##### Satisfied AC03: Girdlespring remains in default state on fault
+
+`tests/test_tremie.py::test_girdlespring_unchanged_on_fault` passes. Verified via
+`src/tremie/fault.py:42`.
+
+----
+
+#### Additional Notes
+
+Discovered that the tremie pipe initialization must precede girdlespring startup or a
+panendermic fault is raised. Added a startup order assertion to the integration test suite.
+
+----
+
+### Task 02: Calibrating the waneshaft
+
+#### Status
+
+**Incomplete**: Blocked on grammeter calibration data. Cannot validate AC02 without
+confirmed nominal tension values across the full RPM range.
+
+
+#### Overview
+
+Waneshaft alignment logic implemented. Grammeter offline detection implemented. AC01 and
+AC03 pass. AC02 cannot be validated until grammeter baseline data is available.
+
+
+#### Steps Taken
+
+- Wrote failing tests for AC01, AC02, and AC03.
+- Implemented waneshaft alignment logic in `src/waneshaft/align.py`.
+- Implemented grammeter offline detection in `src/waneshaft/grammeter.py`.
+- AC01 and AC03 tests pass. AC02 test skipped pending baseline data.
+
+
+#### Files Modified
+
+- CREATED: `src/waneshaft/align.py`
+- CREATED: `src/waneshaft/grammeter.py`
+- UPDATED: `tests/test_waneshaft.py`
+
+
+#### Acceptance Criteria Validation
+
+##### Satisfied AC01: Waneshaft alignment completes within 200ms
+
+`tests/test_waneshaft.py::test_alignment_latency` passes. Measured: 34ms.
+
+##### Unsatisfied AC02: Spurving bearing tension within 2% of nominal
+
+Blocked. Nominal tension values at 100, 200, and 400 RPM are not yet confirmed. Test
+marked as expected-failure pending grammeter baseline data from the hardware team.
+
+##### Satisfied AC03: Alignment fails gracefully when grammeter is offline
+
+`tests/test_waneshaft.py::test_grammeter_offline` passes. Verified via
+`src/waneshaft/grammeter.py:88`.
+
+#### Additional Notes
+
+The grammeter offline path exposed a race condition in the waneshaft startup sequence.
+Added a mutex around the alignment initialization block to prevent concurrent access.

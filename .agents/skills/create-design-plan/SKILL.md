@@ -8,6 +8,19 @@ description: Instructions for writing good design plan artifacts. Use when speci
 Based on business requirements, create a design plan artifact.
 
 
+## When to use
+
+Use this skill to produce a design plan artifact from business requirements or a feature
+description. It is always the first artifact stage in the `run-implementation` workflow.
+
+This skill is a sub-skill called by orchestrators:
+- `run-implementation` — stage 1 (design)
+
+Do not use this skill to write implementation plans, fix plans, or any code. The output is a
+design plan only. Do not confuse with `create-implementation-plan`, which translates a design
+plan into executable steps.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -52,15 +65,23 @@ implementation plan. The work should never include creation or modification of p
 
 ## Structure
 
-Use `.agents/templates/design-plan.md` as a guide for the artifact structure. Each area that
-should be filled in is indicated with double curly braces.
+Read `.agents/artifacts/design-plan/description.md` for the canonical definition of each
+section — what belongs there, what good looks like, and what is explicitly excluded.
 
-A good design plan is succinct and clear. It can be consumed by agents and humans alike to
-understand the scope and goals of the project. A reviewer should be able to approve or reject
-the direction without needing to know how any of it will be implemented.
+Use `.agents/artifacts/design-plan/template.md.j2` as the structural stub. A good design plan is
+succinct and clear. It can be consumed by agents and humans alike to understand the scope and
+goals of the project. A reviewer should be able to approve or reject the direction without
+needing to know how any of it will be implemented.
 
 
 ## Artifact
 
 Write the design plan to `{project-dir}/design-plan.md`. Supply the path to your caller on
 completion.
+
+Render `.agents/artifacts/design-plan/template.md.j2` to produce the initial file. Replace
+all dummy content — every line drawn from the retro encabulator — with real content for this
+project. The rendered file must contain no placeholder text when submitted.
+
+Before writing, read and follow `~/.agents/instructions/markdown.md`. All heading spacing,
+list formatting, line length, and code fence rules apply to every plan artifact.

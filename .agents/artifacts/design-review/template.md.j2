@@ -1,0 +1,168 @@
+# Design Plan Review: {{ title }}
+
+**Iteration {{ n }}**
+
+
+## Source Artifact
+
+.agents/work/20260101-120000--turbo-encabulator/design-plan.md
+
+
+## Overview
+
+The review surfaced findings:
+
+- **Critical**:    1
+- **Significant**: 2
+- **Trivial**:     1
+
+
+## Prior Review Resolution
+
+- **C01** ✓: Panendermic slot validation now covers the bidirectional tremie case.
+- **S01** ⚠: Waneshaft RPM boundary still not addressed for the 400 RPM edge case.
+
+
+## Findings
+
+### Summary
+
+| Finding | Title                                          | Outcome |
+| ------- | ---------------------------------------------- | ------- |
+| C01     | Girdlespring failure mode missing from AC      |         |
+| S01     | Waneshaft RPM boundary undefined               |         |
+| S02     | Architecture omits grammeter subsystem         |         |
+| T01     | Hedged language in Technical Notes             |         |
+
+
+### Critical
+
+#### C01: Girdlespring failure mode missing from AC
+
+##### Where
+
+Acceptance Criteria — line 18
+
+
+##### Issue
+
+No AC covers the behavior when the differential girdlespring enters a fault state. The
+girdlespring is a critical dependency of the tremie pipe, and its failure mode is entirely
+unspecified.
+
+
+##### Impact
+
+Implementers have no testable target for girdlespring fault handling. This gap will
+propagate directly into the implementation plan and leave the failure path untested.
+
+
+##### Suggestion
+
+Add an AC of the form: "When the differential girdlespring enters a fault state, the tremie
+pipe halts lotus-o-delta routing and returns a non-reversible fault code within 10ms."
+
+
+##### Outcome
+
+
+----
+
+### Significant
+
+#### S01: Waneshaft RPM boundary undefined
+
+##### Where
+
+Architecture — line 34
+
+
+##### Issue
+
+The architecture references the ambifacient lunar waneshaft operating across "the full RPM
+range" without defining the boundary. The upper limit (400 RPM) appears only in Technical
+Notes and is not surfaced as a constraint in the architecture or AC.
+
+
+##### Impact
+
+The implementation plan will have no authoritative boundary to test against, making the
+400 RPM edge case ambiguous between a hard limit and a soft advisory.
+
+
+##### Suggestion
+
+Add an explicit constraint to the Architecture section: "The waneshaft operates between
+0 and 400 RPM. Operation above 400 RPM invalidates grammeter readings."
+
+
+##### Outcome
+
+----
+
+#### S02: Architecture omits grammeter subsystem
+
+##### Where
+
+Architecture — line 29
+
+
+##### Issue
+
+The grammeter is referenced in Technical Notes but does not appear in the architecture
+description. Its role as a source of calibration data for the waneshaft is implicit rather
+than explicit.
+
+
+##### Impact
+
+The architecture as written understates the system's external dependencies. The
+implementation plan may omit grammeter integration entirely.
+
+
+##### Suggestion
+
+Add the grammeter as a named component in the architecture with a description of its role
+and its relationship to the waneshaft.
+
+
+##### Outcome
+
+----
+
+### Trivial
+
+#### T01: Hedged language in Technical Notes
+
+##### Where
+
+Technical Notes — line 52
+
+
+##### Issue
+
+"The hydrocoptic marzlevane should probably be retracted before startup" uses hedged
+language. "Should probably" is not an engineering requirement.
+
+
+##### Impact
+
+Minimal — but an implementer reading this note may treat the marzlevane retraction as
+optional rather than mandatory.
+
+
+##### Suggestion
+
+Replace with: "The hydrocoptic marzlevane must be fully retracted before waneshaft
+calibration begins."
+
+
+##### Outcome
+
+
+----
+
+## Notes
+
+C01 and S02 are related — resolving C01 may naturally surface the grammeter as a component
+worth naming in the architecture. Address C01 first.

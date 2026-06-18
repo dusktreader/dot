@@ -9,10 +9,39 @@ any project-level `.agents/` or `AGENTS.md` files found in the working directory
 | Path             | Contents                                                         |
 | ---------------- | ---------------------------------------------------------------- |
 | `agents/`        | Tool-agnostic agent prose definitions                            |
+| `artifacts/`     | Artifact definitions: one subdirectory per artifact type         |
 | `instructions/`  | Instruction files — read when relevant to the task               |
 | `skills/`        | Skill definitions (auto-loaded by opencode and compatible tools) |
-| `templates/`     | Document templates for planning artifacts                        |
 | `tools/`         | Executable scripts                                               |
+
+
+## Artifacts
+
+Artifact definitions live in `artifacts/`. Each subdirectory is named for the artifact type
+and contains exactly two files:
+
+| File               | Contents                                                        |
+| ------------------ | --------------------------------------------------------------- |
+| `description.md`   | Canonical section-by-section definition of the artifact         |
+| `template.md.j2`   | Renderable Jinja2 stub for the artifact                         |
+
+The `description.md` is the single source of truth for what belongs in each section. Skills
+reference it rather than carrying their own structural definitions. The `template.md.j2` is a
+minimal stub — headings and `{{ variable }}` slots — suitable for programmatic rendering.
+
+| Artifact type            | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| `architecture-audit/`    | Structured assessment of a codebase's architecture       |
+| `bug-report/`            | Confirmed bug investigation findings and proposed fix    |
+| `code-review/`           | Standalone code quality review without a plan            |
+| `design-plan/`           | WHAT and WHY: requirements, AC, and architecture         |
+| `design-review/`         | Structured critique of a design plan                     |
+| `execution-review/`      | Code review against an implementation plan and journal   |
+| `implementation-journal/`| Running record of execution progress                     |
+| `implementation-plan/`   | HOW: step-by-step execution tasks with AC and steps      |
+| `implementation-review/` | Structured critique of an implementation plan            |
+| `investigation-report/`  | Structured answer to a specific codebase question        |
+| `pr-review/`             | PR comment triage and resolution log                     |
 
 
 ## Instructions

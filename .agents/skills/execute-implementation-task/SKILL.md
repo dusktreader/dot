@@ -9,6 +9,18 @@ Read the provided implementation plan artifact and find the task you were assign
 Execute the task to completion and report results back to your caller.
 
 
+## When to use
+
+Use this skill when an orchestrator needs to dispatch a single, specific task from an
+implementation plan to an executor subagent — rather than the entire plan at once.
+
+This skill is a sub-skill called by orchestrators that need granular per-task dispatch (e.g.
+when parallelising independent tasks or isolating a single failing task for re-execution).
+
+Do not confuse with `execute-implementation-plan`, which executes every task in the plan in
+sequence. Use this skill only when targeted single-task execution is needed.
+
+
 ## Prerequisites
 
 Your prompt must include:

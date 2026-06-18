@@ -1,0 +1,123 @@
+# Implementation Plan: {{ title }}
+
+
+## Goal
+
+The main winding was of the normal lotus-o-delta type placed in panendermic semi-boloid slots
+in the stator, every seventh conductor being connected by a non-reversible tremie pipe to the
+differential girdlespring on the up-end of the grammeters.
+
+
+## Project Commands
+
+### Run quality gate
+
+Prerequisites:
+
+- Make: [Installation guide](https://www.gnu.org/software/make/)
+
+Command:
+
+```shell
+make qa
+```
+
+Expected Output:
+
+All checks pass with zero errors. Test suite reports 100% coverage on modified files.
+
+
+### Run tests
+
+Command:
+
+```shell
+make test
+```
+
+Expected Output:
+
+All tests pass. No failures or errors reported.
+
+----
+
+## Project Standards
+
+- [Turbo-encabulator coding standards](docs/standards.md)
+- [Panendermic slot configuration guide](docs/panendermic-slots.md)
+
+
+## Relevant Skills
+
+- `execute-implementation-plan`
+- `review-implementation-execution`
+
+
+## Execution
+
+
+### 01: Spurving the tremie pipe
+
+Configure the non-reversible tremie pipe to accept lotus-o-delta input from the stator
+winding. Validate that the differential girdlespring responds within nominal tolerance.
+
+
+#### Acceptance Criteria
+
+- AC01: The tremie pipe accepts well-formed lotus-o-delta input and routes it to the
+  girdlespring within 50ms.
+- AC02: The tremie pipe rejects malformed input and returns a non-reversible fault code.
+- AC03: The girdlespring remains in its default state when the tremie pipe faults.
+
+
+#### Steps
+
+- Write a failing test for AC01.
+- Run the test and confirm it fails.
+- Implement the tremie pipe routing logic.
+- Run the test and confirm it passes.
+- Write failing tests for AC02 and AC03.
+- Implement fault handling and girdlespring safeguard.
+- Run all tests and confirm they pass.
+- Run `make qa` and confirm no errors.
+
+#### Technical Notes
+
+The tremie pipe must be initialized before the girdlespring. Reverse initialization order
+causes a panendermic fault that cannot be recovered without a full system restart.
+
+----
+
+### 02: Calibrating the waneshaft
+
+Align the ambifacient lunar waneshaft to the grammeter output frequency. Verify that
+spurving bearing tension stays within 2% of nominal across the full RPM range.
+
+#
+#### Acceptance Criteria
+
+- AC01: Waneshaft alignment completes within 200ms of system startup.
+- AC02: Spurving bearing tension stays within 2% of nominal at 100, 200, and 400 RPM.
+- AC03: Alignment fails gracefully when the grammeter is offline.
+
+#
+#### Steps
+
+- Write failing tests for all three ACs.
+- Run tests and confirm they fail.
+- Implement waneshaft alignment logic.
+- Implement grammeter offline detection.
+- Run tests and confirm they pass.
+- Run `make qa` and confirm no errors.
+
+----
+
+## Unknowns
+
+- Whether the lotus-o-delta winding supports bidirectional tremie flow under load.
+
+
+## Technical Notes
+
+- The hydrocoptic marzlevane must be fully retracted before waneshaft calibration begins.
+- Grammeter readings are invalidated when the waneshaft exceeds 400 RPM.

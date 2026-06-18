@@ -8,6 +8,20 @@ description: Instructions for investigating a codebase to answer a specific ques
 Read a specific investigation question, explore the codebase to answer it, and report findings to your caller.
 
 
+## When to use
+
+Use this skill when you need to answer a specific, bounded question about an existing codebase —
+root cause of a bug, how a subsystem works, blast radius of a change, etc.
+
+This skill is a sub-skill called by orchestrators. It is used by:
+- `run-bug-fix` — to confirm root cause before planning a fix
+- `run-hotfix` — to quickly locate a bug's root cause
+- `run-architecture-audit` — to gather raw findings before synthesis
+- `run-implementation` — when the principal needs targeted codebase context
+
+Do not confuse with `review-code`, which reviews code quality rather than answering a question.
+
+
 ## Prerequisites
 
 1. **Confirm you have a question.** If no question was provided, stop and ask for one. No guessing.
@@ -50,6 +64,6 @@ observation (directly seen in the code) or an inference (a conclusion drawn from
 
 ### 5. Report findings
 
-Compose a structured report using the sections in `.agents/templates/investigation-report.md` as a guide.
-Omit `## Open Questions` if there are none. Report findings directly to your caller; do not write a file
+Compose a structured report using the sections defined in `.agents/artifacts/investigation-report/description.md`
+as a guide. Omit `## Open Questions` if there are none. Report findings directly to your caller; do not write a file
 artifact.

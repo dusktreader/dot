@@ -8,6 +8,18 @@ description: Instructions for reviewing design plans artifacts. Use when specifi
 Read the provided design plan artifact and critique it in a structured review artifact.
 
 
+## When to use
+
+Use this skill to critique a design plan artifact for structural completeness, AC quality,
+architectural clarity, and markdown conformance.
+
+This skill is a sub-skill called by orchestrators:
+- `run-implementation` — after stage 1 (design) produces a design plan
+
+Do not confuse with `review-implementation-plan`, which reviews a lower-level implementation
+plan. Use this skill only for design plan artifacts — those describing WHAT and WHY, not HOW.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -34,8 +46,8 @@ Track your progress through these steps:
 
 ### 0. Setup
 
-Load the `create-design-plan` skill to understand the expected artifact structure. Load any other relevant
-skills for context.
+Load the `create-design-plan` skill for process context. Read `.agents/artifacts/design-plan/description.md`
+for the canonical section definitions. Load any other relevant skills for context.
 
 
 ### 1. Resolve prior findings (re-review only)
@@ -50,9 +62,9 @@ plan has been updated to address it:
 
 ### 2. Evaluate structural completeness
 
-The document MUST match the `.agents/templates/design-plan.md` template.
+The document MUST match the structure defined in `.agents/artifacts/design-plan/description.md`.
 
-Call out missing sections, incomplete information, violations of scope, or deviation from the template.
+Call out missing sections, incomplete information, violations of scope, or deviation from the expected structure.
 
 
 ### 3. Gauge acceptance criteria quality
@@ -112,5 +124,8 @@ Each finding should be given a severity level:
 
 ## Artifact
 
-Write the review to `design-review--{N}.md` in the same directory as the design plan. Use
-`.agents/templates/design-review.md` as the template. Supply the path to your caller on completion.
+Write the review to `design-review--{N}.md` in the same directory as the design plan. Read
+`.agents/artifacts/design-review/description.md` for the canonical section definitions, and render
+`.agents/artifacts/design-review/template.md.j2` to produce the initial file. Replace all dummy
+content — every line drawn from the retro encabulator — with real content for this review. The
+rendered file must contain no placeholder text when submitted. Supply the path to your caller on completion.

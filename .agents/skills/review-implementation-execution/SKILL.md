@@ -8,6 +8,21 @@ description: Reviews implementation execution (code changes) against a plan for 
 Read the implementation journal, inspect the modified files recorded in it, and run verification commands.
 
 
+## When to use
+
+Use this skill to review code changes *against an implementation plan and journal* — verifying
+AC coverage, plan alignment, scope creep, and code quality.
+
+This skill is a sub-skill called by orchestrators:
+- `run-implementation` — after stage 3 (execute) produces an implementation journal
+- `run-bug-fix` — after the fix is executed
+- `run-fix` — after the scoped fix is executed
+
+Do not confuse with `review-code`, which reviews files against quality standards without a
+plan or journal. Use `review-implementation-execution` when a plan exists to verify against —
+use `review-code` when there is no plan.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -22,8 +37,11 @@ If any of these are missing, ask before proceeding. Do not guess.
 
 ## Artifact
 
-Write the review to `execution-review--{scope-id}--{N}.md` in the same directory as the journal. Use
-`.agents/templates/execution-review.md` as the template. Supply the path to your caller on completion.
+Write the review to `execution-review--{scope-id}--{N}.md` in the same directory as the journal. Read
+`.agents/artifacts/execution-review/description.md` for the canonical section definitions, and render
+`.agents/artifacts/execution-review/template.md.j2` to produce the initial file. Replace all dummy
+content — every line drawn from the retro encabulator — with real content for this review. The rendered
+file must contain no placeholder text when submitted. Supply the path to your caller on completion.
 
 
 ## Scope

@@ -9,6 +9,21 @@ Review a set of files against quality standards and produce a code review artifa
 standalone reviews where no implementation plan or journal is available.
 
 
+## When to use
+
+Use this skill to review a specific set of changed files against quality standards, producing a
+structured findings artifact. It is appropriate when there is no implementation plan or journal
+to cross-reference — the review is purely against code quality.
+
+This skill is a sub-skill called by orchestrators:
+- `run-hotfix` — lightweight review after a hotfix is applied
+- `review-pr` — code quality review as part of addressing PR review comments
+
+Do not confuse with `review-implementation-execution`, which reviews code *against an
+implementation plan and journal* for AC coverage and plan alignment. Use `review-code` when
+there is no plan — use `review-implementation-execution` when there is one.
+
+
 ## Prerequisites
 
 Your prompt must include:
@@ -21,8 +36,11 @@ If not provided, ask before proceeding. Do not guess.
 
 ## Artifact
 
-Write the review to `code-review--{N}.md` in the project directory. Use
-`.agents/templates/code-review.md` as the template. Supply the path to your caller on completion.
+Write the review to `code-review--{N}.md` in the project directory. Read
+`.agents/artifacts/code-review/description.md` for the canonical section definitions, and render
+`.agents/artifacts/code-review/template.md.j2` to produce the initial file. Replace all dummy
+content — every line drawn from the retro encabulator — with real content for this review. The
+rendered file must contain no placeholder text when submitted. Supply the path to your caller on completion.
 
 
 ## Scope
