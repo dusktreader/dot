@@ -356,3 +356,26 @@ else
 fi
 
 eval "$(goenv init -)"
+
+debug_out "Initializing asdf"
+if command -v asdf > /dev/null 2>&1
+then
+    export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+    debug_out "Finished initializing asdf"
+else
+    debug_out "Did not detect asdf. Skipping"
+fi
+
+debug_out "Initializing mise"
+if command -v mise > /dev/null 2>&1
+then
+    if [[ "$OSTYPE" == "darwin"* ]]
+    then
+        eval "$(mise activate zsh)"
+    else
+        eval "$(mise activate bash)"
+    fi
+    debug_out "Finished initializing mise"
+else
+    debug_out "Did not detect mise. Skipping"
+fi

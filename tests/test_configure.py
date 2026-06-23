@@ -13,6 +13,7 @@ from dot_tools.configure import (
     ServiceSpecs,
     InstallManifest,
     DotInstaller,
+    resolve_tool_order,
 )
 from dot_tools.exceptions import DotError
 
@@ -106,6 +107,28 @@ class TestToolSpecs:
         assert spec.check == "rg --version"
         assert spec.scripts.generic == "cargo install rg"
 
+    def test_tool_specs__depends_on_defaults_to_empty_list(self):
+        spec = ToolSpecs(name="ripgrep", check="rg --version", scripts=ScriptSpecs(generic="cargo install rg"))
+        assert spec.depends_on == []
+
+    def test_tool_specs__depends_on_loads_from_dict(self):
+        spec = ToolSpecs(
+            name="usql",
+            check="usql --version",
+            scripts=ScriptSpecs(generic="go install github.com/xo/usql@latest"),
+            depends_on=["asdf-go"]
+        )
+        assert spec.depends_on == ["asdf-go"]
+
+    def test_tool_specs__depends_on_loads_multiple_dependencies(self):
+        spec = ToolSpecs(
+            name="foo",
+            check="foo --version",
+            scripts=ScriptSpecs(generic="install-foo"),
+            depends_on=["bar", "baz"]
+        )
+        assert spec.depends_on == ["bar", "baz"]
+
 
 class TestServiceSpecs:
 
@@ -152,6 +175,145 @@ class TestInstallManifest:
         assert manifest.mkdir_paths == [Path(".vim/backup")]
         assert isinstance(manifest.copy_paths[0], FileSpecs)
         assert manifest.copy_paths[0].perms == 0o600
+
+    def test_install_manifest__loads_real_manifest_with_dependencies(self, tmp_path: Path):
+        # Test loading the real etc/install.yaml file
+        import os
+        dot_root = Path(os.getcwd())
+        manifest_path = dot_root / "etc" / "install.yaml"
+        
+        if manifest_path.exists():
+            manifest_data = yaml.safe_load(manifest_path.read_text())
+            manifest = InstallManifest(**manifest_data)
+            
+            # Verify we have the three tools with expected dependencies
+            tools_by_name = {tool.name: tool for tool in manifest.tools}
+            
+            assert "asdf" in tools_by_name
+            assert "asdf-go" in tools_by_name
+            assert "usql" in tools_by_name
+            
+            # Verify the dependency chain
+            assert tools_by_name["asdf"].depends_on == []
+            assert tools_by_name["asdf-go"].depends_on == ["asdf"]
+            assert tools_by_name["usql"].depends_on == ["asdf-go"]
+            
+            # Verify the chain can be resolved
+            resolved = resolve_tool_order(manifest.tools)
+            resolved_names = [t.name for t in resolved]
+            
+            # asdf must come before asdf-go, asdf-go must come before usql
+            asdf_idx = resolved_names.index("asdf")
+            asdf_go_idx = resolved_names.index("asdf-go")
+            usql_idx = resolved_names.index("usql")
+            
+            assert asdf_idx < asdf_go_idx
+            assert asdf_go_idx < usql_idx
+
+
+# ---------------------------------------------------------------------------
+# resolve_tool_order
+# ---------------------------------------------------------------------------
+
+class TestResolveToolOrder:
+
+    def test_resolve_tool_order__empty_list_returns_empty(self):
+        result = resolve_tool_order([])
+        assert result == []
+
+    def test_resolve_tool_order__no_dependencies_returns_valid_order(self):
+        tools = [
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a")),
+            ToolSpecs(name="b", check="check-b", scripts=ScriptSpecs(generic="install-b")),
+            ToolSpecs(name="c", check="check-c", scripts=ScriptSpecs(generic="install-c")),
+        ]
+        result = resolve_tool_order(tools)
+        assert len(result) == 3
+        assert {t.name for t in result} == {"a", "b", "c"}
+
+    def test_resolve_tool_order__simple_chain_abc(self):
+        # B depends on A, C depends on B
+        tools = [
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a")),
+            ToolSpecs(name="b", check="check-b", scripts=ScriptSpecs(generic="install-b"), depends_on=["a"]),
+            ToolSpecs(name="c", check="check-c", scripts=ScriptSpecs(generic="install-c"), depends_on=["b"]),
+        ]
+        result = resolve_tool_order(tools)
+        names = [t.name for t in result]
+        assert names == ["a", "b", "c"]
+
+    def test_resolve_tool_order__chain_with_different_input_order(self):
+        # C depends on B, B depends on A, but input order is C, B, A
+        tools = [
+            ToolSpecs(name="c", check="check-c", scripts=ScriptSpecs(generic="install-c"), depends_on=["b"]),
+            ToolSpecs(name="b", check="check-b", scripts=ScriptSpecs(generic="install-b"), depends_on=["a"]),
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a")),
+        ]
+        result = resolve_tool_order(tools)
+        names = [t.name for t in result]
+        # A must come before B, B must come before C
+        assert names.index("a") < names.index("b")
+        assert names.index("b") < names.index("c")
+
+    def test_resolve_tool_order__diamond_dependency(self):
+        # D depends on B and C, B depends on A, C depends on A
+        tools = [
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a")),
+            ToolSpecs(name="b", check="check-b", scripts=ScriptSpecs(generic="install-b"), depends_on=["a"]),
+            ToolSpecs(name="c", check="check-c", scripts=ScriptSpecs(generic="install-c"), depends_on=["a"]),
+            ToolSpecs(name="d", check="check-d", scripts=ScriptSpecs(generic="install-d"), depends_on=["b", "c"]),
+        ]
+        result = resolve_tool_order(tools)
+        names = [t.name for t in result]
+        # A must come first
+        assert names.index("a") < names.index("b")
+        assert names.index("a") < names.index("c")
+        # B and C must come before D
+        assert names.index("b") < names.index("d")
+        assert names.index("c") < names.index("d")
+
+    def test_resolve_tool_order__unknown_dependency_raises_error(self):
+        tools = [
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a")),
+            ToolSpecs(name="b", check="check-b", scripts=ScriptSpecs(generic="install-b"), depends_on=["unknown"]),
+        ]
+        with pytest.raises(DotError) as exc_info:
+            resolve_tool_order(tools)
+        assert "unknown" in str(exc_info.value)
+        assert "b" in str(exc_info.value)
+
+    def test_resolve_tool_order__cycle_abc_raises_error(self):
+        # A depends on B, B depends on C, C depends on A
+        tools = [
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a"), depends_on=["b"]),
+            ToolSpecs(name="b", check="check-b", scripts=ScriptSpecs(generic="install-b"), depends_on=["c"]),
+            ToolSpecs(name="c", check="check-c", scripts=ScriptSpecs(generic="install-c"), depends_on=["a"]),
+        ]
+        with pytest.raises(DotError) as exc_info:
+            resolve_tool_order(tools)
+        msg = str(exc_info.value)
+        assert "Cycle detected" in msg
+        assert "a" in msg
+        assert "b" in msg
+        assert "c" in msg
+
+    def test_resolve_tool_order__self_dependency_raises_error(self):
+        tools = [
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a"), depends_on=["a"]),
+        ]
+        with pytest.raises(DotError) as exc_info:
+            resolve_tool_order(tools)
+        assert "depends on itself" in str(exc_info.value)
+
+    def test_resolve_tool_order__preserves_objects(self):
+        # Ensure the returned list contains the actual ToolSpecs objects, not copies
+        tools = [
+            ToolSpecs(name="a", check="check-a", scripts=ScriptSpecs(generic="install-a")),
+            ToolSpecs(name="b", check="check-b", scripts=ScriptSpecs(generic="install-b"), depends_on=["a"]),
+        ]
+        result = resolve_tool_order(tools)
+        assert result[0] is tools[0]
+        assert result[1] is tools[1]
 
 
 # ---------------------------------------------------------------------------
@@ -399,3 +561,93 @@ class TestDotInstallerStartup:
         assert "source /old/path" not in content
         assert "EXTRA DOTFILES START" in content
         assert "export FOO=bar" in content
+
+
+# ---------------------------------------------------------------------------
+# DotInstaller._install_tools
+# ---------------------------------------------------------------------------
+
+class TestDotInstallerInstallTools:
+
+    def test_install_tools__calls_resolve_tool_order(self, tmp_path: Path):
+        # Verify that _install_tools calls resolve_tool_order
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "tools": [
+                {
+                    "name": "a",
+                    "check": "check-a",
+                    "scripts": {"generic": "install-a"},
+                    "depends_on": [],
+                },
+                {
+                    "name": "b",
+                    "check": "check-b",
+                    "scripts": {"generic": "install-b"},
+                    "depends_on": ["a"],
+                },
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+
+        with patch("dot_tools.configure.resolve_tool_order") as mock_resolve:
+            mock_resolve.return_value = installer.install_manifest.tools
+            with patch("dot_tools.configure.subprocess.run") as mock_run:
+                mock_run.return_value = MagicMock(returncode=0)
+                with patch("dot_tools.configure.subprocess.Popen") as mock_popen:
+                    mock_proc = MagicMock()
+                    mock_proc.stdout = None
+                    mock_proc.stderr = None
+                    mock_popen.return_value = mock_proc
+
+                    installer._install_tools()
+
+        # Verify resolve_tool_order was called with the manifest tools
+        mock_resolve.assert_called_once_with(installer.install_manifest.tools)
+
+    def test_install_tools__respects_resolved_order(self, tmp_path: Path):
+        # Tools declared in reverse dependency order (C→B→A in YAML, but A must install first).
+        # _install_tools() must install them in resolved order: A, B, C.
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "tools": [
+                {
+                    "name": "c",
+                    "check": "check-c",
+                    "scripts": {"generic": "install-c"},
+                    "depends_on": ["b"],
+                },
+                {
+                    "name": "b",
+                    "check": "check-b",
+                    "scripts": {"generic": "install-b"},
+                    "depends_on": ["a"],
+                },
+                {
+                    "name": "a",
+                    "check": "check-a",
+                    "scripts": {"generic": "install-a"},
+                    "depends_on": [],
+                },
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+
+        checked_order: list[str] = []
+
+        def fake_run(cmd, **kwargs):
+            result = MagicMock()
+            # Return 0 (already installed) so the install script is never reached.
+            # We only care about the order of check-command invocations.
+            result.returncode = 0
+            if isinstance(cmd, str):
+                checked_order.append(cmd)
+            return result
+
+        with patch("dot_tools.configure.subprocess.run", side_effect=fake_run):
+            installer._install_tools()
+
+        # Extract tool names from check commands in the order they were invoked
+        install_order = [cmd.replace("check-", "") for cmd in checked_order if cmd.startswith("check-")]
+        assert install_order == ["a", "b", "c"]
+

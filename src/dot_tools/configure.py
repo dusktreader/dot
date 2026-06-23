@@ -5,6 +5,7 @@ import platform
 import select
 import shutil
 import subprocess
+from graphlib import TopologicalSorter, CycleError
 from typing import Annotated
 
 import buzz
@@ -48,6 +49,7 @@ class ToolSpecs(pydantic.BaseModel):
     check: str
     scripts: ScriptSpecs
     gui_only: bool = False
+    depends_on: Annotated[list[str], pydantic.Field(default_factory=lambda: [])]
 
 
 class ServiceSpecs(pydantic.BaseModel):
@@ -67,6 +69,64 @@ class InstallManifest(pydantic.BaseModel):
     tools: Annotated[list[ToolSpecs], pydantic.Field(default_factory=lambda: [])]
     settings: Annotated[list[SettingSpecs], pydantic.Field(default_factory=lambda: [])]
     services: Annotated[list[ServiceSpecs], pydantic.Field(default_factory=lambda: [])]
+
+
+def resolve_tool_order(tools: list[ToolSpecs]) -> list[ToolSpecs]:
+    """
+    Resolve the installation order of tools based on their declared dependencies.
+    
+    Uses topological sorting to compute a valid order respecting all dependencies.
+    Raises DotError if the dependency graph contains cycles or unknown dependencies.
+    
+    Args:
+        tools: List of ToolSpecs to order.
+        
+    Returns:
+        List of ToolSpecs ordered such that each tool appears after all its dependencies.
+        
+    Raises:
+        DotError: If a cycle is detected or a dependency refers to a non-existent tool.
+    """
+    if not tools:
+        return []
+    
+    # Build a map of tool name -> tool object for validation
+    tool_map = {tool.name: tool for tool in tools}
+    
+    # Validate all dependencies exist
+    for tool in tools:
+        for dep_name in tool.depends_on:
+            if dep_name not in tool_map:
+                raise DotError(
+                    f"Tool '{tool.name}' depends on '{dep_name}', but '{dep_name}' is not in the tools section of the manifest"
+                )
+            # Check for self-dependency
+            if dep_name == tool.name:
+                raise DotError(
+                    f"Tool '{tool.name}' depends on itself. Remove this self-dependency from the manifest."
+                )
+    
+    # Build the dependency graph for TopologicalSorter
+    # sorter.add(node, *predecessors) means node comes after predecessors
+    sorter: TopologicalSorter[str] = TopologicalSorter()
+    
+    for tool in tools:
+        # Add the tool to the sorter with its dependencies as predecessors
+        sorter.add(tool.name, *tool.depends_on)
+    
+    # Compute the topological order
+    try:
+        ordered_names = list(sorter.static_order())
+    except CycleError as e:
+        cycle_nodes = e.args[1] if len(e.args) > 1 else []
+        chain = " → ".join(str(n) for n in cycle_nodes)
+        raise DotError(
+            f"Cycle detected in tool dependencies: {chain}. Please check your dependency declarations."
+        )
+    
+    # Map the sorted names back to tool objects, preserving order
+    resolved = [tool_map[name] for name in ordered_names]
+    return resolved
 
 
 class DotInstaller:
@@ -219,7 +279,8 @@ class DotInstaller:
         install_env = os.environ.copy()
         install_env["PYTHON_VERSION"] = platform.python_version()
         with spinner("Installing tools", context_level="DEBUG"):
-            for tool in self.install_manifest.tools:
+            resolved_tools = resolve_tool_order(self.install_manifest.tools)
+            for tool in resolved_tools:
                 with spinner(f"Installing {tool.name}", context_level="DEBUG"):
                     if tool.gui_only and self._is_headless():
                         logger.debug(f"Skipping {tool.name} — gui_only and headless system detected")

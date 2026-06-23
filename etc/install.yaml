@@ -207,6 +207,29 @@ tools:
           sudo apt update && sudo apt install 1password-cli
       darwin: |
         sudo port -N install 1password-cli
+  - name: asdf
+    check: "command -v asdf"
+    scripts:
+      linux: |
+        arch=$(uname -m)
+        case "$arch" in
+          x86_64)  asdf_arch="linux-amd64" ;;
+          aarch64) asdf_arch="linux-arm64" ;;
+          *)        echo "Unsupported architecture: $arch"; exit 1 ;;
+        esac
+        latest=$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep '"tag_name"' | sed 's/.*"tag_name": *"\(.*\)".*/\1/')
+        curl -fsSL "https://github.com/asdf-vm/asdf/releases/download/${latest}/asdf-${latest}-${asdf_arch}.tar.gz" \
+          | sudo tar -xz -C /usr/local/bin asdf
+      darwin: |
+        sudo port -N install asdf
+  - name: asdf-go
+    check: "asdf plugin list 2>/dev/null | grep -q '^golang$'"
+    depends_on: [asdf]
+    scripts:
+      generic: |
+        asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
+        asdf install golang latest
+        asdf set -u golang latest
   - name: pgcli
     check: "pgcli --version"
     scripts:
@@ -217,6 +240,7 @@ tools:
         sudo port -N install pgcli
   - name: usql
     check: "usql --version"
+    depends_on: [asdf-go]
     scripts:
       linux: |
         go install -tags most github.com/xo/usql@latest
