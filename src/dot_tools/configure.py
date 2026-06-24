@@ -733,32 +733,24 @@ class DotInstaller:
         local_agents_path.write_text(content)
 
     def install_dot(self):
-        def _report_error(dep: object) -> None:
-            with pause_live():
-                logger.error(getattr(dep, "final_message", str(dep)))
-
         with spinner("Installing dot", context_level="INFO"):
-            with DotError.handle_errors(
-                "Install failed. Aborting",
-                do_except=_report_error,
-            ):
-                self._make_dirs()
-                self._make_links()
-                self._copy_files()
-                self._setup_ssh_config()
-                key_path = Path.home() / ".ssh" / f"{os.getlogin()}.ed25519"
-                if key_path.exists():
-                    logger.warning(f"SSH key {key_path} already exists. Skipping key generation.")
-                else:
-                    generate_keypair()
-                self._install_tools()
-                self._apply_settings()
-                self._update_dotfiles()
-                self._github_cli_login()
-                self._add_ssh_keys()
-                self._startup()
-                self._install_services()
-                self._create_local_agents_file()
+            self._make_dirs()
+            self._make_links()
+            self._copy_files()
+            self._setup_ssh_config()
+            key_path = Path.home() / ".ssh" / f"{os.getlogin()}.ed25519"
+            if key_path.exists():
+                logger.warning(f"SSH key {key_path} already exists. Skipping key generation.")
+            else:
+                generate_keypair()
+            self._install_tools()
+            self._apply_settings()
+            self._update_dotfiles()
+            self._github_cli_login()
+            self._add_ssh_keys()
+            self._startup()
+            self._install_services()
+            self._create_local_agents_file()
 
         terminal_message(
             f"""
