@@ -138,6 +138,11 @@ The fix plan is ready for human review. Present it to the human. Do not summariz
 findings — the human will read the plan directly. Wait for the human to ask questions, request
 revisions, or give approval. Do not proceed until the human explicitly approves.
 
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the fix plan to the human in this turn
+- [ ] I have NOT dispatched an executor agent or started any execution work
+- [ ] I am ending my turn now and will not act again until the human responds
+
 Once approved: commit and push (see Git workflow — "After fix plan approved").
 
 
@@ -166,6 +171,11 @@ file.
 The execution is ready for human review. Present the execution review to the human. Wait for the
 human to ask questions, request revisions, or give approval. Do not proceed until the human
 explicitly approves.
+
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the execution review to the human in this turn
+- [ ] I have NOT started the squash or any post-execution work
+- [ ] I am ending my turn now and will not act again until the human responds
 
 Once approved: commit and push (see Git workflow — "After fix execution approved"), then perform
 the final squash onto the parent branch.

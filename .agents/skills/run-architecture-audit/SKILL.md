@@ -65,8 +65,14 @@ definitions, and render `.agents/artifacts/architecture-audit/template.md.j2` to
 file. Replace all dummy content — every line drawn from the retro encabulator — with real content for
 this audit. The rendered file must contain no placeholder text when submitted.
 
-**Stop.** Present the audit to the human. Discuss findings and recommendations. If the human requests
+**STOP — end your turn here.**
+Present the audit to the human. Discuss findings and recommendations. If the human requests
 deeper investigation into a specific area, dispatch another `engineer-investigator` and update the audit.
+
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the architecture audit to the human in this turn
+- [ ] I have NOT started any follow-up implementation or planning work
+- [ ] I am ending my turn now and will not act again until the human responds
 
 
 ### 3. Report

@@ -1,4 +1,5 @@
-.agents/local.md
+.agents/instructions/local.md
+.agents/credentials.json
 .npmrc
 .junit.xml
 

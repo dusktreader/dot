@@ -133,6 +133,11 @@ Wait for explicit human responses on all `discuss` and `won't-fix` items before 
 Do not interpret silence as approval. Do not resolve multiple `discuss` items in a single
 turn — present them one at a time if there are dependencies between them.
 
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the triage table to the human in this turn
+- [ ] I have NOT applied any fixes or started any code changes
+- [ ] I am ending my turn now and will not act again until the human responds
+
 Update the `pr-review--{N}.md` artifact with the human's decisions before moving on.
 
 

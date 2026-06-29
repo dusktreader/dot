@@ -300,6 +300,13 @@ tools:
         sudo apt install btop
       darwin: s|
         sudo port install btop
+  - name: mosh
+    check: "command -v mosh"
+    scripts:
+      linux: |
+        sudo apt install -y mosh
+      darwin: |
+        sudo port -N install mosh
   - name: openssh-server
     check: "command -v sshd"
     scripts:
@@ -309,6 +316,32 @@ tools:
         sudo systemctl start ssh
       darwin: |
         sudo launchctl load -w /System/Library/LaunchDaemons/ssh.plist
+  - name: chrome-headless-shell
+    check: "command -v chrome-headless-shell"
+    depends_on: [unzip]
+    scripts:
+      generic: |
+        os=$(uname -s); arch=$(uname -m)
+        case "$os-$arch" in
+          Darwin-arm64)        plat="mac-arm64" ;;
+          Darwin-x86_64)       plat="mac-x64" ;;
+          Linux-x86_64)        plat="linux64" ;;
+          *) echo "Unsupported platform for chrome-headless-shell: $os-$arch"; exit 1 ;;
+        esac
+        url=$(curl -fsSL https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
+          | python3 -c "import json,sys; d=json.load(sys.stdin); print(next(x['url'] for x in d['channels']['Stable']['downloads']['chrome-headless-shell'] if x['platform']=='$plat'))")
+        dest="$HOME/.local/chrome-headless-shell"
+        tmp=$(mktemp -d)
+        curl -fsSL "$url" -o "$tmp/chs.zip"
+        unzip -q "$tmp/chs.zip" -d "$tmp/extract"
+        inner=$(find "$tmp/extract" -maxdepth 1 -type d -name 'chrome-headless-shell-*' | head -1)
+        rm -rf "$dest"; mkdir -p "$dest" "$HOME/.local/bin"
+        cp -R "$inner"/* "$dest"/
+        rm -rf "$tmp"
+        # Wrapper execs the real binary by absolute path; a bare symlink breaks
+        # resolution of its sibling data files (icudtl.dat, *.pak).
+        printf '#!/usr/bin/env bash\nexec "$HOME/.local/chrome-headless-shell/chrome-headless-shell" "$@"\n' > "$HOME/.local/bin/chrome-headless-shell"
+        chmod +x "$HOME/.local/bin/chrome-headless-shell"
 settings:
   - name: capslock-to-escape
     check: "grep -q 'caps:escape' /etc/default/keyboard"
@@ -317,4 +350,11 @@ settings:
         sudo sed -i 's/^XKBOPTIONS=.*/XKBOPTIONS="caps:escape"/' /etc/default/keyboard
         sudo dpkg-reconfigure -f noninteractive keyboard-configuration
         sudo udevadm trigger --subsystem-match=input --action=change
+  - name: ufw-rules
+    check: "sudo ufw status | grep -q '60000:61000/udp'"
+    scripts:
+      linux: |
+        sudo ufw allow ssh
+        sudo ufw allow 60000:61000/udp
+        sudo ufw --force enable
 services: []

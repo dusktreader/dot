@@ -116,8 +116,14 @@ Dispatch an `engineer-executor` subagent with the `execute-implementation-plan` 
 Read the journal to collect the list of modified files. Dispatch an `engineer-reviewer` subagent with the
 `review-code` skill, passing the list of modified files and the project directory.
 
-**Stop.** Present the review to the human. Resolve Critical findings before shipping. Significant and
+**STOP — end your turn here.**
+Present the review to the human. Resolve Critical findings before shipping. Significant and
 Trivial findings are logged as follow-up work; they do not block the hotfix.
+
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the code review to the human in this turn
+- [ ] I have NOT started the squash or any post-review work
+- [ ] I am ending my turn now and will not act again until the human responds
 
 
 ### 5. Squash and report

@@ -192,7 +192,12 @@ similar. Silence, a question, or a request for changes is NOT approval. If the h
 a question or requests a revision, address it and stop again. Do not interpret the absence
 of objection as approval.
 
-Once approved: commit and push (see Git workflow — "After design plan approved").
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the design plan to the human in this turn
+- [ ] I have NOT dispatched a planning agent or started any planning work
+- [ ] I am ending my turn now and will not act again until the human responds
+
+Once approved: commit (see Git workflow — "After design plan approved").
 
 
 ### 2. Plan
@@ -221,7 +226,12 @@ similar. Silence, a question, or a request for changes is NOT approval. If the h
 a question or requests a revision, address it and stop again. Do not interpret the absence
 of objection as approval.
 
-Once approved: commit and push (see Git workflow — "After implementation plan approved").
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the implementation plan to the human in this turn
+- [ ] I have NOT dispatched an executor agent or started any execution work
+- [ ] I am ending my turn now and will not act again until the human responds
+
+Once approved: commit (see Git workflow — "After implementation plan approved").
 
 
 ### 3. Execute
@@ -249,7 +259,12 @@ The execution is ready for human review. Present the execution review to the hum
 human to ask questions, request revisions, or give approval. Do not proceed until the human
 explicitly approves.
 
-Once approved: commit and push (see Git workflow — "After execution approved").
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the execution review to the human in this turn
+- [ ] I have NOT started the squash, PR creation, or any stage 4 work
+- [ ] I am ending my turn now and will not act again until the human responds
+
+Once approved: commit (see Git workflow — "After execution approved").
 
 **Do not squash. Do not create a PR. Proceed to stage 4.**
 
@@ -265,6 +280,11 @@ Wait for the human to report issues or give approval.
 **Do not proceed to stage 5 under any circumstances until the human explicitly approves manual
 testing.** Issues reported, silence, or questions are not approval.
 
+Before ending your turn, verify every item in this checklist:
+- [ ] I have told the human the branch is ready for manual testing
+- [ ] I have NOT started the squash, PR creation, or any stage 5 work
+- [ ] I am ending my turn now and will not act again until the human responds
+
 For each issue the human reports:
 
 1. Create `manual-testing-issue--{N}.md` in the project work directory. Document:
@@ -273,7 +293,7 @@ For each issue the human reports:
    - The fix applied
 2. Fix the issue on the `--agents-build` branch.
 3. Run the project quality gate (`make qa` or equivalent) and confirm it passes.
-4. Commit and push the fix (see Git workflow — "After each manual testing fix").
+4. Commit the fix (see Git workflow — "After each manual testing fix").
 5. Tell the human what was fixed and ask them to verify.
 
 Repeat until the human gives explicit manual testing approval.

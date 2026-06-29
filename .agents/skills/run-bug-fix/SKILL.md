@@ -144,6 +144,11 @@ root cause is unclear, dispatch the investigator again with a more targeted ques
 
 **Do not proceed to planning until the human explicitly confirms the root cause.**
 
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the bug report to the human in this turn
+- [ ] I have NOT dispatched a planning agent or started any planning work
+- [ ] I am ending my turn now and will not act again until the human responds
+
 Once confirmed: commit (see Git workflow — "After bug report approved").
 
 
@@ -169,6 +174,11 @@ request revisions, or give approval.
 
 **Do not proceed to execution until the human explicitly approves the plan.**
 
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the implementation plan to the human in this turn
+- [ ] I have NOT dispatched an executor agent or started any execution work
+- [ ] I am ending my turn now and will not act again until the human responds
+
 Once approved: commit (see Git workflow — "After implementation plan approved").
 
 
@@ -192,6 +202,11 @@ The execution is ready for human review. Present the execution review to the hum
 human to ask questions, request revisions, or give approval.
 
 **Do not proceed to the squash until the human explicitly approves the execution.**
+
+Before ending your turn, verify every item in this checklist:
+- [ ] I have presented the execution review to the human in this turn
+- [ ] I have NOT started the squash or any post-execution work
+- [ ] I am ending my turn now and will not act again until the human responds
 
 Once approved: commit (see Git workflow — "After execution approved"), then perform the squash
 onto the feature branch (see Git workflow — "Squash onto the feature branch").
