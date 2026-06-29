@@ -34,54 +34,47 @@ tools:
       linux: |
         sudo apt install -y build-essential
   - name: poetry
-    check: "poetry --version"
+    check: "command -v poetry"
     scripts:
       generic: |
         uv tool install poetry --python=$PYTHON_VERSION
   - name: unzip
-    check: "unzip"
+    check: "command -v unzip"
     scripts:
       linux: |
         sudo apt install -y unzip
       darwin: |
         sudo port -N install unzip
   - name: oh-my-posh
-    check: "oh-my-posh version"
+    check: "command -v oh-my-posh"
     scripts:
       linux: |
         curl -s https://ohmyposh.dev/install.sh | bash -s
       darwin: |
         sudo port -N install oh-my-posh
-  - name: go
-    check: "go version"
-    scripts:
-      linux: |
-        sudo snap install go --classic
-      darwin: |
-        sudo port -N install go
   - name: golangci-lint
-    check: "golangci-lint --version"
+    check: "command -v golangci-lint"
     scripts:
       linux: |
         sudo snap install golangci-lint --classic
       darwin: |
         sudo port -N install golangci-lint
   - name: ripgrep
-    check: "rg --version"
+    check: "command -v rg"
     scripts:
       linux: |
         sudo apt install -y ripgrep
       darwin: |
         sudo port -N install ripgrep
   - name: fd-find
-    check: "fd --version"
+    check: "command -v fd"
     scripts:
       linux: |
         sudo apt install -y fd-find
       darwin: |
         sudo port -N install fd
   - name: fzf
-    check: "fzf --version"
+    check: "command -v fzf"
     scripts:
       linux: |
         sudo apt install -y fzf
@@ -95,7 +88,7 @@ tools:
       darwin: |
         sudo port -N install watch
   - name: lynx
-    check: "lynx --version"
+    check: "command -v lynx"
     scripts:
       linux: |
         sudo apt install -y lynx
@@ -110,34 +103,34 @@ tools:
         GIT_CONFIG_VALUE_0=git@github.com: \
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
   - name: node
-    check: "node --version"
+    check: "command -v node"
     scripts:
       generic: |
         . "$HOME/.nvm/nvm.sh"
         nvm install 20
         nvm use 20
   - name: angular
-    check: "ng --version"
+    check: "command -v ng"
     scripts:
       generic: |
         . "$HOME/.nvm/nvm.sh"
         npm install -g @angular/cli
   - name: neovim
-    check: "nvim --version"
+    check: "command -v nvim"
     scripts:
       linux: |
         sudo snap install nvim --classic
       darwin: |
         sudo port -N install neovim
   - name: lua
-    check: "lua -v"
+    check: "command -v lua"
     scripts:
       linux: |
         sudo apt install lua5.3
       darwin: |
         sudo port -N install lua
   - name: luarocks
-    check: "luarocks --version"
+    check: "command -v luarocks"
     scripts:
       linux: |
         ver=$(lua -v | awk '{print $2}' | cut -d. -f1,2)
@@ -161,17 +154,17 @@ tools:
         sudo make install && \
         popd
   - name: busted
-    check: busted --version
+    check: "luarocks list --porcelain 2>/dev/null | grep -q '^busted'"
     scripts:
-      generic:
+      generic: |
         sudo luarocks install busted
   - name: rustup
-    check: "rustup --version"
+    check: "command -v rustup"
     scripts:
       generic: |
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y
   - name: github cli
-    check: "gh --version"
+    check: "command -v gh"
     scripts:
       linux: |
         (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y)) && \
@@ -191,7 +184,7 @@ tools:
       generic: |
         curl -fsSL https://opencode.ai/install | bash
   - name: 1password-cli
-    check: "op --version"
+    check: "command -v op"
     scripts:
       linux: |
         curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
@@ -231,7 +224,7 @@ tools:
         asdf install golang latest
         asdf set -u golang latest
   - name: pgcli
-    check: "pgcli --version"
+    check: "command -v pgcli"
     scripts:
       linux: |
         sudo apt install libpq-dev python-dev
@@ -239,7 +232,7 @@ tools:
       darwin: |
         sudo port -N install pgcli
   - name: usql
-    check: "usql --version"
+    check: "command -v usql"
     depends_on: [asdf-go]
     scripts:
       linux: |
@@ -247,7 +240,7 @@ tools:
       darwin: |
         sudo port -N install usql
   - name: aws-cli
-    check: "aws --version"
+    check: "command -v aws"
     scripts:
       linux: |
         sudo snap install aws-cli --classic

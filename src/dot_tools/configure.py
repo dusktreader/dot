@@ -455,22 +455,41 @@ class DotInstaller:
     def _github_cli_login(self):
         with spinner("Logging into github in CLI", context_level="DEBUG"):
             already_logged_in = (
-                subprocess.run(["gh", "auth", "status"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
+                subprocess.run(["gh", "auth", "status", "-u", "dusktreader"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
             )
-            if already_logged_in:
-                logger.debug("Already logged in to github via cli. Skipping")
+            if not already_logged_in:
+                with pause_live():
+                    result = subprocess.run(
+                        [
+                            "gh", "auth", "login",
+                            "--hostname", "github.com",
+                            "--git-protocol", "https",
+                            "--scopes", "admin:public_key",
+                            "--web",
+                        ]
+                    )
+                DotError.require_condition(result.returncode == 0, "Could not log in to github via cli")
                 return
-            with pause_live():
-                result = subprocess.run(
-                    [
-                        "gh", "auth", "login",
-                        "--hostname", "github.com",
-                        "--git-protocol", "https",
-                        "--scopes", "admin:public_key",
-                        "--web",
-                    ]
+
+            has_scope = (
+                subprocess.run(
+                    "gh auth status 2>&1 | grep -A3 'dusktreader' | grep -q 'admin:public_key'",
+                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                ).returncode == 0
+            )
+            if not has_scope:
+                logger.debug("dusktreader account is missing admin:public_key scope, refreshing")
+                subprocess.run(
+                    ["gh", "auth", "switch", "--hostname", "github.com", "--user", "dusktreader"],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 )
-            DotError.require_condition(result.returncode == 0, "Could not log in to github via cli")
+                with pause_live():
+                    result = subprocess.run(
+                        ["gh", "auth", "refresh", "--hostname", "github.com", "--scopes", "admin:public_key"]
+                    )
+                DotError.require_condition(result.returncode == 0, "Could not refresh github cli scopes")
+            else:
+                logger.debug("dusktreader account already has admin:public_key scope. Skipping")
 
     def _add_ssh_keys(self):
         user = os.getlogin()
@@ -486,10 +505,15 @@ class DotInstaller:
 
         with spinner("Adding ssh keys to github", context_level="DEBUG"):
             pub_key_path = Path(f"{key_path}.pub")
+            subprocess.run("gh auth switch -h github.com -u dusktreader", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             result = subprocess.run(
                 f"gh ssh-key add {pub_key_path} --title {user}@{hostname}", shell=True, stderr=subprocess.PIPE
             )
-            DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
+            already_exists = b"key is already in use" in result.stderr
+            if already_exists:
+                logger.debug(f"SSH key {pub_key_path} is already registered on GitHub. Skipping.")
+            else:
+                DotError.require_condition(result.returncode == 0, f"Could not create ssh keys: {result.stderr.decode()}")
 
     def _install_services(self):
         def _launchd_plist(service: ServiceSpecs, executable: str, args: list[str]) -> str:
@@ -689,7 +713,7 @@ class DotInstaller:
 
     def _create_local_agents_file(self):
         agents_dir = self.home / ".agents"
-        local_agents_path = agents_dir / "local.md"
+        local_agents_path = agents_dir / "instructions" / "local.md"
         if local_agents_path.exists():
             logger.debug(f"{local_agents_path} already exists, skipping stub creation")
             return
@@ -729,7 +753,7 @@ class DotInstaller:
         )
 
         logger.debug(f"Creating local agents stub at {local_agents_path}")
-        agents_dir.mkdir(parents=True, exist_ok=True)
+        local_agents_path.parent.mkdir(parents=True, exist_ok=True)
         local_agents_path.write_text(content)
 
     def install_dot(self):
