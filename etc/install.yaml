@@ -293,13 +293,6 @@ tools:
         sudo apt install btop
       darwin: s|
         sudo port install btop
-  - name: mosh
-    check: "command -v mosh"
-    scripts:
-      linux: |
-        sudo apt install -y mosh
-      darwin: |
-        sudo port -N install mosh
   - name: openssh-server
     check: "command -v sshd"
     scripts:
