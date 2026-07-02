@@ -41,12 +41,15 @@ If not provided, ask before proceeding. Do not guess.
 ## Project directory
 
 Derive `{project-name}` from the PR title or branch name, prefixed with `pr-review-`
-(e.g. `pr-review-reprocess-items`). Determine the next review cycle number N by counting
-existing `pr-review--{N}.md` artifacts in any existing project work directory for this PR.
+(e.g. `pr-review-reprocess-items`), five words or fewer. Determine the next review cycle number N by
+counting existing `pr-review--{N}.md` artifacts in any existing project work directory for this PR.
 
 All artifacts for this review cycle are stored in the same project work directory as the
-original implementation (if one exists) or in a new `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`
-directory. The artifact for this cycle is:
+original implementation (if one exists) or, if none exists, in a new
+`.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/` directory. For a new directory, extract `{JIRA-ID}`
+by matching `[A-Z]+-[0-9]+` against the parent feature branch name (e.g. `FUS-123`); if the branch
+contains `NO-TICKET`, or no ticket pattern is found, omit the `{JIRA-ID}` segment entirely — do not
+write the literal text `NO-TICKET` into the path. The artifact for this cycle is:
 
 | Artifact              | Description                                                       |
 | --------------------- | ----------------------------------------------------------------- |

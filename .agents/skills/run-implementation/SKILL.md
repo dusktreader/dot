@@ -40,11 +40,14 @@ If not provided, ask before proceeding. Do not guess.
 Before starting, derive a `{project-name}` from the feature description:
 
 - Kebab-case, lowercase, no special characters except hyphens
-- Short and descriptive (under 50 characters)
+- Short and descriptive, five words or fewer
 - Examples: `add-user-authentication`, `refactor-payment-module`
 
-Create `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`. All artifacts for this project are
-stored there.
+Run branch setup first (see Git workflow below) so `{JIRA-ID}` is known, then create
+`.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`. Match `{JIRA-ID}` using the same rule as the
+branch-setup Jira extraction below; if the branch has no ticket (no match, or it contains
+`NO-TICKET`), omit the `{JIRA-ID}` segment entirely — do not write the literal text `NO-TICKET` into
+the path. All artifacts for this project are stored there.
 
 | Artifact                                   | Description                                                                                |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------ |
@@ -192,10 +195,22 @@ similar. Silence, a question, or a request for changes is NOT approval. If the h
 a question or requests a revision, address it and stop again. Do not interpret the absence
 of objection as approval.
 
-Before ending your turn, verify every item in this checklist:
-- [ ] I have presented the design plan to the human in this turn
-- [ ] I have NOT dispatched a planning agent or started any planning work
-- [ ] I am ending my turn now and will not act again until the human responds
+Your final output in this turn must include this exact block, filled in:
+
+```
+AWAITING APPROVAL: design plan
+Path: {path to design-plan.md}
+Unlocks: stage 2 (implementation plan) — nothing else
+Still requires separate approval before it can proceed: implementation plan, execution, manual testing
+```
+
+When the human responds with approval, your next turn must open with:
+
+```
+APPROVED: design plan
+NOT YET APPROVED: implementation plan, execution, manual testing
+Proceeding to: stage 2 (create implementation plan)
+```
 
 Once approved: commit (see Git workflow — "After design plan approved").
 
@@ -226,10 +241,22 @@ similar. Silence, a question, or a request for changes is NOT approval. If the h
 a question or requests a revision, address it and stop again. Do not interpret the absence
 of objection as approval.
 
-Before ending your turn, verify every item in this checklist:
-- [ ] I have presented the implementation plan to the human in this turn
-- [ ] I have NOT dispatched an executor agent or started any execution work
-- [ ] I am ending my turn now and will not act again until the human responds
+Your final output in this turn must include this exact block, filled in:
+
+```
+AWAITING APPROVAL: implementation plan
+Path: {path to implementation-plan.md}
+Unlocks: stage 3 (execution) — nothing else
+Still requires separate approval before it can proceed: execution, manual testing
+```
+
+When the human responds with approval, your next turn must open with:
+
+```
+APPROVED: implementation plan
+NOT YET APPROVED: execution, manual testing
+Proceeding to: stage 3 (execute)
+```
 
 Once approved: commit (see Git workflow — "After implementation plan approved").
 
@@ -259,10 +286,22 @@ The execution is ready for human review. Present the execution review to the hum
 human to ask questions, request revisions, or give approval. Do not proceed until the human
 explicitly approves.
 
-Before ending your turn, verify every item in this checklist:
-- [ ] I have presented the execution review to the human in this turn
-- [ ] I have NOT started the squash, PR creation, or any stage 4 work
-- [ ] I am ending my turn now and will not act again until the human responds
+Your final output in this turn must include this exact block, filled in:
+
+```
+AWAITING APPROVAL: execution
+Review path: {path to execution-review--whole-plan--NN.md}
+Unlocks: stage 4 (manual testing) — nothing else
+Still requires separate approval before it can proceed: manual testing
+```
+
+When the human responds with approval, your next turn must open with:
+
+```
+APPROVED: execution
+NOT YET APPROVED: manual testing
+Proceeding to: stage 4 (manual testing)
+```
 
 Once approved: commit (see Git workflow — "After execution approved").
 
@@ -280,10 +319,20 @@ Wait for the human to report issues or give approval.
 **Do not proceed to stage 5 under any circumstances until the human explicitly approves manual
 testing.** Issues reported, silence, or questions are not approval.
 
-Before ending your turn, verify every item in this checklist:
-- [ ] I have told the human the branch is ready for manual testing
-- [ ] I have NOT started the squash, PR creation, or any stage 5 work
-- [ ] I am ending my turn now and will not act again until the human responds
+Your final output in this turn must include this exact block:
+
+```
+AWAITING APPROVAL: manual testing
+Branch: {--agents-build branch name}
+Unlocks: stage 5 (squash and PR) — nothing else
+```
+
+When the human responds with approval, your next turn must open with:
+
+```
+APPROVED: manual testing
+Proceeding to: stage 5 (squash and PR)
+```
 
 For each issue the human reports:
 

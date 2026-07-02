@@ -6,7 +6,7 @@ description: Orchestrates the full bug fix workflow: investigate, plan, execute,
 # Run Bug Fix Skill
 
 Coordinate the full bug fix workflow: investigation, implementation planning, execution, and review. All
-artifacts are stored under `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`.
+artifacts are stored under `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`.
 
 
 ## When to use
@@ -38,8 +38,11 @@ If not provided, ask before proceeding. Do not guess.
 ## Project directory
 
 Derive `{project-name}` from the bug description, prefixed with `fix-`
-(e.g. `fix-null-pointer-on-login`). Create `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`. All
-artifacts for this project are stored there.
+(e.g. `fix-null-pointer-on-login`), five words or fewer. Run branch setup first (see Git workflow below)
+so `{JIRA-ID}` is known, then create `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`. Match
+`{JIRA-ID}` using the same rule as the branch-setup Jira extraction below; if the branch has no ticket
+(no match, or it contains `NO-TICKET`), omit the `{JIRA-ID}` segment entirely — do not write the literal
+text `NO-TICKET` into the path. All artifacts for this project are stored there.
 
 | Artifact                                  | Description                                                                                |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------ |

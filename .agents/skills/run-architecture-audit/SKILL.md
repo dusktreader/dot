@@ -7,7 +7,7 @@ description: Orchestrates an architecture audit: investigate the codebase and pr
 
 Coordinate an architecture audit: investigate the existing codebase and synthesize findings into a
 structured assessment with problem areas and recommendations. All artifacts are stored under
-`.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`.
+`.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`.
 
 
 ## When to use
@@ -37,8 +37,11 @@ If not provided, ask before proceeding. Do not guess.
 ## Project directory
 
 Derive `{project-name}` from the audit scope, prefixed with `audit-`
-(e.g. `audit-auth-subsystem`). Create `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`. All artifacts
-for this project are stored there.
+(e.g. `audit-auth-subsystem`), five words or fewer. Extract `{JIRA-ID}` by matching `[A-Z]+-[0-9]+`
+against the current branch name (e.g. `FUS-123`); if the branch contains `NO-TICKET`, or no ticket
+pattern is found, omit the `{JIRA-ID}` segment entirely — do not write the literal text `NO-TICKET`
+into the path. Create `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`. All artifacts for this
+project are stored there.
 
 | Artifact                | Description                                             |
 | ----------------------- | ------------------------------------------------------- |

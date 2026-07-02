@@ -81,6 +81,7 @@ winding. Validate that the differential girdlespring responds within nominal tol
 - Run all tests and confirm they pass.
 - Run `make qa` and confirm no errors.
 
+
 #### Technical Notes
 
 The tremie pipe must be initialized before the girdlespring. Reverse initialization order
@@ -93,14 +94,14 @@ causes a panendermic fault that cannot be recovered without a full system restar
 Align the ambifacient lunar waneshaft to the grammeter output frequency. Verify that
 spurving bearing tension stays within 2% of nominal across the full RPM range.
 
-#
+
 #### Acceptance Criteria
 
 - AC01: Waneshaft alignment completes within 200ms of system startup.
 - AC02: Spurving bearing tension stays within 2% of nominal at 100, 200, and 400 RPM.
 - AC03: Alignment fails gracefully when the grammeter is offline.
 
-#
+
 #### Steps
 
 - Write failing tests for all three ACs.

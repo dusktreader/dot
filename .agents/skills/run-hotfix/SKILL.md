@@ -8,7 +8,7 @@ description: Streamlined workflow for urgent fixes. Minimal Stop points, no plan
 Coordinate an urgent fix with minimal overhead: brief investigation, principal-authored plan, direct
 execution, and a single lightweight code review pass. Use this workflow for post-PR fixes — CI
 failures, code review findings, or other issues found after a PR is open. All artifacts are stored
-under `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`.
+under `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`.
 
 
 ## When to use
@@ -41,8 +41,10 @@ If not provided, ask before proceeding. Do not guess.
 ## Project directory
 
 Derive `{project-name}` from the bug description, prefixed with `hotfix-`
-(e.g. `hotfix-auth-token-expiry`). Create `.agents/work/{YYYYMMDD}-{HHmmss}--{project-name}/`. All
-artifacts for this project are stored there.
+(e.g. `hotfix-auth-token-expiry`), five words or fewer. Run branch setup first (see Git workflow below)
+so `{JIRA-ID}` is known, then create `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`. If the parent
+branch has no ticket (no match, or it contains `NO-TICKET`), omit the `{JIRA-ID}` segment entirely — do
+not write the literal text `NO-TICKET` into the path. All artifacts for this project are stored there.
 
 | Artifact                    | Description                                         |
 | --------------------------- | --------------------------------------------------- |
@@ -56,6 +58,11 @@ artifacts for this project are stored there.
 
 Determine the next hotfix number N by counting existing `--agents-hotfix-{N}` branches on the
 parent branch.
+
+Extract the Jira ID from the parent branch name:
+- Match the pattern `[A-Z]+-[0-9]+` (e.g. `FUS-123`) → use it as `{JIRA-ID}`
+- If the branch contains `NO-TICKET`, or neither matches → no Jira ID; omit the `{JIRA-ID}` segment
+  from the project directory name (see Project directory above)
 
 Create the hotfix branch from the parent branch:
 

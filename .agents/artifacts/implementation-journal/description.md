@@ -3,6 +3,11 @@
 A running record of what was done during execution of an implementation plan. Written by the
 implementer as they work, one section per task. Provides the evidence trail for execution review.
 
+> **Formatting:** follow `~/.agents/instructions/markdown.md` for all style rules. Key points:
+> two blank lines before every heading (except the first child under a parent), sentence case
+> for all headings, no emoji in headings, blank line before and after every list block, no blank
+> lines between list items, wrap prose at 120 characters, always tag fenced code blocks.
+
 
 ## Template Variables
 
@@ -35,22 +40,26 @@ Each task subsection contains:
 
 `Complete` or `Incomplete`, with a brief explanation if incomplete.
 
+
 #### Overview
 
 A brief summary of the work performed to execute the task. Enough context for a reviewer
 to understand what was done without reading every step.
 
-#### Steps Taken
+
+#### Steps taken
 
 A bulleted list of actions taken. One bullet per meaningful step. Matches the steps defined
 in the plan but reflects what actually happened, including any deviations.
 
-#### Files Modified
+
+#### Files modified
 
 A bulleted list of every file touched during this task, prefixed with `CREATED`, `UPDATED`,
 or `DELETED`. One entry per file. Reviewers use this list to scope their review.
 
-#### Acceptance Criteria Validation
+
+#### Acceptance criteria validation
 
 One `##### ` subsection per AC defined in the plan task. Each heading is prefixed with
 `Satisfied` or `Unsatisfied`.
@@ -58,7 +67,8 @@ One `##### ` subsection per AC defined in the plan task. Each heading is prefixe
 For satisfied ACs: provide concrete validation evidence — test name, output, or
 `file:line` reference. For unsatisfied ACs: explain the failure.
 
-#### Additional Notes
+
+#### Additional notes
 
 Any important context from the execution: challenges encountered, ambiguities resolved,
 surprises, decisions made that deviated from the plan. Omit if there is nothing to add.

@@ -33,7 +33,7 @@ Do not use when:
 
 Your prompt must include:
 
-- Path to the existing project directory (`.agents/work/{project}/`)
+- Path to the existing project directory (`.artifacts/{project}/`)
 - A clear description of the gap or missed requirement to fix
 
 If either is missing, ask before proceeding. Do not guess.

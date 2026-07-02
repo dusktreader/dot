@@ -30,7 +30,8 @@ A brief paragraph describing what this document covers.
 
 No trailing punctuation on headings. No bold in headings.
 
-Always include 2 blank lines before a heading UNLESS the parent heading has no content:
+Always include 2 blank lines before a heading UNLESS the parent heading has no content, or the
+heading is preceded by a separator bar (`----`) in which case use 1 blank line:
 
 ```markdown
 # Parent
@@ -44,14 +45,14 @@ Child content here
 ```
 
 Add a separator bar before going back to a higher-level heading. Do not use a separator bar between siblings at
-the same level or between a parent and its first child.
+the same level or between a parent and its first child. Use four dashes (`----`) for separator bars.
 
 ```markdown
 ## Section 1
 
 ## Section 2
 
----
+----
 
 # Next Top-Level
 ```
