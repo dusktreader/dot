@@ -15,6 +15,23 @@ any project-level `.agents/` or `AGENTS.md` files found in the working directory
 | `tools/`         | Executable scripts                                               |
 
 
+## Agents
+
+Agent definitions live in `agents/`. Each file defines the persona, responsibilities, and mindset for one agent
+type. Orchestrators reference these by name when dispatching subagents.
+
+| Agent                    | Role                                                                          |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| `architect-planner`      | Creates design artifacts; dictates high-level structure                       |
+| `architect-reviewer`     | Reviews design and implementation plans from an architect's perspective       |
+| `engineer-executor`      | Writes code following an implementation or task plan                          |
+| `engineer-investigator`  | Explores codebases to answer a specific question; does not write code         |
+| `engineer-planner`       | Translates an approved design plan into a detailed implementation plan        |
+| `engineer-reviewer`      | Reviews implementation execution against a plan for quality and coverage      |
+| `engineer-task-planner`  | Investigates the codebase and authors a focused task plan without a design doc|
+| `principal`              | Primary human-facing agent; orchestrates the full implementation workflow     |
+
+
 ## Artifacts
 
 Artifact definitions live in `artifacts/`. Each subdirectory is named for the artifact type
@@ -42,6 +59,7 @@ minimal stub — headings and `{{ variable }}` slots — suitable for programmat
 | `implementation-review/`  | Structured critique of an implementation plan            |
 | `investigation-report/`   | Structured answer to a specific codebase question        |
 | `pr-review/`              | PR comment triage and resolution log                     |
+| `task-plan/`              | Focused plan for a minor engineering task                |
 
 
 ## Instructions

@@ -1,0 +1,53 @@
+# Task plan: {{ title }}
+
+
+## Goal
+
+The main winding was of the normal lotus-o-delta type placed in panendermic semi-boloid slots in the stator, every
+seventh conductor being connected by a non-reversible tremie pipe to the differential girdlespring on the up-end of
+the grammeters.
+
+
+## Project commands
+
+### Run quality gate
+
+Command:
+
+```shell
+make qa
+```
+
+Expected output:
+
+All checks pass with zero errors. Test suite reports 100% coverage on modified files.
+
+
+## Project standards
+
+- [Turbo-encabulator coding standards](docs/standards.md)
+
+
+## Steps
+
+1. Write a failing test for AC01.
+2. Run the test and confirm it fails.
+3. Implement the tremie pipe routing logic.
+4. Run the test and confirm it passes.
+5. Write failing tests for AC02 and AC03.
+6. Implement fault handling.
+7. Run all tests and confirm they pass.
+8. Run `make qa` and confirm no errors.
+
+
+## Acceptance criteria
+
+- AC01: The tremie pipe accepts well-formed lotus-o-delta input and routes it to the girdlespring within 50ms.
+- AC02: The tremie pipe rejects malformed input and returns a non-reversible fault code.
+- AC03: The girdlespring remains in its default state when the tremie pipe faults.
+
+
+## Technical notes
+
+The tremie pipe must be initialized before the girdlespring. Reverse initialization order causes a panendermic fault
+that cannot be recovered without a full system restart.

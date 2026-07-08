@@ -70,8 +70,20 @@ exactly.
 
 Check the current branch:
 
-- If it is `main` or `master`: **STOP immediately.** Tell the human agents must not work
-  directly on main/master and ask them to create a topic branch first. Do not proceed.
+- If it is `main` or `master`: ask the human for an associated work ticket ID. Wait for their
+  response — do not proceed without it. If they provide a ticket ID (e.g. `FUS-123`), use it
+  as `{TASK-ID}`. If they confirm there is no ticket, use `NO-TICKET` as `{TASK-ID}`.
+
+  Derive `{type}` from the nature of the work (same conventional-commit types used in commit
+  messages: `feat`, `fix`, `refactor`, `docs`, `ci`, etc.).
+
+  Derive `{slug}` from the feature description: kebab-case, lowercase, five words or fewer.
+
+  Create the branch:
+  ```shell
+  git switch -c {type}/{TASK-ID}--{slug}
+  ```
+
 - Otherwise: create a `--agents-build` branch from the current branch:
   ```shell
   git switch -c {current-branch}--agents-build
