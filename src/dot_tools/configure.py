@@ -414,7 +414,12 @@ class DotInstaller:
                 for path in self.install_manifest.dotfile_paths:
                     logger.debug(f"Processing {path}")
 
-                    dotfile_path = self.root / path
+                    raw = str(path)
+                    if raw.startswith("~"):
+                        # Use self.home rather than Path.expanduser() so that override_home is respected.
+                        dotfile_path = self.home / raw.lstrip("~/")
+                    else:
+                        dotfile_path = self.root / path
                     entry = f"source {dotfile_path}"
                     if entry not in all_entries:
                         logger.debug(f"Adding {dotfile_path} to .extra_dotfiles")
@@ -756,6 +761,25 @@ class DotInstaller:
         local_agents_path.parent.mkdir(parents=True, exist_ok=True)
         local_agents_path.write_text(content)
 
+    def _create_dotrc_local(self):
+        with spinner("Creating machine-local dotrc file", context_level="DEBUG"):
+            dotrc_local_path = self.home / ".dotrc_local"
+            if dotrc_local_path.exists():
+                logger.debug(f"{dotrc_local_path} already exists, skipping stub creation")
+                return
+
+            content = snick.dedent(
+                """
+                # ~/.dotrc_local
+
+                # This file is machine-local and not tracked in the repository.
+                """,
+                should_strip=True,
+            )
+
+            logger.debug(f"Creating local dotrc stub at {dotrc_local_path}")
+            dotrc_local_path.write_text(content)
+
     def install_dot(self):
         with spinner("Installing dot", context_level="INFO"):
             self._make_dirs()
@@ -770,6 +794,7 @@ class DotInstaller:
             self._install_tools()
             self._apply_settings()
             self._update_dotfiles()
+            self._create_dotrc_local()
             self._github_cli_login()
             self._add_ssh_keys()
             self._startup()

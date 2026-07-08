@@ -23,6 +23,7 @@ dotfile_paths:
   - .dot_colors
   - .dotrc
   - .dot_zshrc
+  - ~/.dotrc_local
 mkdir_paths:
   - .vim/local/backup
   - .vim/local/swap

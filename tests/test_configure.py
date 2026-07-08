@@ -427,38 +427,79 @@ class TestDotInstallerDotfilesBlock:
 
 class TestDotInstallerUpdateDotfiles:
 
-    def test_update_dotfiles__creates_extra_dotfiles_file_if_missing(self, tmp_path: Path):
-        manifest = {**MINIMAL_MANIFEST, "dotfile_paths": [".dotrc"]}
-        installer = make_installer(tmp_path, manifest)
-        (installer.root / ".dotrc").touch()
+     def test_update_dotfiles__creates_extra_dotfiles_file_if_missing(self, tmp_path: Path):
+         manifest = {**MINIMAL_MANIFEST, "dotfile_paths": [".dotrc"]}
+         installer = make_installer(tmp_path, manifest)
+         (installer.root / ".dotrc").touch()
+
+         with patch("dot_tools.configure.spinner"):
+             installer._update_dotfiles()
+
+         assert (installer.home / ".extra_dotfiles").exists()
+
+     def test_update_dotfiles__adds_source_entry_for_each_dotfile(self, tmp_path: Path):
+         manifest = {**MINIMAL_MANIFEST, "dotfile_paths": [".dotrc", ".dot_colors"]}
+         installer = make_installer(tmp_path, manifest)
+
+         with patch("dot_tools.configure.spinner"):
+             installer._update_dotfiles()
+
+         content = (installer.home / ".extra_dotfiles").read_text()
+         assert f"source {installer.root / '.dotrc'}" in content
+         assert f"source {installer.root / '.dot_colors'}" in content
+
+     def test_update_dotfiles__does_not_duplicate_existing_entries(self, tmp_path: Path):
+         manifest = {**MINIMAL_MANIFEST, "dotfile_paths": [".dotrc"]}
+         installer = make_installer(tmp_path, manifest)
+         entry = f"source {installer.root / '.dotrc'}"
+         (installer.home / ".extra_dotfiles").write_text(f"{entry}\n")
+
+         with patch("dot_tools.configure.spinner"):
+             installer._update_dotfiles()
+
+         content = (installer.home / ".extra_dotfiles").read_text()
+         assert content.count(entry) == 1
+
+     def test_update_dotfiles__expands_tilde_paths_against_home(self, tmp_path: Path):
+         manifest = {**MINIMAL_MANIFEST, "dotfile_paths": ["~/.dotrc_local"]}
+         installer = make_installer(tmp_path, manifest)
+
+         with patch("dot_tools.configure.spinner"):
+             installer._update_dotfiles()
+
+         content = (installer.home / ".extra_dotfiles").read_text()
+         assert f"source {installer.home / '.dotrc_local'}" in content
+
+
+# ---------------------------------------------------------------------------
+# DotInstaller._create_dotrc_local
+# ---------------------------------------------------------------------------
+class TestDotInstallerCreateDotrcLocal:
+
+    def test_create_dotrc_local__creates_file_when_absent(self, tmp_path: Path):
+        installer = make_installer(tmp_path)
+        dotrc_local_path = installer.home / ".dotrc_local"
+
+        assert not dotrc_local_path.exists()
 
         with patch("dot_tools.configure.spinner"):
-            installer._update_dotfiles()
+            installer._create_dotrc_local()
 
-        assert (installer.home / ".extra_dotfiles").exists()
+        assert dotrc_local_path.exists()
+        content = dotrc_local_path.read_text()
+        assert "# ~/.dotrc_local" in content
+        assert "machine-local" in content
 
-    def test_update_dotfiles__adds_source_entry_for_each_dotfile(self, tmp_path: Path):
-        manifest = {**MINIMAL_MANIFEST, "dotfile_paths": [".dotrc", ".dot_colors"]}
-        installer = make_installer(tmp_path, manifest)
-
-        with patch("dot_tools.configure.spinner"):
-            installer._update_dotfiles()
-
-        content = (installer.home / ".extra_dotfiles").read_text()
-        assert f"source {installer.root / '.dotrc'}" in content
-        assert f"source {installer.root / '.dot_colors'}" in content
-
-    def test_update_dotfiles__does_not_duplicate_existing_entries(self, tmp_path: Path):
-        manifest = {**MINIMAL_MANIFEST, "dotfile_paths": [".dotrc"]}
-        installer = make_installer(tmp_path, manifest)
-        entry = f"source {installer.root / '.dotrc'}"
-        (installer.home / ".extra_dotfiles").write_text(f"{entry}\n")
+    def test_create_dotrc_local__skips_when_file_exists(self, tmp_path: Path):
+        installer = make_installer(tmp_path)
+        dotrc_local_path = installer.home / ".dotrc_local"
+        original_content = "# Original content that should not change"
+        dotrc_local_path.write_text(original_content)
 
         with patch("dot_tools.configure.spinner"):
-            installer._update_dotfiles()
+            installer._create_dotrc_local()
 
-        content = (installer.home / ".extra_dotfiles").read_text()
-        assert content.count(entry) == 1
+        assert dotrc_local_path.read_text() == original_content
 
 
 # ---------------------------------------------------------------------------
