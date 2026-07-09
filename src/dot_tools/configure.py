@@ -176,7 +176,7 @@ class DotInstaller:
                 if link_path.exists(follow_symlinks=False):
                     logger.debug("Link exists. Checking target")
 
-                    DotError.require_condition(link_path.is_symlink(), "Link path already exists but is not a symlink")
+                    DotError.require_condition(link_path.is_symlink(), f"Link path already exists but is not a symlink: {link_path}")
                     existing_target_path = link_path.readlink()
 
                     logger.debug(f"Found existing target path: {existing_target_path}")
