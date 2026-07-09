@@ -278,6 +278,7 @@ class DotInstaller:
     def _install_tools(self):
         install_env = os.environ.copy()
         install_env["PYTHON_VERSION"] = platform.python_version()
+        install_env["DOT_ROOT"] = str(self.root)
         with spinner("Installing tools", context_level="DEBUG"):
             resolved_tools = resolve_tool_order(self.install_manifest.tools)
             for tool in resolved_tools:
