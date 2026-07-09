@@ -461,7 +461,10 @@ class DotInstaller:
     def _github_cli_login(self):
         with spinner("Logging into github in CLI", context_level="DEBUG"):
             already_logged_in = (
-                subprocess.run(["gh", "auth", "status", "-u", "dusktreader"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0
+                subprocess.run(
+                    "gh auth status 2>&1 | grep -q 'dusktreader'",
+                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                ).returncode == 0
             )
             if not already_logged_in:
                 with pause_live():
