@@ -99,6 +99,8 @@ alias sdot='source $DOT_HOME/.dotrc'
 alias cdot='cd $DOT_HOME'
 alias pdot='pushd $DOT_HOME'
 
+alias elocal="$EDITOR $HOME/.localrc"
+
 alias cnotes='cd $DUSK_HOME/jot-down'
 alias pnotes='pushd $DUSK_HOME/jot-down'
 alias enotes='$EDITOR $DUSK_HOME/jot-down'

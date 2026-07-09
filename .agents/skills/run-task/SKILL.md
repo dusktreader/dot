@@ -1,6 +1,6 @@
 ---
 name: run-task
-description: Lightweight workflow for minor engineering tasks. No design document. Principal-authored plan, execution, single review pass, squash onto topic branch. No PR creation.
+description: Use for any well-scoped minor change where the human knows what they want and no design document is needed — small features, localized refactors, config changes, test additions, formatting fixes, or doc updates. Reach for this before run-implementation whenever all affected files can be listed up front.
 ---
 
 # Run Task Skill
@@ -14,16 +14,34 @@ All artifacts are stored under `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}
 
 ## When to use
 
-Use this skill for any well-scoped minor change where the human already knows what they want and a separate design
-document adds no value.
+Use this skill for any well-scoped minor change where the human already knows what they want
+and a separate design document adds no value. If you can describe the full change in a short
+task plan without needing an architecture section, use this skill.
 
-This is a standalone skill triggered directly by humans.
+**Reach for this skill first** whenever the request looks like any of these:
 
-Do not use when:
-- The change is significant enough to warrant a design plan → use `run-implementation` instead
-- The work is fixing a confirmed bug → use `run-bug-fix` (full) or `run-hotfix` (post-PR urgent) instead
-- The fix addresses a gap in an existing implementation project → use `run-fix` instead
-- Addressing PR review comments → use `review-pr` instead
+- Adding or tweaking a small feature to an existing module (new flag, new output format,
+  changed behavior of one function)
+- A localized refactor (rename, extract a helper, split a function, reorder imports)
+- A configuration or tooling change (Makefile target, pyproject.toml entry, CI step)
+- A style or formatting fix across a bounded set of files
+- Adding tests for an already-implemented piece of code
+- A documentation update (README, docstrings, changelog, TODO)
+- Any change where all affected files can be listed up front and none of them require
+  rethinking the architecture
+
+**Use `run-implementation` instead when:**
+
+- The change requires a design decision that the human has not already made
+- Multiple subsystems need to be coordinated in a non-obvious way
+- The scope is uncertain and might expand once investigation begins
+- A new module, subpackage, or major data structure is being introduced from scratch
+
+**Use other skills when:**
+
+- Fixing a confirmed bug → `run-bug-fix` or `run-hotfix`
+- Addressing a gap in an existing implementation project → `run-fix`
+- Addressing PR review comments → `review-pr`
 
 
 ## Prerequisites

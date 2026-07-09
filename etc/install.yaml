@@ -11,6 +11,7 @@ link_paths:
   - .config/oh-my-posh/dusktreader.omp.yaml
   - .config/opencode/AGENTS.md
   - .config/opencode/agents
+  - .config/opencode/tools
   - .config/ghostty
 copy_paths:
   - path: .ssh/config.base

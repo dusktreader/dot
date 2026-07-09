@@ -35,3 +35,9 @@ keybind = ctrl+shift+==increase_font_size:1.5
 keybind = ctrl+shift+-=decrease_font_size:1.5
 
 custom-shader = shaders/warp.glsl
+
+quick-terminal-position = top
+quick-terminal-screen = main
+quick-terminal-animation-duration = 0.2
+quick-terminal-autohide = true
+keybind = global:ctrl+backquote=toggle_quick_terminal
