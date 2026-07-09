@@ -1,5 +1,6 @@
 import filecmp
 import fileinput
+import json
 import os
 import platform
 import select
@@ -74,25 +75,25 @@ class InstallManifest(pydantic.BaseModel):
 def resolve_tool_order(tools: list[ToolSpecs]) -> list[ToolSpecs]:
     """
     Resolve the installation order of tools based on their declared dependencies.
-    
+
     Uses topological sorting to compute a valid order respecting all dependencies.
     Raises DotError if the dependency graph contains cycles or unknown dependencies.
-    
+
     Args:
         tools: List of ToolSpecs to order.
-        
+
     Returns:
         List of ToolSpecs ordered such that each tool appears after all its dependencies.
-        
+
     Raises:
         DotError: If a cycle is detected or a dependency refers to a non-existent tool.
     """
     if not tools:
         return []
-    
+
     # Build a map of tool name -> tool object for validation
     tool_map = {tool.name: tool for tool in tools}
-    
+
     # Validate all dependencies exist
     for tool in tools:
         for dep_name in tool.depends_on:
@@ -105,15 +106,15 @@ def resolve_tool_order(tools: list[ToolSpecs]) -> list[ToolSpecs]:
                 raise DotError(
                     f"Tool '{tool.name}' depends on itself. Remove this self-dependency from the manifest."
                 )
-    
+
     # Build the dependency graph for TopologicalSorter
     # sorter.add(node, *predecessors) means node comes after predecessors
     sorter: TopologicalSorter[str] = TopologicalSorter()
-    
+
     for tool in tools:
         # Add the tool to the sorter with its dependencies as predecessors
         sorter.add(tool.name, *tool.depends_on)
-    
+
     # Compute the topological order
     try:
         ordered_names = list(sorter.static_order())
@@ -123,7 +124,7 @@ def resolve_tool_order(tools: list[ToolSpecs]) -> list[ToolSpecs]:
         raise DotError(
             f"Cycle detected in tool dependencies: {chain}. Please check your dependency declarations."
         )
-    
+
     # Map the sorted names back to tool objects, preserving order
     resolved = [tool_map[name] for name in ordered_names]
     return resolved
@@ -460,12 +461,16 @@ class DotInstaller:
 
     def _github_cli_login(self):
         with spinner("Logging into github in CLI", context_level="DEBUG"):
-            already_logged_in = (
-                subprocess.run(
-                    "gh auth status 2>&1 | grep -q 'dusktreader'",
-                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                ).returncode == 0
+            result = subprocess.run(
+                ["gh", "auth", "status", "--json", "hosts"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
             )
+            accounts = []
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                accounts = data.get("hosts", {}).get("github.com", [])
+
+            already_logged_in = any(a["login"] == "dusktreader" for a in accounts)
             if not already_logged_in:
                 with pause_live():
                     result = subprocess.run(
@@ -480,11 +485,9 @@ class DotInstaller:
                 DotError.require_condition(result.returncode == 0, "Could not log in to github via cli")
                 return
 
-            has_scope = (
-                subprocess.run(
-                    "gh auth status 2>&1 | grep -A3 'dusktreader' | grep -q 'admin:public_key'",
-                    shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                ).returncode == 0
+            has_scope = any(
+                a["login"] == "dusktreader" and "admin:public_key" in a.get("scopes", "")
+                for a in accounts
             )
             if not has_scope:
                 logger.debug("dusktreader account is missing admin:public_key scope, refreshing")
