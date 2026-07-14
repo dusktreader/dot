@@ -411,7 +411,7 @@ class DotInstaller:
                 dotfile_list_path.touch()
 
             with open(dotfile_list_path, "r+") as dotfile_list_file:
-                all_entries = [l.strip() for l in dotfile_list_file.readlines()]
+                all_entries = [line.strip() for line in dotfile_list_file.readlines()]
 
                 for path in self.install_manifest.dotfile_paths:
                     logger.debug(f"Processing {path}")

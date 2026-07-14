@@ -72,6 +72,10 @@ infrastructure tasks are literal shell or file operations.
 Optional. Implementation notes, code snippets, or references specific to this task. Omit
 if there is nothing task-specific to note.
 
+When a task's `#### Technical Notes` section uses subsections, they must use `#####` for proper
+nesting hierarchy. Reserve `###` for task headings and top-level plan sections only; never use
+`####` for subsections within a task-level `#### Technical Notes`.
+
 
 ### Unknowns
 

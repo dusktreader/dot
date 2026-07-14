@@ -5,7 +5,6 @@ import pytest
 from typer.testing import CliRunner
 
 from dot_tools.cli.git import cli
-from dot_tools.exceptions import GitError
 
 from tests.test_git_tools import init_empty_repo, init_conflicted_repo
 

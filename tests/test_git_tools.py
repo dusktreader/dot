@@ -1,7 +1,6 @@
 from collections.abc import Generator
 from pathlib import Path
-from typing import cast
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import git
 import pytest
@@ -153,7 +152,7 @@ class TestGitManager:
 
     def test_remote__returns_remote_by_name(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fake_origin: Path):
         fake_root = tmp_path / "fake_root"
-        init_empty_repo(fake_root)
+        repo = init_empty_repo(fake_root)
         repo = git.Repo(fake_root)
         repo.create_remote("origin", str(fake_origin))
 
@@ -206,7 +205,7 @@ class TestGitManager:
 
     def test_is_github_repo__raises_error_if_repo_has_no_origin(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         fake_root = tmp_path / "fake_root"
-        repo = init_empty_repo(fake_root)
+        init_empty_repo(fake_root)
 
         monkeypatch.chdir(fake_root)
         git_man = GitManager()

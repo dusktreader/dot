@@ -26,19 +26,16 @@
     frag = yellow
     meta = green
     commit = normal
-[credential]
-	helper = store
 [github]
     user = dusktreader
 [init]
 	defaultBranch = main
-[url "ssh://git@github.com/"]
-	insteadOf = https://github.com/
-[url "ssh://git@github.mheducation.com/"]
-	insteadOf = https://github.mheducation.com/
 [includeIf "gitdir:~/src/dusktreader/"]
 	path = ~/.gitconfig.dusktreader
 [includeIf "gitdir:~/git-repos/personal/"]
 	path = ~/.gitconfig.dusktreader
 [includeIf "gitdir:~/src/mhe/"]
-	path = ~/.gitconfig.mhe
+	path = ~/.gitconfig.work
+[user]
+	email = tucker.beck@dusktreader.dev
+	name = Tucker Beck

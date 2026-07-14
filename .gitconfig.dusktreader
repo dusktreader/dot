@@ -3,5 +3,6 @@
 	email = tucker.beck@gmail.com
 	signingkey = E0E8F7B4D99E8ABF
 
-[core]
-	sshCommand = "ssh -i ~/.ssh/dusktreader.ed25519 -F /dev/null"
+[credential "https://github.com"]
+	helper =
+	helper = "!f() { if [ \"$1\" = get ]; then printf 'username=x-access-token\\npassword=%s\\n' \"$(gh auth token --hostname github.com --user dusktreader)\"; fi; }; f"

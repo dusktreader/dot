@@ -83,6 +83,77 @@ class TestConfigure:
 
     def test_configure__invokes_installer(self, runner: CliRunner, tmp_path):
         mock_installer = MagicMock()
-        with patch("dot_tools.cli.main.DotInstaller", return_value=mock_installer) as mock_cls:
-            result = runner.invoke(cli, ["configure", "--root", str(tmp_path), "--override-home", str(tmp_path)])
+        with patch("dot_tools.cli.main.DotInstaller", return_value=mock_installer):
+            runner.invoke(cli, ["configure", "--root", str(tmp_path), "--override-home", str(tmp_path)])
         mock_installer.install_dot.assert_called_once()
+
+    def test_configure_wdt_absent_silent(self, runner: CliRunner, tmp_path):
+        """dt configure exits zero and silently continues when wdt is not on PATH."""
+        mock_installer = MagicMock()
+        with patch("dot_tools.cli.main.DotInstaller", return_value=mock_installer), \
+             patch("dot_tools.cli.main.shutil.which", return_value=None):
+            result = runner.invoke(cli, ["configure", "--root", str(tmp_path), "--override-home", str(tmp_path)])
+        assert result.exit_code == 0
+        mock_installer.install_dot.assert_called_once()
+
+    def test_configure_wdt_present_success(self, runner: CliRunner, tmp_path):
+        """dt configure succeeds when wdt is found on PATH and exits zero."""
+        mock_installer = MagicMock()
+        mock_run = MagicMock()
+        mock_run.return_value = MagicMock(returncode=0)
+        with patch("dot_tools.cli.main.DotInstaller", return_value=mock_installer), \
+             patch("dot_tools.cli.main.shutil.which", return_value="/usr/local/bin/wdt"), \
+             patch("dot_tools.cli.main.subprocess.run", side_effect=mock_run):
+            result = runner.invoke(cli, ["configure", "--root", str(tmp_path), "--override-home", str(tmp_path)])
+        assert result.exit_code == 0
+        mock_installer.install_dot.assert_called_once()
+        mock_run.assert_called_once()
+
+    def test_configure_wdt_present_failure(self, runner: CliRunner, tmp_path):
+        """dt configure exits nonzero when wdt subprocess fails."""
+        mock_installer = MagicMock()
+        mock_run = MagicMock()
+        mock_run.return_value = MagicMock(returncode=1)
+        with patch("dot_tools.cli.main.DotInstaller", return_value=mock_installer), \
+             patch("dot_tools.cli.main.shutil.which", return_value="/usr/local/bin/wdt"), \
+             patch("dot_tools.cli.main.subprocess.run", side_effect=mock_run):
+            result = runner.invoke(cli, ["configure", "--root", str(tmp_path), "--override-home", str(tmp_path)])
+        assert result.exit_code == 1
+
+    def test_configure_wdt_receives_override_home(self, runner: CliRunner, tmp_path):
+        """dt configure forwards --override-home to wdt subprocess."""
+        mock_installer = MagicMock()
+        mock_run = MagicMock()
+        mock_run.return_value = MagicMock(returncode=0)
+        home_path = str(tmp_path / "work_home")
+        with patch("dot_tools.cli.main.DotInstaller", return_value=mock_installer), \
+             patch("dot_tools.cli.main.shutil.which", return_value="/usr/local/bin/wdt"), \
+             patch("dot_tools.cli.main.subprocess.run", side_effect=mock_run):
+            runner.invoke(cli, [
+                "configure",
+                "--root", str(tmp_path),
+                "--override-home", home_path,
+            ])
+            # Verify subprocess was called with --override-home argument
+            assert mock_run.called
+            call_args = mock_run.call_args[0][0]
+            assert "--override-home" in call_args
+            assert home_path in call_args
+
+    def test_configure_wdt_receives_force_flag(self, runner: CliRunner, tmp_path):
+        """dt configure forwards --force to wdt subprocess."""
+        mock_installer = MagicMock()
+        mock_run = MagicMock()
+        mock_run.return_value = MagicMock(returncode=0)
+        with patch("dot_tools.cli.main.DotInstaller", return_value=mock_installer), \
+             patch("dot_tools.cli.main.shutil.which", return_value="/usr/local/bin/wdt"), \
+             patch("dot_tools.cli.main.subprocess.run", side_effect=mock_run):
+            runner.invoke(cli, [
+                "configure",
+                "--root", str(tmp_path),
+                "--force",
+            ])
+            # Verify subprocess was called with --force argument
+            assert mock_run.called
+            call_args = mock_run.call_args[0][0]
+            assert "--force" in call_args

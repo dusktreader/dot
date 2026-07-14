@@ -18,6 +18,7 @@ Usage:
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.request
 import warnings
@@ -26,7 +27,6 @@ from pathlib import Path
 
 warnings.filterwarnings("ignore")
 
-CREDENTIALS_FILE = Path.home() / ".agents" / "credentials.json"
 TOKEN_FILE = Path("/var/folders/qm/_x9k_d454n56v96tbqs10wr40000gp/T/opencode/gmail_token.json")
 ANALYSIS_FILE = Path("/var/folders/qm/_x9k_d454n56v96tbqs10wr40000gp/T/opencode/gmail_analysis.json")
 SCOPES = [
@@ -37,10 +37,25 @@ SCOPES = [
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 def load_gmail_creds():
-    with open(CREDENTIALS_FILE) as f:
-        data = json.load(f)
-    c = data["gmail"]
-    return c["client_id"], c["client_secret"]
+    """Load Gmail OAuth credentials from dt's settings-backed credential store."""
+    try:
+        client_id = subprocess.run(
+            ["dt", "creds", "fetch", "gmail_client_id"],
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout.strip()
+        client_secret = subprocess.run(
+            ["dt", "creds", "fetch", "gmail_client_secret"],
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout.strip()
+    except subprocess.CalledProcessError as error:
+        message = error.stderr.strip() or "unknown credential lookup error"
+        raise RuntimeError(f"Unable to load Gmail credentials with dt creds fetch: {message}") from error
+
+    return client_id, client_secret
 
 def authenticate():
     from google.auth.transport.requests import Request

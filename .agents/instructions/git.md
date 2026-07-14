@@ -16,7 +16,7 @@ the individual changes. Never write the body as prose.
 - <change 3>
 ```
 
-The Jira ID is extracted from the branch name (e.g. `feature/FUS-123--my-thing` → `FUS-123`).
+The ticket ID is extracted from the branch name (e.g. `feature/ABC-123--my-thing` → `ABC-123`).
 If the branch name contains `NO-TICKET`, use `NO-TICKET` as the ID. If there is no recognisable
 ID in the branch name, omit the parenthetical entirely (e.g. `feat: add the jawa feature`).
 

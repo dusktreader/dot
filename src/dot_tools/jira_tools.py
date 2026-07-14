@@ -1,6 +1,6 @@
 import base64
 from collections.abc import Generator
-from dataclasses import dataclass, field
+from dataclasses import field
 import re
 from typing import override
 

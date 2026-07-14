@@ -59,11 +59,6 @@ addopts = [
 line-length = 120
 src = ["src/dot_tools", "tests"]
 
-[tool.ty.rules]
-any-implicit = "ignore"
-any-explicit = "ignore"
-unused-call-result = "ignore"
-
 [build-system]
 requires = ["uv_build>=0.7.6,<0.8.0"]
 build-backend = "uv_build"

@@ -6,49 +6,24 @@ Context about the user. Read this every session so you do not have to rediscover
 ## Who he is
 
 - **Name:** Tucker. Call him Tucker. (`dusktreader` is his personal/outside-work moniker,
-  `dusky` for short. Use it only in personal-project context, not for work.)
-- **Role:** Engineering lead (tech-lead IC, no direct reports) on the **Fusion** team.
-- **Team:** Fusion builds third-party integrations for the **Assess** program and does a lot
-  of work on and with internal AI-driven tooling. 5 engineers including Tucker. He drives
-  technical direction and plans closely with the team's TPM.
-- **Org:** Assess builds the assessment platform, mostly for **Open Learning**, in the
-  **K-12 (School)** business line at McGraw Hill.
+  `dusky` for short. Use it only in personal-project context.)
 - **Background:** Former engineering manager at a ~15-person startup (ran the full stack:
   planning, docs, people management, strategy, hiring). Deliberately returned to an IC role
-  at MHE while keeping technical leadership. This is why he produces strategy and planning
-  artifacts well beyond a typical tech-lead remit and pushes hard on tooling and process.
-
-
-## What he works on
-
-| Relationship      | Systems                                                                 |
-| ----------------- | ----------------------------------------------------------------------- |
-| Owns              | `assess-cdc-aws` (RECAP project infra, details in Confluence), `assess-item-analyzer` (a.k.a. "Liza" internally to Assess) |
-| Helps maintain    | `assess-authoring-(ui\|api)`, `assess-delivery-(ui\|api)`                |
-| Frequently in     | `pi-*` (Platform Integrations: an LTI integration suite — orchestration, lars, names-roles, grade-basin, assignment-grade-services), `a3k-metametrics` |
-| Ambitious/broader | `assess-crol-troll` (MCP server + CLI giving AI agents tools to investigate customer-reported issues/CROLs across Assess), `phenomenon` (multi-language Phenomenon Token library for distributed Phenomenon Tracing) |
-
-Work stays mostly within Assess, but he reaches for broader scope when it makes sense. He
-splits time between hands-on engineering and producing artifacts for others (lots of
-planning), and consistently pushes for improvements to tooling, workflows, and process.
+  while keeping technical leadership. This is why he produces strategy and planning artifacts
+  well beyond a typical tech-lead remit and pushes hard on tooling and process.
 
 
 ## Stack and environment
 
-- **Languages:** TypeScript (Angular, Node, React) for most work; **Go** heavily for the
-  `pi-*` projects; **Python** for tooling and nearly all personal projects. He dislikes
-  working in Java, PHP, and Perl. Don't reach for them.
-- **Preferences by example:** for JS/TS conventions, follow `assess-item-analyzer` (Liza).
-  For personal Python, follow `~/src/dusktreader/typerdrive`. These are the canonical
-  references; match them rather than inventing house style.
+- **Languages:** Python for nearly all personal projects. He dislikes working in Java, PHP,
+  and Perl. Don't reach for them.
+- **Preferences by example:** for personal Python, follow `~/src/dusktreader/typerdrive`.
 - **Build:** prefers `make` as the canonical interface. Makefiles should follow the format
-  used in Liza and typerdrive.
-- **Cloud:** all work cloud is **AWS**. Personal projects run local Docker/k8s; his homelab
-  runs microk8s.
-- **Access:** full access to the `mcgrawhill-llc` enterprise GitHub org. `gh` is configured
-  with both his work account and `dusktreader`. Confluence and Jira are reachable via
-  `~/.config/jira/credentials` (`mcgrawhill.atlassian.net`).
+  used in typerdrive.
+- **Cloud:** personal projects run local Docker/k8s; his homelab runs microk8s.
 - **Machine:** macOS, zsh.
+
+See `work.md` for work repositories, tooling, and service access.
 
 
 ## How to work with him

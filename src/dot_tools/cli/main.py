@@ -1,6 +1,7 @@
 import json
 import os
-import sys
+import shutil
+import subprocess
 import urllib.parse
 from pathlib import Path
 from typing import Annotated
@@ -18,6 +19,7 @@ from typerdrive import (
 
 from dot_tools.cli.git import cli as git_cli
 from dot_tools.cli.ssh import cli as ssh_cli
+from dot_tools.cli.creds import cli as creds_cli
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
 from dot_tools.line_length import get_config_line_length
@@ -30,6 +32,7 @@ add_logs_subcommand(cli)
 
 cli.add_typer(git_cli, name="git")
 cli.add_typer(ssh_cli, name="ssh")
+cli.add_typer(creds_cli, name="creds")
 
 
 @cli.callback(invoke_without_command=True)
@@ -98,8 +101,27 @@ def configure(
     """
     Configure dot in your system.
     """
+    from loguru import logger
+    
     installer = DotInstaller(root=root, override_home=override_home, force=force, force_ssh=force_ssh)
     installer.install_dot()
+    
+    # After dot setup, check for and invoke wdt if present
+    # Output is streamed directly (not captured) to allow Rich formatting to render
+    # properly in the work layer. Exit code is propagated on failure.
+    wdt_path = shutil.which("wdt")
+    if wdt_path:
+        logger.debug("Found wdt on PATH, invoking wdt configure")
+        wdt_cmd = ["wdt", "configure"]
+        if override_home:
+            wdt_cmd.extend(["--override-home", str(override_home)])
+        if force:
+            wdt_cmd.append("--force")
+        
+        result = subprocess.run(wdt_cmd)
+
+        if result.returncode != 0:
+            raise typer.Exit(code=result.returncode)
 
 
 @cli.command()
