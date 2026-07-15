@@ -1,7 +1,7 @@
 ---
 name: engineer-investigator
 description: Investigates existing codebases to answer specific questions
-model: github-copilot/claude-haiku-4.5
+model: github-copilot/gpt-5.6-luna
 mode: subagent
 ---
 

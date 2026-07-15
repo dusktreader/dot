@@ -605,10 +605,89 @@ class TestDotInstallerStartup:
 
 
 # ---------------------------------------------------------------------------
+# DotInstaller._apply_settings
+# ---------------------------------------------------------------------------
+
+class TestDotInstallerApplySettings:
+
+    def test_apply_settings__uses_override_home_for_setting_check(self, tmp_path: Path):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "settings": [
+                {
+                    "name": "opencode-setting",
+                    "check": "test -d $HOME/.config/opencode",
+                    "scripts": {"generic": "touch \"$HOME/.config/opencode/ready\""},
+                }
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+
+        with patch("dot_tools.configure.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0)
+            installer._apply_settings()
+
+        command = mock_run.call_args.args[0]
+        environment = mock_run.call_args.kwargs["env"]
+        assert command == "test -d $HOME/.config/opencode"
+        assert environment["HOME"] == str(installer.home)
+
+
+# ---------------------------------------------------------------------------
 # DotInstaller._install_tools
 # ---------------------------------------------------------------------------
 
 class TestDotInstallerInstallTools:
+
+    def test_install_tools__uses_override_home_for_opencode_npm_check(self, tmp_path: Path):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "tools": [
+                {
+                    "name": "opencode-npm-deps",
+                    "check": "test -d $HOME/.config/opencode/node_modules/@opencode-ai/plugin",
+                    "scripts": {"generic": "npm install --prefix \"$HOME/.config/opencode\""},
+                }
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+
+        with patch("dot_tools.configure.subprocess.run") as mock_run:
+            mock_run.return_value = MagicMock(returncode=0)
+            installer._install_tools()
+
+        command = mock_run.call_args.args[0]
+        environment = mock_run.call_args.kwargs["env"]
+        assert command == "test -d $HOME/.config/opencode/node_modules/@opencode-ai/plugin"
+        assert environment["HOME"] == str(installer.home)
+
+    def test_install_tools__uses_override_home_for_opencode_npm_install(self, tmp_path: Path):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "tools": [
+                {
+                    "name": "opencode-npm-deps",
+                    "check": "test -d $HOME/.config/opencode/node_modules/@opencode-ai/plugin",
+                    "scripts": {"generic": "npm install --prefix \"$HOME/.config/opencode\""},
+                }
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+        mock_process = MagicMock(returncode=0)
+        mock_process.stdout = MagicMock()
+        mock_process.stderr = MagicMock()
+        mock_process.stdout.readline.return_value = ""
+        mock_process.stderr.readline.return_value = ""
+
+        with patch("dot_tools.configure.subprocess.run", return_value=MagicMock(returncode=1)):
+            with patch("dot_tools.configure.subprocess.Popen", return_value=mock_process) as mock_popen:
+                with patch("dot_tools.configure.select.select", side_effect=lambda streams, *_: (streams, [], [])):
+                    installer._install_tools()
+
+        script = mock_popen.call_args.args[0]
+        environment = mock_popen.call_args.kwargs["env"]
+        assert script == 'npm install --prefix "$HOME/.config/opencode"'
+        assert environment["HOME"] == str(installer.home)
 
     def test_install_tools__calls_resolve_tool_order(self, tmp_path: Path):
         # Verify that _install_tools calls resolve_tool_order
@@ -691,4 +770,3 @@ class TestDotInstallerInstallTools:
         # Extract tool names from check commands in the order they were invoked
         install_order = [cmd.replace("check-", "") for cmd in checked_order if cmd.startswith("check-")]
         assert install_order == ["a", "b", "c"]
-

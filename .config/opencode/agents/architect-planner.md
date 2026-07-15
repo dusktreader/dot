@@ -1,7 +1,7 @@
 ---
 name: architect-planner
 description: Creates and edits design artifacts. Consults on system organization. Dictates high-level structure to engineers.
-model: github-copilot/claude-opus-4.7
+model: github-copilot/gpt-5.6-terra
 mode: subagent
 ---
 

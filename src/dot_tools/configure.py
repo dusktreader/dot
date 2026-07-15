@@ -280,6 +280,7 @@ class DotInstaller:
         install_env = os.environ.copy()
         install_env["PYTHON_VERSION"] = platform.python_version()
         install_env["DOT_ROOT"] = str(self.root)
+        install_env["HOME"] = str(self.home)
         with spinner("Installing tools", context_level="DEBUG"):
             resolved_tools = resolve_tool_order(self.install_manifest.tools)
             for tool in resolved_tools:
@@ -289,7 +290,7 @@ class DotInstaller:
                         continue
                     logger.debug(f"Checking if {tool.name} is installed", status=Status.CHECK)
                     result = subprocess.run(
-                        tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                        tool.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env
                     )
                     if result.returncode == 0:
                         logger.debug(f"{tool.name} is already installed", status=Status.CONFIRM)
@@ -345,12 +346,16 @@ class DotInstaller:
                     logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
 
     def _apply_settings(self):
+        install_env = os.environ.copy()
+        install_env["PYTHON_VERSION"] = platform.python_version()
+        install_env["DOT_ROOT"] = str(self.root)
+        install_env["HOME"] = str(self.home)
         with spinner("Applying settings", context_level="DEBUG"):
             for setting in self.install_manifest.settings:
                 with spinner(f"Applying {setting.name}", context_level="DEBUG"):
                     logger.debug(f"Checking if {setting.name} is already applied", status=Status.CHECK)
                     result = subprocess.run(
-                        setting.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+                        setting.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env
                     )
                     if result.returncode == 0:
                         logger.debug(f"{setting.name} is already applied", status=Status.CONFIRM)
@@ -381,6 +386,7 @@ class DotInstaller:
                         executable="/bin/bash",
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
+                        env=install_env,
                         text=True,
                     )
                     assert proc.stdout is not None

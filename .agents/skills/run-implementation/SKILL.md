@@ -196,6 +196,11 @@ do not infer resolution from a related discussion, and do not resolve multiple U
 turn. Only after every Unknown has received an explicit human response may the plan be presented
 for final approval.
 
+When an Unknown is resolved, **fold the resolution into the plan body** (as an AC, architecture
+note, or Technical Notes entry as appropriate) and **remove it from the Unknowns section**. Do
+not leave resolved items in Unknowns. If all Unknowns are resolved, remove the Unknowns section
+entirely. The same rule applies to implementation plans.
+
 **STOP — end your turn here.**
 The design plan is ready for human review. Present it to the human. Do not summarize the agent
 findings — the human will read the plan directly. Wait for the human to ask questions, request

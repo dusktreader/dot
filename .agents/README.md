@@ -77,6 +77,7 @@ Instruction files live in `instructions/`. Read them when they are relevant to t
 | `instructions/local.md`       | Needing machine-specific context **or accessing any external service** (file may not exist) |
 | `instructions/markdown.md`    | Editing markdown files                                                                      |
 | `instructions/python.md`      | Writing or editing Python code or docstrings                                                |
+| `instructions/work.md`        | Working in any work repository or accessing work services (Jira, Confluence, Datadog, etc.) |
 
 
 ## Tools

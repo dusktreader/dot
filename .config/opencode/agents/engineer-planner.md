@@ -1,7 +1,7 @@
 ---
 name: engineer-planner
 description: Creates and edits plan artifacts (usually implementation plans)
-model: github-copilot/claude-haiku-4.5
+model: github-copilot/gpt-5.6-luna
 mode: subagent
 ---
 

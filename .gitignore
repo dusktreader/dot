@@ -4,6 +4,10 @@
 .npmrc
 .junit.xml
 
+# OpenCode local npm artifacts
+.config/opencode/node_modules/
+.config/opencode/package-lock.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

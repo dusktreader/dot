@@ -1,6 +1,7 @@
 # Markdown Style Guide
 
-Rules for all markdown files in `.agents/` directories.
+Rules for every Markdown file authored or edited by an agent, including repository documentation, work
+artifacts, READMEs, plans, and files under `.agents/`.
 
 
 ## File structure
@@ -159,3 +160,16 @@ Wrap all prose lines at 120 characters. Code blocks and tables are exempt.
 - Trailing whitespace
 - Lines exceeding 120 characters (outside code blocks and tables)
 - Raw HTML — never embed `<tags>` in Markdown files for any reason
+
+
+## Required validation
+
+Run the custom validator before presenting any authored or edited Markdown file for review, approval, or
+completion. It implements this guide's formatting preferences; do not substitute a third-party linter.
+
+```shell
+node ~/.agents/tools/check-markdown-format.mjs <file-or-directory>
+```
+
+Fix every reported error before presenting the document. If a rule needs an intentional exception, ask the
+human for approval and document the exception in the relevant artifact or task output.

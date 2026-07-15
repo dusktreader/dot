@@ -143,6 +143,10 @@ Dispatch an `engineer-task-planner` subagent to write `task-plan.md`. The prompt
 
 Do not dispatch a reviewer.
 
+If the task plan contains an **Unknowns** section, resolve each Unknown with the human before
+proceeding. When resolved, fold the resolution into the plan body and remove it from Unknowns.
+Remove the Unknowns section entirely once all items are resolved.
+
 **STOP — end your turn here.**
 Present the task plan to the human. Wait for the human to ask questions, request revisions, or give approval.
 
