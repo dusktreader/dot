@@ -74,9 +74,11 @@ one lightweight review, and the existing approval thresholds. Do not add task-st
 independent review, or any additional human approval gate solely because isolation was added. Immediately before
 exclusive squash integration, compare the recorded parent worktree, branch, and base with current
 parent state. A stale parent stops the run and requires an explicit human reconciliation decision.
-Never silently rebase, merge, discard, overwrite, or mutate human work. Successful squash removes only
-the agent worktree and preserves the agent branch. Declined or abandoned runs preserve both until the
-human explicitly requests cleanup. Never push or create a pull request.
+Never silently rebase, merge, discard, overwrite, or mutate human work. After a successful squash,
+remove only the agent worktree and retain every temporary `--agents-*` branch locally indefinitely for audit and
+recovery. Never delete it automatically; only explicit human cleanup may delete it. Declined or
+abandoned runs preserve both until the human explicitly requests cleanup. Never push or create a pull
+request.
 
 
 ## Git workflow
@@ -84,27 +86,49 @@ human explicitly requests cleanup. Never push or create a pull request.
 Determine the next hotfix number N by counting existing `--agents-hotfix-{N}` branches on the
 parent branch.
 
+### Branch and integration contract
+
+All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
+Starting from `main` or `master`, create normal `{type}/{TASK-ID}--{slug}` with `git branch` and create the agent
+worktree directly on that normal branch. There is no `--agents` branch in this mode. Starting from an existing normal
+feature/task branch, create local/audit only `{parent-branch}--agents-hotfix-{N}` with `git branch`, then create its
+agent worktree and squash it
+back to the normal parent after all gates. This workflow never pushes, creates a pull request, or merges into `main` or
+`master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
+
+For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
+normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
+
 Extract the Jira ID from the parent branch name:
 - Match the pattern `[A-Z]+-[0-9]+` (e.g. `FUS-123`) → use it as `{JIRA-ID}`
 - If the branch contains `NO-TICKET`, or neither matches → no Jira ID; omit the `{JIRA-ID}` segment
   from the project directory name (see Project directory above)
 
-Create the hotfix branch from the parent branch:
+Record the parent worktree path, `{parent-branch}`, and immutable `{parent-base}` SHA before creating a branch or
+worktree.
 
-```shell
-git switch {parent-branch}
-git switch -c {parent-branch}--agents-hotfix-{N}
-```
+1. If the parent is `main` or `master`, create the normal parent branch:
+   ```shell
+   git branch {type}/{TASK-ID}--{slug} {parent-base}
+   ```
+   Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
+2. Otherwise, create the temporary agent branch from the existing parent:
+   ```shell
+   git branch {parent-branch}--agents-hotfix-{N} {parent-base}
+   ```
+   Set `{agent-branch}` to `{parent-branch}--agents-hotfix-{N}`.
+3. Immediately after `git branch`, create the matching agent worktree:
+   ```shell
+   git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
+   ```
 
-All commits are made on `{parent-branch}--agents-hotfix-{N}`.
+Never use `git switch` in the human worktree. All commits are made on `{agent-branch}`. Continue directly to stage 1
+(investigate), then proceed directly through the principal-authored plan and execution to stage 4 (review) and its
+existing lightweight review approval gate. Do not stop before that gate.
 
 After the review is approved, squash onto the parent branch:
 
-```shell
-git switch {parent-branch}
-git merge --squash {parent-branch}--agents-hotfix-{N}
-git commit -m "<fix message>"
-```
+Run the squash from the parent worktree with `git -C {parent-worktree} merge --squash {agent-branch}`, then commit.
 
 The `--agents-hotfix-{N}` branch is **local only**. Do not push it to origin. It exists as a
 local audit trail and is preserved after the squash.
@@ -171,3 +195,5 @@ Report completion to the human with:
 - The squash commit SHA on the parent branch
 - The hotfix branch name (preserved for history)
 - Any Significant or Trivial findings deferred as follow-up work
+
+Once the normal branch is ready, tell the human to invoke `run-pr`.

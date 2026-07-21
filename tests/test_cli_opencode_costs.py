@@ -27,19 +27,32 @@ def test_costs_help_and_json_output() -> None:
 def test_costs_table_output_is_aligned_and_file_output_has_no_terminal_codes(tmp_path: Path) -> None:
     runner = CliRunner()
     with patch("dot_tools.cli.opencode.OpenCodeSessionStore") as store:
-        store.return_value.__enter__.return_value.sessions.return_value = [SessionRecord(
-            "one", None, "/project", "agent", "gpt-5.6-luna", 1760000000000, 1.0,
-            {"input": 1, "output": 1, "reasoning": 0, "cache_read": 0, "cache_write": 0}, None, "one", "ok",
-        )]
+        store.return_value.__enter__.return_value.sessions.return_value = [
+            SessionRecord(
+                "one", None, "/project", "agent", "gpt-5.6-luna", 1760000000000, 1.0,
+                {"input": 1, "output": 1, "reasoning": 0, "cache_read": 0, "cache_write": 0}, None, "one", "ok",
+            ),
+            SessionRecord(
+                "child", "one", "/project", "agent", "gpt-5.6-luna", 1760001000000, 1.0,
+                {"input": 1, "output": 1, "reasoning": 0, "cache_read": 0, "cache_write": 0}, None, "one", "ok",
+            ),
+        ]
         terminal = runner.invoke(cli, ["opencode", "costs"])
         output_file = tmp_path / "costs.txt"
         written = runner.invoke(cli, ["opencode", "costs", "--file", str(output_file)])
 
     assert terminal.exit_code == 0
     assert "Session" in terminal.output
+    assert "└─ child" in terminal.output
+    assert "Total Cost" in terminal.output
+    assert "$2.00" in terminal.output
+    child_line = next(line for line in terminal.output.splitlines() if "└─ child" in line)
+    assert child_line.count("$1.00") == 1
     assert "│" in terminal.output
     assert written.exit_code == 0
     assert "\x1b[" not in output_file.read_text()
+    assert "└─ child" in output_file.read_text()
+    assert "Total Cost" in output_file.read_text()
     assert re.sub(r"\x1b\[[0-9;]*m", "", terminal.output) == output_file.read_text()
 
 

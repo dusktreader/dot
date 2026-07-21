@@ -52,7 +52,7 @@ _LIFECYCLE_REQUIREMENTS = {
         "before any artifact",
         "exclusive squash integration",
         "stale-parent",
-        "preserves the local agent branch",
+        "locally indefinitely",
     ),
     ".agents/skills/run-task/SKILL.md": (
         "parent worktree",
@@ -63,7 +63,7 @@ _LIFECYCLE_REQUIREMENTS = {
         "before any artifact",
         "exclusive squash integration",
         "stale-parent",
-        "preserves the local agent branch",
+        "locally indefinitely",
     ),
     ".agents/skills/run-hack/SKILL.md": (
         "current branch",
@@ -83,7 +83,7 @@ _LIFECYCLE_REQUIREMENTS = {
         "final QA exactly once",
         "exclusive squash integration",
         "stale-parent",
-        "preserve the local agent branch",
+        "locally indefinitely",
     ),
     ".agents/skills/run-fix/SKILL.md": (
         "parent worktree",
@@ -96,7 +96,7 @@ _LIFECYCLE_REQUIREMENTS = {
         "exact variant",
         "exclusive squash integration",
         "stale parent",
-        "preserves the agent branch",
+        "locally indefinitely",
     ),
     ".agents/skills/run-hotfix/SKILL.md": (
         "parent worktree",
@@ -110,12 +110,61 @@ _LIFECYCLE_REQUIREMENTS = {
         "one lightweight review",
         "exclusive squash integration",
         "stale parent",
-        "preserves the agent branch",
+        "locally indefinitely",
+    ),
+    ".agents/skills/review-pr/SKILL.md": (
+        "parent worktree",
+        "parent branch",
+        "parent-base",
+        "agent worktree",
+        "agent branch",
+        "stale-parent",
+        "remove only the agent worktree",
+        "locally indefinitely",
+        "never delete it automatically",
+        "only explicit human cleanup may delete",
+        "direct the user to run-pr",
     ),
 }
 _UNSAFE_MUTATION = re.compile(
     r"\b(?:silently|automatically|without explicit (?:human )?(?:approval|decision))\b.{0,80}"
     r"\b(?:rebase|merge|discard|overwrite)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+_BRANCH_WORKFLOWS = (
+    ".agents/skills/run-feature/SKILL.md",
+    ".agents/skills/run-task/SKILL.md",
+    ".agents/skills/run-bug-fix/SKILL.md",
+    ".agents/skills/run-fix/SKILL.md",
+    ".agents/skills/run-hotfix/SKILL.md",
+)
+_TEMPORARY_BRANCH_WORKFLOWS = (*_BRANCH_WORKFLOWS, ".agents/skills/review-pr/SKILL.md")
+_BRANCH_CONTRACT = (
+    "<repo-root>/.worktrees/<agent-branch>",
+    "Never use `git switch` in the human worktree.",
+    "Starting from `main` or `master`",
+    "git branch",
+    "Starting from an existing normal feature/task branch",
+    "local/audit only",
+    "There is no `--agents` branch in this mode",
+    "tell the human to invoke `run-pr`",
+    "never pushes, creates a pull request, or merges into `main` or `master`",
+    "stop and obtain explicit human approval before integration",
+    "rebase the normal branch onto current main",
+    "git merge --ff-only",
+    "Never squash directly to main.",
+)
+_BRANCH_SETUP_CONTRACTS = {
+    ".agents/skills/run-feature/SKILL.md": ("{parent-branch}--agents-feature", "stage 1 (design)"),
+    ".agents/skills/run-task/SKILL.md": ("{parent-branch}--agents-task", "stage 1 (plan)"),
+    ".agents/skills/run-bug-fix/SKILL.md": ("{parent-branch}--agents-bug-fix", "stage 1 (investigate)"),
+    ".agents/skills/run-fix/SKILL.md": ("{parent-branch}--agents-fix", "stage 1 (plan)"),
+    ".agents/skills/run-hotfix/SKILL.md": ("{parent-branch}--agents-hotfix-{N}", "stage 1 (investigate)"),
+}
+_ORDERED_MAIN_INTEGRATION = re.compile(
+    r"stop and obtain explicit human approval before integration.{0,500}"
+    r"after approval rebase the\s+normal branch onto current main.{0,500}"
+    r"(?:then use )?`?git merge --ff-only`?.{0,500}never squash directly to main",
     re.IGNORECASE | re.DOTALL,
 )
 
@@ -303,6 +352,86 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
     for phrase, pattern in required_task_controls.items():
         if not re.search(pattern, task, re.IGNORECASE | re.DOTALL):
             failures.append(f"run-task missing required control: {phrase}")
+    for path_name in _TEMPORARY_BRANCH_WORKFLOWS:
+        content = policy_text.get(Path(path_name), "")
+        normalized_content = re.sub(r"\s+", " ", content).lower()
+        for requirement in (
+            "remove only the agent worktree",
+            "locally indefinitely",
+            "never delete it automatically",
+            "only explicit human cleanup may delete",
+        ):
+            if requirement not in normalized_content:
+                failures.append(f"{path_name} missing retained temporary branch policy: {requirement}")
+        if re.search(r"git branch -[dD]\s+.*--agents", content, re.IGNORECASE):
+            failures.append(f"{path_name} includes automatic temporary branch deletion")
+    for path_name in _BRANCH_WORKFLOWS:
+        content = policy_text.get(Path(path_name), "")
+        normalized_content = re.sub(r"\s+", " ", content).lower()
+        for requirement in _BRANCH_CONTRACT:
+            if requirement.lower() not in normalized_content:
+                failures.append(f"{path_name} missing branch contract: {requirement}")
+        if re.search(r"^(?!.*never use).*\bgit switch\b", content, re.IGNORECASE | re.MULTILINE):
+            failures.append(f"{path_name} permits git switch outside its human-worktree prohibition")
+        if re.search(r"\bgit push\b|\bgh pr (?:create|edit)\b", content, re.IGNORECASE):
+            failures.append(f"{path_name} includes publication mechanics")
+        temporary_branch, approval_workflow = _BRANCH_SETUP_CONTRACTS[path_name]
+        required_setup_phrases = (
+            "Record the parent worktree path",
+            "{parent-base}",
+            "If the parent is `main` or `master`",
+            "git branch {type}/{TASK-ID}--{slug} {parent-base}",
+            f"git branch {temporary_branch} {{parent-base}}",
+            "Immediately after `git branch`, create the matching agent worktree",
+            "git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}",
+            f"Continue directly to {approval_workflow}",
+            "Do not stop before that gate.",
+        )
+        for phrase in required_setup_phrases:
+            if phrase.lower() not in normalized_content:
+                failures.append(f"{path_name} missing ordered setup control: {phrase}")
+        setup_sequence = re.compile(
+            r"git branch \{(?:type/\{TASK-ID\}--\{slug\}|parent-branch\}--agents-.+?) \{parent-base\}"
+            r".{0,900}Immediately after `git branch`, create the matching agent worktree:.{0,300}"
+            r"git worktree add <repo-root>/\.worktrees/<agent-branch> \{agent-branch\}",
+            re.IGNORECASE | re.DOTALL,
+        )
+        if not setup_sequence.search(content):
+            failures.append(f"{path_name} does not create each branch before its matching worktree")
+        if re.search(r"\*\*STOP\b.{0,300}Immediately after `git branch`", content, re.IGNORECASE | re.DOTALL):
+            failures.append(f"{path_name} includes a pre-gate stop in branch setup")
+        if not _ORDERED_MAIN_INTEGRATION.search(content):
+            failures.append(f"{path_name} lacks ordered approval, rebase, and fast-forward main integration")
+    run_pr = policy_text.get(Path(".agents/skills/run-pr/SKILL.md"), "")
+    for requirement in (
+        "explicitly invokes `run-pr`",
+        "Reject `main`, `master`, and any branch whose name contains `--agents`",
+        "clean normal feature or task branch",
+        "Confirm the authenticated `gh` account",
+        "confirm the intended remote",
+        "target base",
+        "ambiguous, ask the human",
+        "Never force-push.",
+        "Push the normal branch",
+        "gh pr create",
+        "Return the pull request URL.",
+    ):
+        if requirement.lower() not in re.sub(r"\s+", " ", run_pr).lower():
+            failures.append(f"run-pr missing required control: {requirement}")
+    review_pr = policy_text.get(Path(".agents/skills/review-pr/SKILL.md"), "")
+    if re.search(r"\bgit push\b", review_pr, re.IGNORECASE):
+        failures.append("review-pr includes a push command")
+    if "direct the user to run-pr" not in review_pr.lower():
+        failures.append("review-pr does not direct publication to run-pr")
+    review_setup = (
+        "git branch {parent-branch}--agents-review-{N} {parent-base}",
+        "git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}",
+        "Never use `git switch` in the human worktree.",
+        "Perform all comment triage artifacts, fixes, commits, and QA in `{agent-worktree}`",
+    )
+    for requirement in review_setup:
+        if requirement.lower() not in re.sub(r"\s+", " ", review_pr).lower():
+            failures.append(f"review-pr missing worktree setup control: {requirement}")
     hack = policy_text.get(Path(".agents/skills/run-hack/SKILL.md"), "")
     if not re.search(r"^name:\s*run-hack\s*$", hack, re.MULTILINE) or not re.search(r"^description:\s*.+", hack, re.MULTILINE):
         failures.append("run-hack frontmatter identity is incorrect")

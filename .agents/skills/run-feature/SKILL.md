@@ -79,6 +79,22 @@ the path. All artifacts for this project are stored there.
 This skill manages its own git branch and commits throughout the workflow. Follow these rules
 exactly.
 
+### Branch and integration contract
+
+All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
+Starting from `main` or `master`, obtain `{TASK-ID}`, create normal `{type}/{TASK-ID}--{slug}` with `git branch`, and
+create the agent worktree directly on that normal branch. There is no `--agents` branch in this mode and the human stays
+on main or master. Starting from an existing normal feature/task branch, create local/audit only
+`{parent-branch}--agents-feature` with `git branch`, then create its agent worktree and squash it back to the normal
+parent after all gates.
+
+Immediately after creating either branch with `git branch`, use `git worktree add
+<repo-root>/.worktrees/<agent-branch> {agent-branch}`. This workflow never pushes, creates a pull request, or merges
+into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
+
+For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
+normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
+
 
 ### Commits after each approved stage
 
@@ -124,14 +140,11 @@ ready-to-PR parent branch:
    branch as an explicit operation, record the decision, and restart from the updated parent.
 3. Propose a squash commit message to the human and wait for explicit approval.
 4. Once approved:
-   ```shell
-   git switch {parent-branch}
-    git merge --squash {agent-branch}
-   git commit -m "<approved message>"
-   ```
-5. Remove only the agent worktree after a successful squash. Successful cleanup preserves the local agent branch
-   for audit. If integration is declined or the run is abandoned, preserve both worktree and
-   branch until the human explicitly removes them.
+   Run the squash from the parent worktree with `git -C {parent-worktree} merge --squash {agent-branch}`, then commit.
+5. Remove only the agent worktree after a successful squash. Retain every temporary `--agents-*`
+   branch locally indefinitely for audit and recovery; never delete it automatically. Only explicit
+   human cleanup may delete it. If integration is declined or the run is abandoned, preserve both
+   worktree and branch until the human explicitly removes them.
 
 
 ## Process
@@ -139,9 +152,10 @@ ready-to-PR parent branch:
 
 ### 0. Branch setup
 
-Check the current branch:
+Record the parent worktree path, `{parent-branch}`, and immutable `{parent-base}` SHA before creating a branch or
+worktree. Check the current branch:
 
-- If it is `main` or `master`: ask the human for an associated work ticket ID. Wait for their
+- If the parent is `main` or `master`: ask the human for an associated work ticket ID. Wait for their
   response — do not proceed without it. If they provide a ticket ID (e.g. `FUS-123`), use it
   as `{TASK-ID}`. If they confirm there is no ticket, use `NO-TICKET` as `{TASK-ID}`.
 
@@ -150,15 +164,19 @@ Check the current branch:
 
   Derive `{slug}` from the feature description: kebab-case, lowercase, five words or fewer.
 
-  Create the branch:
+   Create the normal parent branch:
+   ```shell
+   git branch {type}/{TASK-ID}--{slug} {parent-base}
+   ```
+
+   Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
+
+- Otherwise: create the temporary agent branch:
   ```shell
-  git switch -c {type}/{TASK-ID}--{slug}
+  git branch {parent-branch}--agents-feature {parent-base}
   ```
 
-- Otherwise: create a `--agents-build` branch from the current branch:
-  ```shell
-  git switch -c {current-branch}--agents-build
-  ```
+  Set `{agent-branch}` to `{parent-branch}--agents-feature`.
 
 Extract the Jira ID from the current parent branch name:
 
@@ -166,7 +184,14 @@ Extract the Jira ID from the current parent branch name:
 - If the branch contains `NO-TICKET` → use `NO-TICKET` as the Jira ID
 - If neither matches → no Jira ID; omit the parenthetical from commit messages
 
-All commits during stages 1–4 are made on the `--agents-build` branch.
+Immediately after `git branch`, create the matching agent worktree:
+
+```shell
+git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
+```
+
+Never use `git switch` in the human worktree. All commits during stages 1–4 are made on the selected agent branch.
+Continue directly to stage 1 (design) and its approval gate. Do not stop before that gate.
 
 
 ### 1. Design
@@ -337,7 +362,7 @@ Once approved: commit (see Git workflow — "After execution approved").
 ### 4. Manual Testing
 
 **STOP — end your turn here.**
-Tell the human that the implementation is on the `--agents-build` branch and ready for manual
+Tell the human that the implementation is on the agent branch and ready for manual
 testing. Ask them to test and report any issues.
 
 Wait for the human to report issues or give approval.
@@ -349,15 +374,15 @@ Your final output in this turn must include this exact block:
 
 ```
 AWAITING APPROVAL: manual testing
-Branch: {--agents-build branch name}
-Unlocks: stage 5 (squash and PR) — nothing else
+Branch: {agent branch name}
+Unlocks: stage 5 (squash) — nothing else
 ```
 
 When the human responds with approval, your next turn must open with:
 
 ```
 APPROVED: manual testing
-Proceeding to: stage 5 (squash and PR)
+Proceeding to: stage 5 (squash)
 ```
 
 For each issue the human reports:
@@ -366,7 +391,7 @@ For each issue the human reports:
    - The issue as described by the human
    - Root cause (investigate if needed)
    - The fix applied
-2. Fix the issue on the `--agents-build` branch.
+2. Fix the issue on the agent branch.
 3. Run the project quality gate (`make qa` or equivalent) and confirm it passes.
 4. Commit the fix (see Git workflow — "After each manual testing fix").
 5. Tell the human what was fixed and ask them to verify.
@@ -374,15 +399,14 @@ For each issue the human reports:
 Repeat until the human gives explicit manual testing approval.
 
 
-### 5. Squash and PR
+### 5. Squash and report
 
-Perform the squash and create the PR (see Git workflow — "Squash and PR").
+Perform the squash. Once the normal branch is ready, tell the human to invoke `run-pr`.
 
 **STOP — end your turn here.**
 Report completion to the human with:
 - The project directory path
 - The agent worktree path
 - The final status of each artifact
-- The `--agents-build` branch name
+- The agent branch name
 - The squash commit SHA on the parent branch
-- The PR URL

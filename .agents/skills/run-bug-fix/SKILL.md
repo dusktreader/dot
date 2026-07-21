@@ -74,9 +74,11 @@ squash integration into the ready-to-PR parent branch, compare the current paren
 and base with the recorded values. A stale-parent result stops the run and offers only an explicit
 human reconciliation decision. Never silently rebase, merge, discard, overwrite, or mutate human work.
 
-After successful squash, remove only the agent worktree and preserve the local agent branch for audit.
-If integration is declined or the run is abandoned, preserve both worktree and branch until the human
-explicitly requests cleanup. The workflow never pushes or creates a pull request.
+After successful squash, remove only the agent worktree and retain every temporary `--agents-*`
+branch locally indefinitely for audit and recovery. Never delete it automatically; only explicit
+human cleanup may delete it. If integration is declined or the run is abandoned, preserve both
+worktree and branch until the human explicitly requests cleanup. The workflow never pushes or
+creates a pull request.
 
 
 ## Git workflow
@@ -84,24 +86,49 @@ explicitly requests cleanup. The workflow never pushes or creates a pull request
 This skill manages its own git branch and commits throughout the workflow. Follow these rules
 exactly.
 
+### Branch and integration contract
+
+All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
+Starting from `main` or `master`, create normal `{type}/{TASK-ID}--{slug}` with `git branch` and create the agent
+worktree directly on that normal branch. There is no `--agents` branch in this mode. Starting from an existing normal
+feature/task branch, create local/audit only `{parent-branch}--agents-bug-fix` with `git branch`, then create its
+agent worktree and squash it
+back to the normal parent after all gates. This workflow never pushes, creates a pull request, or merges into `main` or
+`master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
+
+For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
+normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
+
 
 ### 0. Branch setup (before any work)
 
-Check the current branch:
+Record the parent worktree path, `{parent-branch}`, and immutable `{parent-base}` SHA before creating a branch or
+worktree. Check the current branch:
 
-- If it is `main` or `master`: **STOP immediately.** Tell the human that agents must not work
-  directly on main/master and ask them to create a feature branch first. Do not proceed.
-- Otherwise: create an `--agents-build` branch from the current branch:
+- If the parent is `main` or `master`: obtain `{TASK-ID}`, then create the normal parent branch:
   ```shell
-  git switch -c {current-branch}--agents-build
+  git branch {type}/{TASK-ID}--{slug} {parent-base}
   ```
+  Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
+- Otherwise: create the temporary agent branch from the existing parent:
+  ```shell
+  git branch {parent-branch}--agents-bug-fix {parent-base}
+  ```
+  Set `{agent-branch}` to `{parent-branch}--agents-bug-fix`.
 
 Extract the Jira ID from the current (parent) branch name:
 - Match the pattern `[A-Z]+-[0-9]+` (e.g. `FUS-123`) → use it as the Jira ID
 - If the branch contains `NO-TICKET` → use `NO-TICKET` as the Jira ID
 - If neither matches → no Jira ID; omit the parenthetical from commit messages
 
-All commits during stages 1–3 are made on the `--agents-build` branch.
+Immediately after `git branch`, create the matching agent worktree:
+
+```shell
+git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
+```
+
+Never use `git switch` in the human worktree. All commits during stages 1–3 are made on the selected agent branch.
+Continue directly to stage 1 (investigate) and its root-cause approval gate. Do not stop before that gate.
 
 
 ### Commits after each approved stage
@@ -143,9 +170,8 @@ After the execution is approved by both the agent reviewer and the human, squash
    approval before proceeding.**
 2. Once approved:
    ```shell
-   git switch {parent-branch}
-   git merge --squash {parent-branch}--agents-build
-   git commit -m "<approved message>"
+    git -C {parent-worktree} merge --squash {agent-branch}
+    git -C {parent-worktree} commit -m "<approved message>"
    ```
 3. Do NOT delete the `--agents-build` branch — it is preserved locally as the full commit history.
 4. Do NOT push the parent branch — that is the human's decision.
@@ -253,3 +279,5 @@ Report completion to the human with:
 - The final status of each artifact
 - The `--agents-build` branch name (preserved for history)
 - The squash commit SHA on the parent branch
+
+Once the normal branch is ready, tell the human to invoke `run-pr`.

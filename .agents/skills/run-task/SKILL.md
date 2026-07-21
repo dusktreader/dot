@@ -80,6 +80,18 @@ All artifacts for this task are stored there.
 
 Make all workflow commits in the agent worktree on `{agent-branch}`. The agent never switches the human's worktree.
 
+### Branch and integration contract
+
+All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
+Starting from `main` or `master`, create normal `{type}/{TASK-ID}--{slug}` with `git branch` and create the agent
+worktree directly on that normal branch. There is no `--agents` branch in this mode. Starting from an existing normal
+feature/task branch, create local/audit only `{parent-branch}--agents-task` in its agent worktree and squash it back to
+the normal parent after all gates. This workflow never pushes, creates a pull request, or merges into `main` or `master`.
+Once the normal branch is ready, tell the human to invoke `run-pr`.
+
+For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
+normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
+
 After human code-review approval and the stale-parent check, squash the agent branch exclusively into the parent branch:
 
 ```shell
@@ -87,8 +99,9 @@ git -C {parent-worktree} merge --squash {agent-branch}
 git commit -m "<message>"
 ```
 
-The `{agent-branch}` branch is **local only**. Do not push it to origin. It exists as a local audit trail and is
-preserved after the squash. Remove only the agent worktree after a successful squash.
+The `{agent-branch}` branch is **local only**. Do not push it to origin. Retain every temporary
+`--agents-*` branch locally indefinitely for audit and recovery; never delete it automatically.
+Only explicit human cleanup may delete it. Remove only the agent worktree after a successful squash.
 
 Do NOT push the parent branch and do NOT create a PR — that is the human's decision.
 
@@ -122,8 +135,23 @@ created. Keep the human in the parent worktree. Create
 every task artifact, journal, and code change in the agent worktree. Report the agent worktree path, agent branch,
 parent branch, and recorded base at every later human gate.
 
-Use `git worktree add -b {parent-branch}--agents-task <agent-worktree-path> {parent-base}`. Do not switch the human's
-current worktree.
+Use the ordered setup below. Never use `git switch` in the human worktree. Continue directly to stage 1 (plan) and its
+approval gate. Do not stop before that gate.
+
+1. If the parent is `main` or `master`, create the normal parent branch:
+   ```shell
+   git branch {type}/{TASK-ID}--{slug} {parent-base}
+   ```
+   Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
+2. Otherwise, create the temporary agent branch from the existing parent:
+   ```shell
+   git branch {parent-branch}--agents-task {parent-base}
+   ```
+   Set `{agent-branch}` to `{parent-branch}--agents-task`.
+3. Immediately after `git branch`, create the matching agent worktree:
+   ```shell
+   git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
+   ```
 
 
 ### 1. Plan
@@ -233,9 +261,9 @@ Never silently rebase, merge, discard, overwrite, or alter human work. If regene
 approved, explicitly discard the agent worktree and audit branch, record the decision, and
 restart from the updated parent.
 
-After successful exclusive squash integration, remove only the agent worktree and preserve the
-agent branch for audit. If integration is declined or abandoned, preserve both until the human
-explicitly removes them.
+After successful exclusive squash integration, remove only the agent worktree and retain the
+temporary `--agents-*` branch locally indefinitely for audit and recovery. Never delete it
+preserve both until the human explicitly removes them.
 
 Successful cleanup preserves the local agent branch.
 
@@ -246,3 +274,5 @@ Report completion to the human with:
 - The squash commit SHA on the parent branch
 - The `--agents-task` branch name (preserved for history)
 - Any Significant findings deferred as follow-up work
+
+Once the normal branch is ready, tell the human to invoke `run-pr`.

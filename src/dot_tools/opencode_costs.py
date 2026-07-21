@@ -12,6 +12,7 @@ from typing import Generic, Iterable, Literal, TypeVar
 from rich.align import Align
 from rich.console import Console
 from rich.table import Table
+from rich.text import Text
 
 
 from dot_tools.exceptions import OpenCodeError
@@ -107,6 +108,7 @@ class SessionRecord:
 class Report:
     rows: list[ReportColumns]
     filters: dict[str, str | None]
+    sort: list[tuple[str, bool]] | None = None
     recorded_total: float = 0.0
     estimated_total: float | None = 0.0
     outlier_metric: str = "recorded_cost"
@@ -207,6 +209,7 @@ class Report:
                 "agent": agent,
                 "model": model,
             },
+            sort=sort,
             recorded_total=recorded_total,
             estimated_total=estimated_total,
             outlier_threshold=threshold,
@@ -263,12 +266,16 @@ class Report:
             getattr(REPORT_COLUMNS, report_field.name)
             for report_field in fields(REPORT_COLUMNS)
             if getattr(REPORT_COLUMNS, report_field.name).label
+            and getattr(REPORT_COLUMNS, report_field.name).field != "root_session"
         ]
+        columns.append(ReportColumn("Total Cost", "total_cost"))
         rendered_rows: list[list[str]] = []
-        for row in self.rows:
+        for row, session_display, total_cost in table_rows(self.rows, self.sort):
             values = row.to_dict()
+            values["session_id"] = session_display
+            values["total_cost"] = total_cost
             values["directory"] = display_directory(str(values["directory"]))
-            for metric_field in ("recorded_cost", "local_estimate"):
+            for metric_field in ("recorded_cost", "local_estimate", "total_cost"):
                 if values[metric_field] is not None:
                     values[metric_field] = f"${values[metric_field]:.2f}"
             if values["cache_ratio"] is not None:
@@ -280,7 +287,7 @@ class Report:
                 else ("incomplete" if status == "incomplete-token-data" else "unsupported")
             )
             rendered_rows.append(
-                [str(values[column.field]) if values[column.field] is not None else "-" for column in columns]
+                [str(values[column.field]) if values[column.field] is not None else "" for column in columns]
             )
 
         for column in columns:
@@ -289,11 +296,20 @@ class Report:
                 no_wrap=True,
                 overflow="ignore",
             )
-        right_aligned_fields = {"recorded_cost", "local_estimate", "cache_ratio"}
+        right_aligned_fields = {"recorded_cost", "local_estimate", "cache_ratio", "total_cost"}
+        cell_styles = {
+            "recorded_cost": "green",
+            "total_cost": "green",
+            "local_estimate": "yellow",
+            "directory": "blue",
+            "model": "purple",
+        }
         for values in rendered_rows:
             table.add_row(
                 *[
-                    Align.right(value) if field in right_aligned_fields else value
+                    Align.right(Text(value, style=cell_styles.get(field))) if field in right_aligned_fields else Text(
+                        value, style=cell_styles.get(field)
+                    )
                     for value, column in zip(values, columns)
                     for field in [column.field]
                 ]
@@ -501,3 +517,47 @@ def sort_report_rows(rows: list[ReportColumns], sort: list[tuple[str, bool]] | N
         available.sort(key=lambda row: row.get_value(sort_field), reverse=reverse)
         sorted_rows = available + unavailable
     return sorted_rows
+
+
+def table_rows(
+    rows: list[ReportColumns], sort: list[tuple[str, bool]] | None,
+) -> list[tuple[ReportColumns, str, float | None]]:
+    """Return table rows grouped by resolved session ancestry."""
+    by_id = {str(row.get_value("session_id")): row for row in rows}
+    children: dict[str, list[ReportColumns]] = {session_id: [] for session_id in by_id}
+    roots: list[ReportColumns] = []
+    for row in rows:
+        parent_id = row.get_value("parent_session")
+        root_id = row.get_value("root_session")
+        parent = by_id.get(str(parent_id)) if parent_id is not None else None
+        if parent is not None and root_id is not None and root_id == parent.get_value("root_session"):
+            children[str(parent_id)].append(row)
+        else:
+            roots.append(row)
+
+    rendered: list[tuple[ReportColumns, str, float | None]] = []
+    visited: set[str] = set()
+
+    def add_subtree(row: ReportColumns, prefix: str, is_last: bool, is_root: bool = False) -> float:
+        session_id = str(row.get_value("session_id"))
+        if session_id in visited:
+            return 0.0
+        visited.add(session_id)
+        display = session_id if is_root else f"{'└─ ' if is_last else '├─ '}{session_id}"
+        rendered_index = len(rendered)
+        rendered.append((row, prefix + display, None))
+        descendants = children[session_id]
+        child_prefix = prefix + ("   " if is_last else "│  ") if not is_root else ""
+        total_cost = row.get_value("recorded_cost") or 0.0
+        for index, child in enumerate(descendants):
+            total_cost += add_subtree(child, child_prefix, index == len(descendants) - 1)
+        if is_root:
+            rendered[rendered_index] = (row, prefix + display, total_cost)
+        return total_cost
+
+    for root in sort_report_rows(roots, sort):
+        add_subtree(root, "", True, is_root=True)
+    for row in rows:
+        if str(row.get_value("session_id")) not in visited:
+            add_subtree(row, "", True, is_root=True)
+    return rendered

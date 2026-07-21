@@ -11,7 +11,7 @@ from tools.validate_staged_agent_policies import validate
 
 def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
     root = tmp_path / "staging"
-    staging = Path("/Users/tucker.beck/agent-workflow-staging")
+    staging = Path(__file__).resolve().parents[1]
     staging_config = staging / ".config/opencode/agents"
     config_files = [path.relative_to(staging) for path in staging_config.glob("*.md")]
     paths_to_copy = [
@@ -22,6 +22,8 @@ def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
         Path(".agents/skills/run-bug-fix/SKILL.md"),
         Path(".agents/skills/run-fix/SKILL.md"),
         Path(".agents/skills/run-hotfix/SKILL.md"),
+        Path(".agents/skills/run-pr/SKILL.md"),
+        Path(".agents/skills/review-pr/SKILL.md"),
         *config_files,
     ]
     for relative in paths_to_copy:
@@ -106,7 +108,7 @@ def test_validator_requires_structured_principal_ownership(tmp_path: Path) -> No
     ("relative", "needle"),
     [
         (".agents/skills/run-feature/SKILL.md", "before any artifact"),
-        (".agents/skills/run-task/SKILL.md", "agent worktree"),
+        (".agents/skills/run-task/SKILL.md", "before any artifact"),
         (".agents/skills/run-hack/SKILL.md", "no Git lifecycle"),
     ],
 )
@@ -115,7 +117,7 @@ def test_validator_rejects_missing_worktree_lifecycle_requirement(
 ) -> None:
     root, manifest = write_fixture(tmp_path)
     path = root / relative
-    path.write_text(path.read_text().replace(needle, "removed lifecycle text"))
+    path.write_text(re.sub(needle, "removed lifecycle text", path.read_text(), flags=re.IGNORECASE))
     assert any(relative in failure and "lifecycle requirement" in failure for failure in validate(root, manifest))
 
 
@@ -195,3 +197,139 @@ def test_validator_rejects_missing_required_policy(tmp_path: Path, field: str) -
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("# task\n")
     assert validate(root, manifest)
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        ".agents/skills/run-feature/SKILL.md",
+        ".agents/skills/run-task/SKILL.md",
+        ".agents/skills/run-bug-fix/SKILL.md",
+        ".agents/skills/run-fix/SKILL.md",
+        ".agents/skills/run-hotfix/SKILL.md",
+    ],
+)
+def test_validator_requires_branch_contract(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text().replace("git merge --ff-only", "merge normally", 1))
+    assert any(relative in failure and "branch contract" in failure for failure in validate(root, manifest))
+
+
+def test_validator_rejects_publication_in_branch_workflow(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".agents/skills/run-task/SKILL.md"
+    path.write_text(path.read_text() + "\ngit push origin feature\n")
+    assert any("publication mechanics" in failure for failure in validate(root, manifest))
+
+
+def test_validator_rejects_git_switch_in_branch_setup(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".agents/skills/run-task/SKILL.md"
+    path.write_text(path.read_text() + "\ngit switch feature/example\n")
+    assert any("permits git switch" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        ".agents/skills/run-feature/SKILL.md",
+        ".agents/skills/run-task/SKILL.md",
+        ".agents/skills/run-bug-fix/SKILL.md",
+        ".agents/skills/run-fix/SKILL.md",
+        ".agents/skills/run-hotfix/SKILL.md",
+    ],
+)
+def test_validator_requires_branch_before_matching_worktree(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text().replace("Immediately after `git branch`", "After setup", 1))
+    assert any("ordered setup control" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize("relative", [
+    ".agents/skills/run-feature/SKILL.md",
+    ".agents/skills/run-task/SKILL.md",
+    ".agents/skills/run-bug-fix/SKILL.md",
+    ".agents/skills/run-fix/SKILL.md",
+    ".agents/skills/run-hotfix/SKILL.md",
+])
+def test_validator_rejects_pre_gate_setup_stop(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text().replace("Immediately after `git branch`", "**STOP**\n\nImmediately after `git branch`", 1))
+    assert any("pre-gate stop" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize("relative", [
+    ".agents/skills/run-feature/SKILL.md",
+    ".agents/skills/run-task/SKILL.md",
+    ".agents/skills/run-bug-fix/SKILL.md",
+    ".agents/skills/run-fix/SKILL.md",
+    ".agents/skills/run-hotfix/SKILL.md",
+])
+def test_validator_requires_ordered_main_integration(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    text = path.read_text()
+    path.write_text(text.replace("After approval rebase", "Before approval rebase", 1))
+    assert any("ordered approval, rebase, and fast-forward" in failure for failure in validate(root, manifest))
+
+
+def test_validator_requires_run_pr_temporary_branch_rejection(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".agents/skills/run-pr/SKILL.md"
+    path.write_text(path.read_text().replace("`--agents`", "temporary branches", 1))
+    assert any("run-pr missing required control" in failure for failure in validate(root, manifest))
+
+
+def test_validator_rejects_review_pr_push_command(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".agents/skills/review-pr/SKILL.md"
+    path.write_text(path.read_text() + "\ngit push origin feature\n")
+    assert "review-pr includes a push command" in validate(root, manifest)
+
+
+def test_validator_requires_review_pr_worktree_setup(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".agents/skills/review-pr/SKILL.md"
+    path.write_text(path.read_text().replace("git worktree add", "worktree add", 1))
+    assert any("review-pr missing worktree setup control" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        ".agents/skills/run-feature/SKILL.md",
+        ".agents/skills/run-task/SKILL.md",
+        ".agents/skills/run-bug-fix/SKILL.md",
+        ".agents/skills/run-fix/SKILL.md",
+        ".agents/skills/run-hotfix/SKILL.md",
+        ".agents/skills/review-pr/SKILL.md",
+    ],
+)
+def test_validator_requires_retained_temporary_branch_policy(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(
+        re.sub(r"Never delete it\s+automatically", "Delete it automatically", path.read_text(), flags=re.IGNORECASE)
+    )
+    assert any(relative in failure and "retained temporary branch policy" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        ".agents/skills/run-feature/SKILL.md",
+        ".agents/skills/run-task/SKILL.md",
+        ".agents/skills/run-bug-fix/SKILL.md",
+        ".agents/skills/run-fix/SKILL.md",
+        ".agents/skills/run-hotfix/SKILL.md",
+        ".agents/skills/review-pr/SKILL.md",
+    ],
+)
+def test_validator_rejects_automatic_temporary_branch_deletion(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text() + "\ngit branch -D feature/example--agents-task\n")
+    assert any(relative in failure and "automatic temporary branch deletion" in failure for failure in validate(root, manifest))

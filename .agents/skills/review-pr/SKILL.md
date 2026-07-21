@@ -59,31 +59,42 @@ write the literal text `NO-TICKET` into the path. The artifact for this cycle is
 
 ## Git workflow
 
-Create a review branch from the parent feature branch:
+Before fetching comments, record the parent worktree path, `{parent-branch}`, and immutable
+`{parent-base}` SHA. Derive `{agent-branch}` as `{parent-branch}--agents-review-{N}`, where N
+matches the review cycle number of the `pr-review--{N}.md` artifact. Create it from the recorded
+parent state, then immediately create its isolated agent worktree:
 
 ```shell
-git switch {parent-branch}
-git switch -c {parent-branch}--agents-review-{N}
+git branch {parent-branch}--agents-review-{N} {parent-base}
+git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
 ```
 
-where N matches the review cycle number of the `pr-review--{N}.md` artifact.
+Never use `git switch` in the human worktree. Perform all comment triage artifacts, fixes, commits,
+and QA in `{agent-worktree}` on the agent branch `{agent-branch}`.
 
 All fix commits are made on `{parent-branch}--agents-review-{N}`.
 
 The `--agents-review-{N}` branch is **local only**. Do not push it to origin. It exists as a
 local audit trail and is preserved after the squash.
 
-After all fixes are approved and the quality gate passes, squash onto the parent branch and
-push the parent branch:
+After all fixes are approved and the quality gate passes, compare the recorded parent worktree,
+branch, and base SHA with the current parent. If any differ, stop and present the stale-parent
+state to the human. Never silently rebase, merge, discard, overwrite, or alter human work. If the
+human approves regeneration, explicitly remove the agent worktree, retain the audit branch, and
+restart from the updated parent.
+
+After the stale-parent check and human approval of the squash message, squash locally onto the
+normal parent branch:
 
 ```shell
-git switch {parent-branch}
-git merge --squash {parent-branch}--agents-review-{N}
-git commit -m "<review-fixes message>"
-git push origin {parent-branch}
+git -C {parent-worktree} merge --squash {parent-branch}--agents-review-{N}
+git -C {parent-worktree} commit -m "<review-fixes message>"
 ```
 
-Do NOT delete the `--agents-review-{N}` branch — it is preserved locally as the full commit history.
+After a successful squash, remove only the agent worktree. Retain the
+`--agents-review-{N}` branch locally indefinitely for audit and recovery; never delete it
+automatically. Only explicit human cleanup may delete the branch. If integration is declined or the
+run is abandoned, retain both the worktree and branch until explicit human cleanup.
 
 ## Process
 
@@ -155,8 +166,7 @@ For each comment with disposition `auto-fix` or human-approved fix:
    git add -A
    git commit -m "fix: <short description of fix>"
    ```
-4. Push the branch.
-5. Record the commit SHA in the `pr-review--{N}.md` artifact against the comment.
+4. Record the commit SHA in the `pr-review--{N}.md` artifact against the comment.
 
 Group logically related fixes into a single commit where it makes the history cleaner.
 Each commit must still pass `make qa` on its own.
@@ -167,9 +177,9 @@ Each commit must still pass `make qa` on its own.
 After all fixes are committed and `make qa` passes on the full branch:
 
 1. Propose a squash commit message to the human. **Wait for approval.**
-2. Squash onto the parent branch (see Git workflow).
-3. Push the parent branch.
-4. For each addressed comment, reply on GitHub:
+2. Run the stale-parent check, squash locally onto the parent branch, and remove only the agent
+   worktree after the squash succeeds (see Git workflow).
+3. For each addressed comment, reply on GitHub:
 
    ```
    Addressed in <short-sha>
@@ -183,13 +193,13 @@ After all fixes are committed and `make qa` passes on the full branch:
      -f body="Addressed in <sha>\n\n<summary>"
    ```
 
-5. For each `won't-fix` comment, reply:
+4. For each `won't-fix` comment, reply:
 
    ```
    Won't fix: <brief rationale>
    ```
 
-6. Re-request review from any human reviewers who left comments (skip bots):
+5. Re-request review from any human reviewers who left comments (skip bots):
    ```shell
    gh pr edit {pr} --add-reviewer <handle>
    ```
@@ -201,3 +211,5 @@ Report completion to the human with:
 - The `pr-review--{N}.md` artifact path
 - The squash commit SHA on the parent branch
 - A summary of what was addressed, what was declined, and any deferred items
+
+After the local squash, direct the user to run-pr to publish the parent branch.

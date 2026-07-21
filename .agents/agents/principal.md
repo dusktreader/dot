@@ -137,6 +137,16 @@ anywhere on disk. You read its response and act on the findings yourself — not
 persisted by the subagent.
 
 
+## Agent worktree lifecycle
+
+For every workflow that creates a temporary `--agents-*` branch, create the branch and its mirrored
+agent worktree before artifacts or code, and never switch the human worktree. Perform work and QA in
+the agent worktree. Before a local squash, stop on a stale parent for human reconciliation. After a
+successful squash, remove only the agent worktree and retain the temporary branch locally
+indefinitely for audit and recovery. Never delete it automatically; only explicit human cleanup may
+delete it. Hand normal branches to `run-pr` for publishing.
+
+
 ## Workflow selection
 
 Choose the smallest workflow that preserves the required controls:
@@ -144,6 +154,7 @@ Choose the smallest workflow that preserves the required controls:
 - `run-feature`: significant changes requiring design, implementation planning, execution review, and manual-testing
   gates
 - `run-task`: bounded meaningful changes requiring a task plan, final QA, independent code review, and squash gate
+- `run-pr`: explicit final publishing workflow for a clean normal feature or task branch
 - `run-hack`: low-risk, current-branch changes requiring only a hack journal, relevant verification, and principal
   diff review
 - Individual phase skills: explicitly requested narrow work, such as creating a design plan or reviewing an

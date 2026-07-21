@@ -157,6 +157,83 @@ def test_report_resolves_multiple_sort_keys_left_to_right() -> None:
     assert [row.session.value for row in report.rows] == ["a-high", "a-low", "b-high"]
 
 
+def test_table_renders_session_groups_depth_first_with_unicode_prefixes() -> None:
+    report = Report.build([
+        record(session_id="root", root_id="root", cost=1.0),
+        record(session_id="child", parent_id="root", root_id="root", cost=2.0),
+        record(session_id="grandchild", parent_id="child", root_id="root", cost=3.0),
+        record(session_id="sibling", parent_id="root", root_id="root", cost=4.0),
+    ])
+
+    table = report.render("table")
+
+    assert "Session" in table
+    assert "Root" not in table
+    assert "Directory" in table
+    assert "Recorded" in table
+    assert "Total Cost" in table
+    root_line = next(line for line in table.splitlines() if "root" in line and "child" not in line)
+    assert "$10.00" in root_line
+    assert table.index("root") < table.index("├─ child") < table.index("│  └─ grandchild") < table.index("└─ sibling")
+
+
+def test_table_total_cost_is_blank_for_children_and_remains_table_only() -> None:
+    report = Report.build([
+        record(session_id="root", root_id="root", cost=1.0),
+        record(session_id="child", parent_id="root", root_id="root", cost=2.0),
+    ])
+
+    table = report.render("table")
+    json_output = report.render("json")
+    csv_output = report.render("csv")
+
+    root_line = next(line for line in table.splitlines() if "root" in line and "child" not in line)
+    child_line = next(line for line in table.splitlines() if "└─ child" in line)
+    assert "$3.00" in root_line
+    assert child_line.count("$2.00") == 1
+    assert "Total Cost" not in json_output
+    assert "total_cost" not in csv_output
+
+
+def test_table_applies_requested_styles_only_when_color_is_enabled() -> None:
+    report = Report.build([record(directory="/project", model="provider/gpt-5.6-luna", cost=2.0)])
+
+    colored = report.render("table", color_system="standard")
+    plain = report.render("table")
+
+    assert "\x1b[32m$2.00\x1b[0m" in colored
+    assert "\x1b[33m$0.00\x1b[0m" in colored
+    assert "\x1b[34m/project\x1b[0m" in colored
+    assert "\x1b[35mprovider/gpt-5.6-luna\x1b[0m" in colored
+    assert "\x1b[" not in plain
+
+
+def test_table_sorts_root_groups_without_changing_flat_serialized_rows() -> None:
+    report = Report.build([
+        record(session_id="root-low", root_id="root-low", cost=1.0),
+        record(session_id="low-child", parent_id="root-low", root_id="root-low", cost=100.0),
+        record(session_id="root-high", root_id="root-high", cost=3.0),
+        record(session_id="high-child", parent_id="root-high", root_id="root-high", cost=0.0),
+        record(session_id="missing-parent", parent_id="absent", root_id=None, ancestry_status="broken"),
+    ], sort=_parse_sort("desc:Recorded"))
+
+    table = report.render("table")
+    json_rows = json.loads(report.render("json"))["rows"]
+    csv_rows = report.render("csv").splitlines()
+
+    assert table.index("root-high") < table.index("└─ high-child") < table.index("root-low")
+    assert table.index("root-low") < table.index("└─ low-child")
+    assert "missing-parent" in table
+    assert [row["session_id"] for row in json_rows] == [
+        "low-child", "root-high", "missing-parent", "root-low", "high-child",
+    ]
+    assert "├─ " not in report.render("json")
+    assert "└─ " not in report.render("csv")
+    assert [row.split(",")[0] for row in csv_rows[1:]] == [
+        "low-child", "root-high", "missing-parent", "root-low", "high-child",
+    ]
+
+
 @pytest.mark.parametrize("sort", ["asc:Nope", "sideways:Recorded"])
 def test_report_rejects_invalid_sort_parts(sort: str) -> None:
     with pytest.raises(OpenCodeError, match="Invalid sort"):
