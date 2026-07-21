@@ -17,7 +17,7 @@ This skill is a sub-skill called by orchestrators. It is used by:
 - `run-bug-fix` — to confirm root cause before planning a fix
 - `run-hotfix` — to quickly locate a bug's root cause
 - `run-architecture-audit` — to gather raw findings before synthesis
-- `run-implementation` — when the principal needs targeted codebase context
+- `run-feature` — when the principal needs targeted codebase context
 
 Do not confuse with `review-code`, which reviews code quality rather than answering a question.
 

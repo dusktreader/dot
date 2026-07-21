@@ -20,7 +20,7 @@ This is a standalone skill triggered directly by humans after a PR is open.
 
 Do not use when:
 - The PR has no review comments and only needs CI fixes → use `run-hotfix` instead
-- The work is pre-PR → use `run-implementation` or `run-fix` instead
+- The work is pre-PR → use `run-feature` or `run-fix` instead
 - The review is of a plan artifact, not code → use `review-implementation-plan` or
   `review-design-plan` instead
 

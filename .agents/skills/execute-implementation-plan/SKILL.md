@@ -5,6 +5,9 @@ description: Instructions for executing implementation plans. Use when specifica
 
 # Execute Implementation Plan Skill
 
+The executor runs focused tests during execution and reports objective verification facts. Final QA is run once by the
+orchestrator after execution, not repeatedly by this skill.
+
 Read the provided implementation plan artifact and execute every task in it to completion.
 Record progress in an implementation journal.
 
@@ -15,7 +18,7 @@ Use this skill to execute an approved implementation plan end-to-end. It is the 
 stage in multiple orchestrator workflows.
 
 This skill is a sub-skill called by orchestrators:
-- `run-implementation` — stage 3 (execute)
+- `run-feature` — stage 3 (execute)
 - `run-bug-fix` — execute stage
 - `run-fix` — execute stage
 - `run-hotfix` — execute stage
@@ -95,26 +98,8 @@ Do not pause between tasks. Do not batch tasks into groups and report partway th
 Continue until every task is done.
 
 
-### 3. Final verification
+### 3. Report back
 
-After all tasks are complete, run the full project quality gate:
-
-```shell
-make qa
-```
-
-All of the following must pass with zero errors:
-
-- Type checking
-- Linting
-- All tests
-
-If any quality check fails, fix the issue before reporting back. Do not report the work as
-complete while quality checks are failing.
-
-
-### 4. Report back
-
-Report back to the orchestrator only after all tasks are complete and all quality checks
-pass. Summarize results, note any challenges or surprises, and include the final `make qa`
-output.
+Report back to the orchestrator after all tasks are complete. Summarize results and objective focused-test
+verification facts, and note any challenges or surprises. Do not run project-wide QA or invoke `make qa`; the
+orchestrator owns final QA after execution.

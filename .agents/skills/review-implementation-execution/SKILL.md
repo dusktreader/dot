@@ -5,6 +5,9 @@ description: Reviews implementation execution (code changes) against a plan for 
 
 # Review Implementation Execution Skill
 
+Start with the diff, expand context only as required, and keep findings compact. Re-review only after changes to
+acceptance criteria, a new code path, behavior, interface, data, security, or tests.
+
 Read the implementation journal, inspect the modified files recorded in it, and run verification commands.
 
 
@@ -14,7 +17,7 @@ Use this skill to review code changes *against an implementation plan and journa
 AC coverage, plan alignment, scope creep, and code quality.
 
 This skill is a sub-skill called by orchestrators:
-- `run-implementation` — after stage 3 (execute) produces an implementation journal
+- `run-feature` — after stage 3 (execute) produces an implementation journal
 - `run-bug-fix` — after the fix is executed
 - `run-fix` — after the scoped fix is executed
 

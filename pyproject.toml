@@ -8,6 +8,8 @@ authors = [
 license-files = ["LICENSE.md"]
 requires-python = ">=3.13"
 dependencies = [
+    "auto-name-enum>=4.1.0",
+    "dateparser>=1.4.1",
     "gitpython~=3.1",
     "loguru~=0.7",
     "paramiko~=3.5",
@@ -16,6 +18,7 @@ dependencies = [
     "pydantic>=2.11.4",
     "pyperclip>=1.9.0",
     "pyyaml>=6.0.2",
+    "rich>=14.0.0",
     "snick>=2.2.0",
     "typer~=0.15",
     "typerdrive>=0.9.8",

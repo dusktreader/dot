@@ -1,13 +1,18 @@
 ---
 name: run-task
-description: Use for any well-scoped minor change where the human knows what they want and no design document is needed — small features, localized refactors, config changes, test additions, formatting fixes, or doc updates. Reach for this before run-implementation whenever all affected files can be listed up front.
+description: >-
+  Use for any well-scoped minor change where the human knows what they want and no design document is needed — small
+  features, localized refactors, config changes, test additions, formatting fixes, or doc updates. Reach for this before
+  run-feature whenever all affected files can be listed up front.
 ---
+
 
 # Run Task Skill
 
-Coordinate a minor engineering task with minimal overhead: principal-authored plan, direct execution, and a single
-lightweight code review pass. Use this workflow for small features, refactors, cleanup, configuration changes, or
-documentation updates where the scope is clear and a full design-plus-implementation cycle would be excessive.
+Coordinate a bounded task with a human plan gate, focused execution, one final QA pass,
+independent review, and a human approval gate before squash. Use this workflow for small
+features, refactors, cleanup, configuration changes, or documentation updates where the scope
+is clear and a full design cycle would be excessive.
 
 All artifacts are stored under `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`.
 
@@ -30,7 +35,7 @@ task plan without needing an architecture section, use this skill.
 - Any change where all affected files can be listed up front and none of them require
   rethinking the architecture
 
-**Use `run-implementation` instead when:**
+**Use `run-feature` instead when:**
 
 - The change requires a design decision that the human has not already made
 - Multiple subsystems need to be coordinated in a non-obvious way
@@ -58,7 +63,7 @@ If not provided, ask before proceeding. Do not guess.
 Derive `{project-name}` from the task description: kebab-case, lowercase, five words or fewer
 (e.g. `add-retry-logic`, `clean-up-imports`, `update-default-timeout`).
 
-Run branch setup first (see Git workflow below) so `{JIRA-ID}` is known, then create
+Run process step 0 first so `{JIRA-ID}` is known, then create
 `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`. If the branch has no ticket (no match, or it contains
 `NO-TICKET`), omit the `{JIRA-ID}` segment entirely — do not write the literal text `NO-TICKET` into the path.
 
@@ -73,44 +78,17 @@ All artifacts for this task are stored there.
 
 ## Git workflow
 
-Check the current branch:
+Make all workflow commits in the agent worktree on `{agent-branch}`. The agent never switches the human's worktree.
 
-- If it is `main` or `master`: ask the human for an associated work ticket ID. Wait for their
-  response — do not proceed without it. If they provide a ticket ID (e.g. `FUS-123`), use it
-  as `{TASK-ID}`. If they confirm there is no ticket, use `NO-TICKET` as `{TASK-ID}`.
-
-  Derive `{type}` from the nature of the work (same conventional-commit types used in commit
-  messages: `feat`, `fix`, `refactor`, `docs`, `ci`, etc.).
-
-  Derive `{slug}` from the task description: kebab-case, lowercase, five words or fewer.
-
-  Create the branch:
-  ```shell
-  git switch -c {type}/{TASK-ID}--{slug}
-  ```
-
-- Otherwise: create an `--agents-task` branch from the current branch:
-  ```shell
-  git switch -c {current-branch}--agents-task
-  ```
-
-Extract the Jira ID from the current (parent) branch name:
-- Match the pattern `[A-Z]+-[0-9]+` (e.g. `FUS-123`) → use it as `{JIRA-ID}`
-- If the branch contains `NO-TICKET` → use `NO-TICKET` as the Jira ID
-- If neither matches → no Jira ID; omit the parenthetical from commit messages
-
-All commits are made on the `--agents-task` branch.
-
-After the review is approved, squash onto the parent branch:
+After human code-review approval and the stale-parent check, squash the agent branch exclusively into the parent branch:
 
 ```shell
-git switch {parent-branch}
-git merge --squash {parent-branch}--agents-task
+git -C {parent-worktree} merge --squash {agent-branch}
 git commit -m "<message>"
 ```
 
-The `--agents-task` branch is **local only**. Do not push it to origin. It exists as a local audit trail and is
-preserved after the squash.
+The `{agent-branch}` branch is **local only**. Do not push it to origin. It exists as a local audit trail and is
+preserved after the squash. Remove only the agent worktree after a successful squash.
 
 Do NOT push the parent branch and do NOT create a PR — that is the human's decision.
 
@@ -128,9 +106,34 @@ Use `feat`, `fix`, `refactor`, `docs`, or `ci` as appropriate for the change.
 
 ## Process
 
+### 0. Worktree and branch setup
+
+Before creating the task plan or changing code, inspect the current parent worktree and branch.
+
+- If the parent branch is `main` or `master`, ask the human for an associated work ticket ID. Wait for their response.
+  Use the provided ID as `{TASK-ID}` or `NO-TICKET` if the human confirms there is no ticket. Derive `{type}` and
+  `{slug}`, then create the ready-to-PR parent branch without switching the human's worktree.
+- Otherwise, use the current parent branch as `{parent-branch}`. Extract `{JIRA-ID}` from it using `[A-Z]+-[0-9]+`; use
+  `NO-TICKET` when present; otherwise omit the ticket segment from artifact paths and commit messages.
+
+Record the parent worktree path, `{parent-branch}`, and immutable parent base `{parent-base}` SHA.
+Create `{agent-branch}` and a distinct `{agent-worktree}` from that state before any artifact is
+created. Keep the human in the parent worktree. Create
+every task artifact, journal, and code change in the agent worktree. Report the agent worktree path, agent branch,
+parent branch, and recorded base at every later human gate.
+
+Use `git worktree add -b {parent-branch}--agents-task <agent-worktree-path> {parent-base}`. Do not switch the human's
+current worktree.
+
+
 ### 1. Plan
 
-Dispatch an `engineer-task-planner` subagent to write `task-plan.md`. The prompt must include:
+The principal selects the model for the planner using the principal's Model selection policy, chooses and dispatches the
+model-specific `engineer-task-planner` variant, and records the exact variant agent name. Stop for explicit human
+approval of the task plan before execution.
+
+Dispatch the selected `engineer-task-planner--{work|personal}-{suffix}` variant to write
+`task-plan.md`. The prompt must include:
 - The task description
 - The project directory path
 - Instruction to read `.agents/artifacts/task-plan/description.md` for section definitions and render
@@ -156,7 +159,7 @@ for changes is NOT approval.
 
 Your final output in this turn must include this exact block, filled in:
 
-```
+```text
 AWAITING APPROVAL: task plan
 Path: {path to task-plan.md}
 Unlocks: stage 2 (execution) — nothing else
@@ -164,7 +167,7 @@ Unlocks: stage 2 (execution) — nothing else
 
 When the human responds with approval, your next turn must open with:
 
-```
+```text
 APPROVED: task plan
 Proceeding to: stage 2 (execute)
 ```
@@ -172,14 +175,27 @@ Proceeding to: stage 2 (execute)
 
 ### 2. Execute
 
-Dispatch an `engineer-executor` subagent with the `execute-implementation-plan` skill, the task plan path, and the
-task journal path (`task-journal.md`).
+Select the executor model using the principal's Model selection policy, choose and dispatch the
+exact `engineer-executor--{work|personal}-{suffix}` variant, and record the exact variant agent
+name. The executor runs the focused tests relevant to the task and records results.
 
 
-### 3. Review
+### 3. Final QA
 
-Read the journal to collect the list of modified files. Dispatch an `engineer-reviewer` subagent with the
-`review-code` skill, passing the list of modified files and the project directory.
+Run final QA exactly once after execution. Use a constrained light executor selected by the
+principal's Model selection policy to fix only straightforward QA issues. Do not repeat final QA
+after those fixes unless the fixes alter acceptance criteria, introduce a new code path, or
+change behavior, an interface, data, security, or tests.
+
+
+### 4. Review
+
+Read the journal to collect modified files. Select the reviewer model using the principal's
+Model selection policy, choose and dispatch the exact
+`engineer-reviewer--{work|personal}-{suffix}` variant, and record the exact variant agent name.
+Reviewers start diff-first, expand context only as required, and return compact findings without
+redundant skill loading. Re-review only after acceptance-criteria, new-code-path, behavior,
+interface, data, security, or test changes.
 
 Address all findings:
 - Apply Trivial findings directly without discussion.
@@ -190,25 +206,38 @@ Address all findings:
 **STOP — end your turn here.**
 Present the review to the human. Wait for the human to ask questions, request revisions, or give approval.
 
-**Do not squash under any circumstances until the human explicitly approves.**
+**Do not squash under any circumstances until the human explicitly approves.** This workflow never pushes and never
+creates a PR.
 
 Your final output in this turn must include this exact block, filled in:
 
-```
+```text
 AWAITING APPROVAL: code review
 Path: {path to code-review--01.md}
-Unlocks: stage 4 (squash) — nothing else
+Unlocks: stage 5 (squash) — nothing else
 ```
 
 When the human responds with approval, your next turn must open with:
 
-```
+```text
 APPROVED: code review
-Proceeding to: stage 4 (squash)
+Proceeding to: stage 5 (squash)
 ```
 
 
-### 4. Squash and report
+### 5. Squash and report
+
+Immediately before integration, compare the recorded parent worktree, branch, and base with
+current parent state. A mismatch is a stale-parent stop requiring an explicit human decision.
+Never silently rebase, merge, discard, overwrite, or alter human work. If regeneration is
+approved, explicitly discard the agent worktree and audit branch, record the decision, and
+restart from the updated parent.
+
+After successful exclusive squash integration, remove only the agent worktree and preserve the
+agent branch for audit. If integration is declined or abandoned, preserve both until the human
+explicitly removes them.
+
+Successful cleanup preserves the local agent branch.
 
 Perform the squash onto the parent branch (see Git workflow above).
 

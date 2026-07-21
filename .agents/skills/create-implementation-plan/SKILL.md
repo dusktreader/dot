@@ -11,11 +11,11 @@ Read the provided design plan artifact and use it to produce an implementation p
 ## When to use
 
 Use this skill to translate an approved design plan into a step-by-step implementation plan.
-It is always the second artifact stage in the `run-implementation` workflow, and is also used
+It is always the second artifact stage in the `run-feature` workflow, and is also used
 in `run-bug-fix` (where a bug report takes the place of a design plan).
 
 This skill is a sub-skill called by orchestrators:
-- `run-implementation` — stage 2 (planning)
+- `run-feature` — stage 2 (planning)
 - `run-bug-fix` — planning stage
 - `run-fix` — fix plan stage
 

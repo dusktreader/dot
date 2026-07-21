@@ -17,10 +17,10 @@ identifying problem areas, technical debt, and improvement opportunities — wit
 to implementing any specific change.
 
 This is a standalone skill triggered directly by humans. It does not produce a plan or write
-code. If the audit surfaces specific work to do, follow up with `run-implementation` or
+code. If the audit surfaces specific work to do, follow up with `run-feature` or
 `run-bug-fix` for those items.
 
-Do not confuse with `run-bug-fix` (targeted fix for a known bug) or `run-implementation`
+Do not confuse with `run-bug-fix` (targeted fix for a known bug) or `run-feature`
 (building a feature). Use this skill when the goal is *understanding* rather than *changing*.
 
 

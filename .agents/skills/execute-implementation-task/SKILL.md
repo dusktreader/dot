@@ -5,6 +5,9 @@ description: Instructions for executing a task from an implementation plans. Use
 
 # Execute Implementation Task Skill
 
+Report objective facts and verification results rather than risk or workflow escalation verdicts. Final QA runs once
+after execution under the orchestrator.
+
 Read the provided implementation plan artifact and find the task you were assigned in the document.
 Execute the task to completion and report results back to your caller.
 

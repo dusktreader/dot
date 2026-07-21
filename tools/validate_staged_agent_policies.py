@@ -1,0 +1,338 @@
+"""Validate an isolated complete agent-policy staging tree."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import re
+from pathlib import Path
+
+
+_ZEN_DISPATCH = re.compile(
+    r"^(?!.*\b(?:do not|don't|not)\b.*opencode/).*(?:work-project.*opencode/|opencode/.*work-project).*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+_PRINCIPAL_OWNERSHIP = re.compile(
+    r"(?:principal.{0,120}(?:own|decid|control).{0,120}(?:risk|escalat)|"
+    r"(?:risk|escalat).{0,120}(?:own|decid|control).{0,120}principal)",
+    re.IGNORECASE | re.DOTALL,
+)
+_SPECIALIST_ROLES = (
+    "architect-planner",
+    "architect-reviewer",
+    "engineer-planner",
+    "engineer-task-planner",
+    "engineer-investigator",
+    "engineer-executor",
+    "engineer-reviewer",
+)
+_WORK_MODELS = {
+    "luna": "github-copilot/gpt-5.6-luna",
+    "terra": "github-copilot/gpt-5.6-terra",
+    "sol": "github-copilot/gpt-5.6-sol",
+    "haiku": "github-copilot/claude-haiku-4.5",
+    "sonnet": "github-copilot/claude-sonnet-5",
+    "opus": "github-copilot/claude-opus-4.8",
+}
+_PERSONAL_MODELS = {
+    "deepseek": "opencode/deepseek-v4-flash",
+    "kimi": "opencode/kimi-k2.7-code",
+    "luna": "opencode/gpt-5.6-luna",
+    "terra": "opencode/gpt-5.6-terra",
+    "sol": "opencode/gpt-5.6-sol",
+}
+_LIFECYCLE_REQUIREMENTS = {
+    ".agents/skills/run-feature/SKILL.md": (
+        "parent worktree",
+        "parent branch",
+        "parent base",
+        "agent worktree",
+        "agent branch",
+        "before any artifact",
+        "exclusive squash integration",
+        "stale-parent",
+        "preserves the local agent branch",
+    ),
+    ".agents/skills/run-task/SKILL.md": (
+        "parent worktree",
+        "parent branch",
+        "parent base",
+        "agent worktree",
+        "agent branch",
+        "before any artifact",
+        "exclusive squash integration",
+        "stale-parent",
+        "preserves the local agent branch",
+    ),
+    ".agents/skills/run-hack/SKILL.md": (
+        "current branch",
+        "no worktree",
+        "no Git lifecycle",
+        "only one artifact",
+    ),
+    ".agents/skills/run-bug-fix/SKILL.md": (
+        "parent worktree",
+        "parent branch",
+        "parent base",
+        "agent worktree",
+        "agent branch",
+        "before investigation",
+        "exact variant",
+        "implementation journal",
+        "final QA exactly once",
+        "exclusive squash integration",
+        "stale-parent",
+        "preserve the local agent branch",
+    ),
+    ".agents/skills/run-fix/SKILL.md": (
+        "parent worktree",
+        "parent branch",
+        "parent base",
+        "agent worktree",
+        "agent branch",
+        "before reading or writing fix artifacts",
+        "fail closed",
+        "exact variant",
+        "exclusive squash integration",
+        "stale parent",
+        "preserves the agent branch",
+    ),
+    ".agents/skills/run-hotfix/SKILL.md": (
+        "parent worktree",
+        "parent branch",
+        "parent base",
+        "agent worktree",
+        "agent branch",
+        "before investigation",
+        "exact variant",
+        "hotfix journal",
+        "one lightweight review",
+        "exclusive squash integration",
+        "stale parent",
+        "preserves the agent branch",
+    ),
+}
+_UNSAFE_MUTATION = re.compile(
+    r"\b(?:silently|automatically|without explicit (?:human )?(?:approval|decision))\b.{0,80}"
+    r"\b(?:rebase|merge|discard|overwrite)\b",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def _has_unsafe_mutation(text: str) -> bool:
+    """Return whether text permits an unqualified Git mutation.
+
+    Evaluate each match against the current sentence rather than using a fixed-width
+    lookbehind. This preserves the exemption for policy language such as
+    ``The policy will never silently rebase`` regardless of how far ``never`` is
+    from the matched unsafe action.
+    """
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", text):
+        for match in _UNSAFE_MUTATION.finditer(sentence):
+            if not re.search(r"\bnever\b", sentence[:match.start()], re.IGNORECASE):
+                return True
+    return False
+
+
+def validate(staging_root: Path, manifest_path: Path) -> list[str]:
+    """Return actionable validation failures for a staged policy set."""
+    failures: list[str] = []
+    manifest = json.loads(manifest_path.read_text())
+    if manifest.get("staging_root") != str(staging_root):
+        failures.append("manifest staging_root does not identify the requested staging tree")
+    listed = [Path(item["staged_path"]) for item in manifest.get("files", [])]
+    actual = sorted(
+        path.relative_to(staging_root)
+        for directory in (staging_root / ".agents", staging_root / ".config/opencode/agents")
+        for path in directory.rglob("*")
+        if path.is_file()
+    )
+    listed_set = set(listed)
+    actual_set = set(actual)
+    if listed_set != actual_set:
+        failures.append(f"manifest inventory mismatch: missing={sorted(listed_set - actual_set)}, extra={sorted(actual_set - listed_set)}")
+    for item in manifest.get("files", []):
+        path = staging_root / item["staged_path"]
+        if path.is_file():
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            if item.get("sha256") != digest:
+                failures.append(f"manifest checksum mismatch: {item['staged_path']}")
+    policy_text = {
+        path: (staging_root / path).read_text(errors="replace")
+        for path in actual
+        if path.suffix in {".md", ".txt"}
+    }
+    text = "\n".join(policy_text.values())
+    if re.search(r"\brun-implementation\b", text):
+        failures.append("stale run-implementation workflow reference")
+    dispatch_text = "\n".join(
+        content for path, content in policy_text.items() if path.parts[:2] == (".agents", "agents")
+    )
+    if _ZEN_DISPATCH.search(dispatch_text):
+        failures.append("Zen model appears in work-project dispatch policy")
+    config_agents = staging_root / ".config/opencode/agents"
+    expected_variants = {
+        f"{role}--work-{suffix}.md": ("work", suffix, model)
+        for role in _SPECIALIST_ROLES
+        for suffix, model in _WORK_MODELS.items()
+    } | {
+        f"{role}--personal-{suffix}.md": ("personal", suffix, model)
+        for role in _SPECIALIST_ROLES
+        for suffix, model in _PERSONAL_MODELS.items()
+    }
+    actual_variants = {path.name for path in config_agents.glob("*.md") if path.name != "principal.md"}
+    if any("--personal-sonnet" in filename for filename in actual_variants):
+        failures.append("personal Sonnet variants are forbidden; use personal Luna")
+    missing = sorted(set(expected_variants) - actual_variants)
+    extra = sorted(actual_variants - set(expected_variants))
+    if missing:
+        failures.append(f"missing model variants: {missing}")
+    if extra:
+        failures.append(f"unexpected or generic specialist agents: {extra}")
+    for filename, (project_class, suffix, model) in expected_variants.items():
+        path = config_agents / filename
+        if not path.is_file():
+            continue
+        content = path.read_text()
+        frontmatter, separator, body = content.partition("\n---\n")
+        expected_name = filename.removesuffix(".md")
+        if f"name: {expected_name}" not in frontmatter or "mode: subagent" not in frontmatter:
+            failures.append(f"variant frontmatter is incorrect: {filename}")
+        if f"model: {model}" not in frontmatter:
+            failures.append(f"variant model does not match {project_class} suffix: {filename}")
+        role = filename.removesuffix(".md").split("--", 1)[0]
+        expected_body = f"Read and follow the agent description in ~/.agents/agents/{role}.md.\n"
+        if not separator or body != expected_body:
+            failures.append(f"variant body must contain only its canonical role reference: {filename}")
+    if any("opencode/zen" in (config_agents / filename).read_text(errors="replace") for filename in expected_variants if (config_agents / filename).is_file()):
+        failures.append("Zen model appears in work or personal specialist variants")
+    principal_text = next(
+        (content for path, content in policy_text.items() if path == Path(".agents/agents/principal.md")), ""
+    )
+    required_models = {
+        "github-copilot/gpt-5.6-luna",
+        "github-copilot/gpt-5.6-terra",
+        "github-copilot/gpt-5.6-sol",
+        "github-copilot/claude-haiku-4.5",
+        "github-copilot/claude-sonnet-5",
+        "github-copilot/claude-opus-4.8",
+        "opencode/deepseek-v4-flash",
+        "opencode/kimi-k2.7-code",
+        "opencode/gpt-5.6-luna",
+        "opencode/gpt-5.6-terra",
+        "opencode/gpt-5.6-sol",
+    }
+    if "## Model selection" not in principal_text or not required_models.issubset(set(re.findall(r"`([^`]+)`", principal_text))):
+        failures.append("principal model selection policy is incomplete")
+    if "--personal-sonnet" in principal_text or "opencode/claude-sonnet-5" in principal_text:
+        failures.append("principal personal model policy still references personal Sonnet")
+    for phrase in ("preferred, not", "not an escalation ladder", "independent perspectives"):
+        if phrase.lower() not in principal_text.lower():
+            failures.append(f"principal work model policy is missing: {phrase}")
+    if "github-copilot/gpt-5.6-terra" not in (config_agents / "principal.md").read_text(errors="replace"):
+        failures.append("staged principal agent must use github-copilot/gpt-5.6-terra")
+    for path_name in (".agents/skills/run-feature/SKILL.md", ".agents/skills/run-task/SKILL.md"):
+        content = policy_text.get(Path(path_name), "")
+        if "principal's Model selection policy" not in content:
+            failures.append(f"{path_name} does not require principal model selection for dispatch")
+    for path_name, requirements in _LIFECYCLE_REQUIREMENTS.items():
+        content = policy_text.get(Path(path_name), "")
+        if not content:
+            failures.append(f"missing lifecycle policy: {path_name}")
+            continue
+        normalized_content = re.sub(r"\s+", " ", content).lower()
+        for requirement in requirements:
+            if requirement.lower() not in normalized_content:
+                failures.append(f"{path_name} missing lifecycle requirement: {requirement}")
+        if _has_unsafe_mutation(content):
+            failures.append(f"{path_name} permits silent Git mutation")
+    dispatch_paths = {
+        path: content
+        for path, content in policy_text.items()
+        if path.parts[:3] in {
+            (".agents", "skills", "run-feature"),
+            (".agents", "skills", "run-task"),
+            (".agents", "skills", "run-hack"),
+            (".agents", "skills", "run-bug-fix"),
+            (".agents", "skills", "run-fix"),
+            (".agents", "skills", "run-hotfix"),
+        }
+    }
+    for path, content in dispatch_paths.items():
+        if re.search(r"Dispatch an `(?:architect|engineer)-[a-z-]+` subagent", content):
+            failures.append(f"unvaried specialist dispatch in {path}")
+    for path_name in (
+        ".agents/skills/run-bug-fix/SKILL.md",
+        ".agents/skills/run-fix/SKILL.md",
+        ".agents/skills/run-hotfix/SKILL.md",
+    ):
+        content = policy_text.get(Path(path_name), "")
+        if re.search(r"Dispatch an `(?:engineer|architect)-[a-z-]+`(?: subagent)?", content):
+            failures.append(f"unvaried specialist dispatch in {path_name}")
+    bug_fix = policy_text.get(Path(".agents/skills/run-bug-fix/SKILL.md"), "")
+    if "bug report" not in bug_fix.lower() or "implementation plan" not in bug_fix.lower():
+        failures.append("run-bug-fix is missing bug-report to implementation-plan attachment")
+    fix = policy_text.get(Path(".agents/skills/run-fix/SKILL.md"), "")
+    normalized_fix = re.sub(r"\s+", " ", fix).lower()
+    for phrase in ("fail closed", "artifact directory is ambiguous", "modify no artifact or code", "agent-worktree view"):
+        if phrase.lower() not in normalized_fix:
+            failures.append(f"run-fix is missing fail-closed attachment control: {phrase}")
+    hotfix = policy_text.get(Path(".agents/skills/run-hotfix/SKILL.md"), "")
+    if "do not add an engineer-planner handoff" not in hotfix.lower():
+        failures.append("run-hotfix adds or fails to prohibit a planner handoff")
+    normalized_hotfix = re.sub(r"\s+", " ", hotfix).lower()
+    for phrase in ("principal-authored minimal plan", "one lightweight review"):
+        if phrase.lower() not in normalized_hotfix:
+            failures.append(f"run-hotfix is missing streamlined gate control: {phrase}")
+    if (
+        "no extra human gate" not in normalized_hotfix
+        and "no additional human approval gate" not in normalized_hotfix
+        and "no additional human gate" not in normalized_hotfix
+        and "any additional human approval gate" not in normalized_hotfix
+    ):
+        failures.append("run-hotfix is missing streamlined gate control: no extra human gate")
+    task = policy_text.get(Path(".agents/skills/run-task/SKILL.md"), "")
+    required_task_controls = {
+        "human approval": r"human\s+(?:approval|approv)",
+        "final QA exactly once": r"final QA exactly once",
+        "independent reviewer": r"(?:independent|model-specific).*reviewer",
+        "diff-first": r"diff-first",
+        "never pushes": r"never pushes",
+    }
+    for phrase, pattern in required_task_controls.items():
+        if not re.search(pattern, task, re.IGNORECASE | re.DOTALL):
+            failures.append(f"run-task missing required control: {phrase}")
+    hack = policy_text.get(Path(".agents/skills/run-hack/SKILL.md"), "")
+    if not re.search(r"^name:\s*run-hack\s*$", hack, re.MULTILINE) or not re.search(r"^description:\s*.+", hack, re.MULTILINE):
+        failures.append("run-hack frontmatter identity is incorrect")
+    for phrase in ("only one artifact", "never creates or switches branches", "never commits", "never pushes", "never creates a PR"):
+        if phrase.lower() not in hack.lower():
+            failures.append(f"run-hack missing prohibition: {phrase}")
+    ownership_text = f"{principal_text}\n{text}"
+    role_evidence = "orchestrator" in principal_text.lower() and re.search(r"\b(?:risk|escalat)", text, re.I)
+    if not _PRINCIPAL_OWNERSHIP.search(ownership_text) and not role_evidence:
+        failures.append("missing principal ownership of risk or escalation")
+    promotion = manifest.get("promotion", {})
+    if not promotion.get("approval_required") or not promotion.get("atomic_replacement") or not promotion.get("rollback_required") or not promotion.get("restart_required"):
+        failures.append("promotion manifest lacks approval, atomic replacement, rollback, or restart requirements")
+    return failures
+
+
+def main() -> int:
+    """Validate command-line staging arguments."""
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--staging-root", type=Path, required=True)
+    parser.add_argument("--manifest", type=Path, required=True)
+    args = parser.parse_args()
+    failures = validate(args.staging_root, args.manifest)
+    if failures:
+        for failure in failures:
+            print(f"ERROR: {failure}")
+        return 1
+    print(f"Validated complete staged policy set: {args.staging_root}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

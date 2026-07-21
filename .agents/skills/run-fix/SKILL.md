@@ -14,18 +14,18 @@ without modifying the original design plan, implementation plan, or journal.
 
 ## When to use
 
-Use this skill when, after a `run-implementation` project is complete, a human identifies a
+Use this skill when, after a `run-feature` project is complete, a human identifies a
 missed requirement or incorrect behaviour that needs a targeted fix — through code review, UAT,
 or manual testing feedback.
 
 This is a standalone skill triggered directly by humans. It always operates within an existing
-project directory created by `run-implementation`.
+project directory created by `run-feature`.
 
 Do not use when:
 - The gap is discovered during a PR review → use `review-pr` instead
 - The bug is unrelated to an existing implementation project → use `run-bug-fix` or
   `run-hotfix` instead
-- The change is a new feature rather than a fix → start a new `run-implementation` project
+- The change is a new feature rather than a fix → start a new `run-feature` project
 - No agent triggered this — this skill must never be triggered automatically
 
 
@@ -49,7 +49,7 @@ missed — through code review, UAT, or operational feedback. Examples:
 - A behaviour is wrong in a way that requires targeted changes
 
 Do NOT use this skill to:
-- Add new features (start a new project with `run-implementation` instead)
+- Add new features (start a new project with `run-feature` instead)
 - Make broad architectural changes (those require a new design plan)
 - Fix things proactively — only when a human explicitly requests it
 
@@ -68,13 +68,38 @@ All artifacts are written to the existing project directory alongside the origin
 Use the next available N by checking what fix artifacts already exist in the project directory.
 
 
+## Isolated worktree lifecycle
+
+Before reading or writing fix artifacts or changing code, record the parent worktree, parent branch,
+and immutable parent base. Create a distinct agent worktree and agent branch from that base. Every fix
+artifact and code change stays in the agent worktree, and every gate names its path and branch.
+
+Locate the existing implementation project from the agent-worktree view, then attach the fix plan,
+journal updates, bug context, and review evidence to that project's established artifact directory.
+Fail closed when the project is missing, the artifact directory is ambiguous, or the expected project
+path cannot be established in the agent worktree. Report the specific resolution failure and create
+or modify no artifact or code. Never attach fix work to the human worktree or guess a project path.
+
+For investigator, planner, executor, constrained QA-fix, and reviewer handoffs, the principal selects
+and dispatches a model-specific `--work-{suffix}` or `--personal-{suffix}` variant from the approved
+project-class menu. Record the exact variant, provider/model ID, project class, and handoff purpose in
+the fix journal or review context. Never dispatch a generic specialist role.
+
+Run final QA once, obtain independent review, and wait for explicit approval. Immediately before
+exclusive squash integration, compare the recorded parent worktree, branch, and base with current
+parent state. A stale parent stops the run and requires an explicit human reconciliation decision.
+Never silently rebase, merge, discard, overwrite, or mutate human work. Successful squash removes
+only the agent worktree and preserves the agent branch. Declined or abandoned runs preserve both until
+explicit human cleanup. Never push or create a pull request.
+
+
 ## Git workflow
 
 This skill manages its own git commits throughout the workflow. The `--agents` branch should
-already exist from the original `run-implementation` run. If it does not, create it from the
-current branch following the same rules in `run-implementation`.
+already exist from the original `run-feature` run. If it does not, create it from the
+current branch following the same rules in `run-feature`.
 
-Extract the Jira ID from the parent branch name using the same rules as `run-implementation`.
+Extract the Jira ID from the parent branch name using the same rules as `run-feature`.
 
 ### Commits after each approved stage
 
@@ -112,7 +137,8 @@ After the human approves the fix execution and the CHANGELOG is updated, squash 
 
 Read the existing `implementation-plan.md` and `design-plan.md` to understand the project context.
 
-Dispatch an `engineer-planner` subagent to create `implementation-plan--fix-{N}.md`. The prompt
+Dispatch the selected model-specific `engineer-planner--{work|personal}-{suffix}` variant to create
+`implementation-plan--fix-{N}.md`. The prompt
 must include:
 - The specific gap or missed requirement
 - Path to the existing project directory
@@ -148,17 +174,20 @@ Once approved: commit and push (see Git workflow — "After fix plan approved").
 
 ### 2. Execute
 
-Dispatch an `engineer-executor` subagent with the `execute-implementation-plan` skill and the
-fix plan path. The journal is `implementation-journal--fix-{N}.md`.
+Dispatch the selected model-specific `engineer-executor--{work|personal}-{suffix}` variant with the
+`execute-implementation-plan` skill and the fix plan path. Record the exact variant and model ID.
+The journal is `implementation-journal--fix-{N}.md`. Use the same variant family for a constrained
+QA-fix handoff and record that purpose.
 
-Then dispatch an `engineer-reviewer` subagent with the `review-implementation-execution` skill,
-the fix journal path, scope `whole-plan`, and iteration `01`. The review artifact is
+Then dispatch the selected model-specific `engineer-reviewer--{work|personal}-{suffix}` variant with
+the `review-implementation-execution` skill, the fix journal path, scope `whole-plan`, and iteration
+`01`. Record the exact reviewer variant, project class, and provider/model ID. The review artifact is
 `execution-review--fix-{N}--whole-plan--01.md`.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
-- Dispatch an `engineer-executor` to fix significant and critical findings. Flag genuinely
-  ambiguous ones inline.
+- Dispatch the selected model-specific executor variant to fix significant and critical findings.
+  Flag genuinely ambiguous ones inline.
 - Record the outcome in each finding's `##### Outcome` subsection.
 - Re-dispatch an `engineer-reviewer` at M+1 if changes were substantial. Repeat until the
   agent reviewer approves.

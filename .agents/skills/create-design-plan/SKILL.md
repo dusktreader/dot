@@ -11,10 +11,10 @@ Based on business requirements, create a design plan artifact.
 ## When to use
 
 Use this skill to produce a design plan artifact from business requirements or a feature
-description. It is always the first artifact stage in the `run-implementation` workflow.
+description. It is always the first artifact stage in the `run-feature` workflow.
 
 This skill is a sub-skill called by orchestrators:
-- `run-implementation` — stage 1 (design)
+- `run-feature` — stage 1 (design)
 
 Do not use this skill to write implementation plans, fix plans, or any code. The output is a
 design plan only. Do not confuse with `create-implementation-plan`, which translates a design

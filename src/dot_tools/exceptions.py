@@ -11,3 +11,8 @@ class GitError(DotError):
 
 class JiraError(DotError):
     pass
+
+
+class OpenCodeError(DotError):
+    pass
+

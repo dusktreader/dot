@@ -14,7 +14,7 @@ Use this skill to critique an implementation plan artifact for structural comple
 quality, task ordering, and markdown conformance.
 
 This skill is a sub-skill called by orchestrators:
-- `run-implementation` — after stage 2 (planning) produces an implementation plan
+- `run-feature` — after stage 2 (planning) produces an implementation plan
 - `run-bug-fix` — after the bug fix plan is produced
 - `run-fix` — after the scoped fix plan is produced
 

@@ -5,6 +5,9 @@ description: Reviews code changes directly against quality standards. Use when n
 
 # Review Code Skill
 
+Start with the diff, expand context only as required, and produce compact findings. Re-review only after changes to
+acceptance criteria, a new code path, behavior, interface, data, security, or tests.
+
 Review a set of files against quality standards and produce a code review artifact. Use this skill for
 standalone reviews where no implementation plan or journal is available.
 

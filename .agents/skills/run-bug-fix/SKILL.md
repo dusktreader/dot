@@ -53,6 +53,32 @@ text `NO-TICKET` into the path. All artifacts for this project are stored there.
 | `execution-review--{scope-id}--{N}.md`    | Execution review (scope-id = task-NN or whole-plan; N = zero-padded 2 digits: 01, 02, ...) |
 
 
+## Isolated worktree lifecycle
+
+Before investigation or any bug-report artifact, record the parent worktree, parent branch, and
+immutable parent base. Create a distinct agent worktree and agent branch from that base. Keep every
+bug report, implementation plan, journal, code change, QA correction, and review context in the
+agent worktree. Every later gate names the agent worktree path and agent branch.
+
+Before each specialist handoff, the principal selects a model-specific variant from the
+project-class menu. Use `engineer-investigator--{work|personal}-{suffix}` for investigation,
+`engineer-planner--{work|personal}-{suffix}` for planning,
+`engineer-executor--{work|personal}-{suffix}` for execution and constrained QA-fix, and
+`engineer-reviewer--{work|personal}-{suffix}` for review. Record the exact variant, provider/model
+ID, project class, and handoff purpose in the implementation journal or review context. Never dispatch
+a generic specialist role.
+
+Perform final QA exactly once before independent review. QA-fix is a constrained executor handoff,
+not a second QA owner. Review approval remains an explicit human gate. Immediately before exclusive
+squash integration into the ready-to-PR parent branch, compare the current parent worktree, branch,
+and base with the recorded values. A stale-parent result stops the run and offers only an explicit
+human reconciliation decision. Never silently rebase, merge, discard, overwrite, or mutate human work.
+
+After successful squash, remove only the agent worktree and preserve the local agent branch for audit.
+If integration is declined or the run is abandoned, preserve both worktree and branch until the human
+explicitly requests cleanup. The workflow never pushes or creates a pull request.
+
+
 ## Git workflow
 
 This skill manages its own git branch and commits throughout the workflow. Follow these rules
@@ -132,8 +158,9 @@ After the execution is approved by both the agent reviewer and the human, squash
 
 Run branch setup (see Git workflow above) before doing anything else.
 
-Dispatch an `engineer-investigator` subagent with the `investigate-codebase` skill. Direct the
-investigator to determine: root cause, affected code paths, and blast radius.
+Dispatch the selected model-specific `engineer-investigator--{work|personal}-{suffix}` variant with
+the `investigate-codebase` skill. Direct the investigator to determine: root cause, affected code
+paths, and blast radius. Record the selected variant and model ID in the journal before dispatch.
 
 Synthesize the investigator's findings into `bug-report.md`. Read
 `.agents/artifacts/bug-report/description.md` for the canonical section definitions, and render
@@ -157,8 +184,9 @@ Once confirmed: commit (see Git workflow — "After bug report approved").
 
 ### 2. Plan
 
-Dispatch an `engineer-planner` subagent with the `create-implementation-plan` skill, passing the bug
-report path as the planning input in place of a design plan.
+Dispatch the selected model-specific `engineer-planner--{work|personal}-{suffix}` variant with the
+`create-implementation-plan` skill, passing the bug report path as the planning input in place of a
+design plan. Record the exact variant and model ID in the journal.
 
 Then dispatch an `architect-reviewer` subagent with the `review-implementation-plan` skill, the plan
 path, and iteration `01`.
@@ -187,15 +215,18 @@ Once approved: commit (see Git workflow — "After implementation plan approved"
 
 ### 3. Execute
 
-Dispatch an `engineer-executor` subagent with the `execute-implementation-plan` skill and the plan path.
+Dispatch the selected model-specific `engineer-executor--{work|personal}-{suffix}` variant with the
+`execute-implementation-plan` skill and the plan path. Record the exact variant and model ID in the
+journal. Use the same variant family for a constrained QA-fix handoff and record that purpose.
 
-Then dispatch an `engineer-reviewer` subagent with the `review-implementation-execution` skill, the
-journal path, scope `whole-plan`, and iteration `01`.
+Then dispatch the selected model-specific `engineer-reviewer--{work|personal}-{suffix}` variant with
+the `review-implementation-execution` skill, the journal path, scope `whole-plan`, and iteration
+`01`. Record the exact reviewer variant, project class, and provider/model ID in the review context.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
-- Dispatch an `engineer-executor` to fix significant and critical findings. Flag genuinely
-  ambiguous ones inline.
+- Dispatch the selected model-specific executor variant to fix significant and critical findings.
+  Flag genuinely ambiguous ones inline.
 - Record the outcome in each finding's `##### Outcome` subsection.
 - Re-dispatch an `engineer-reviewer` at N+1 if changes were substantial. Repeat until the
   agent reviewer approves.

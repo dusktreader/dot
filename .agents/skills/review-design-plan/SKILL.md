@@ -14,7 +14,7 @@ Use this skill to critique a design plan artifact for structural completeness, A
 architectural clarity, and markdown conformance.
 
 This skill is a sub-skill called by orchestrators:
-- `run-implementation` — after stage 1 (design) produces a design plan
+- `run-feature` — after stage 1 (design) produces a design plan
 
 Do not confuse with `review-implementation-plan`, which reviews a lower-level implementation
 plan. Use this skill only for design plan artifacts — those describing WHAT and WHY, not HOW.
