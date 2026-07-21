@@ -1,8 +1,3 @@
----
-name: run-fix
-description: Extends an existing implementation project with a scoped fix. Use when a human identifies a gap or missed requirement post-implementation. Never trigger automatically.
----
-
 # Run Fix Skill
 
 Extend an existing implementation project with a scoped fix plan. This skill is always triggered
@@ -70,8 +65,8 @@ Use the next available N by checking what fix artifacts already exist in the pro
 
 ## Isolated worktree lifecycle
 
-Before reading or writing fix artifacts or changing code, record the parent worktree, parent branch,
-and immutable parent base. Create a distinct agent worktree and agent branch from that base. Every fix
+Before reading or writing fix artifacts or changing code, invoke `create-agent-worktree` with workflow identifier
+`fix`. Every fix
 artifact and code change stays in the agent worktree, and every gate names its path and branch.
 
 Locate the existing implementation project from the agent-worktree view, then attach the fix plan,
@@ -88,9 +83,10 @@ the fix journal or review context. Never dispatch a generic specialist role.
 Run final QA once, obtain independent review, and wait for explicit approval. Immediately before
 exclusive squash integration, compare the recorded parent worktree, branch, and base with current
 parent state. A stale parent stops the run and requires an explicit human reconciliation decision.
-Never silently rebase, merge, discard, overwrite, or mutate human work. After a successful squash,
-remove only the agent worktree and retain every temporary `--agents-*` branch locally indefinitely for
-audit and recovery. Never delete it automatically; only explicit human cleanup may delete it.
+Never silently rebase, merge, discard, overwrite, or mutate human work. After a successful squash, invoke
+`cleanup-agent-worktree` with the creation result and agent worktree. It must remove only the agent worktree and retain
+the audit branch locally indefinitely only when the creation result says one exists; otherwise it reports that no
+temporary audit branch was created. Never delete it automatically; only explicit human cleanup may delete it.
 Declined or abandoned runs preserve both until explicit human cleanup. Never push or create a pull
 request.
 
@@ -100,42 +96,24 @@ request.
 This skill manages its own git commits throughout the workflow. It always creates a fresh agent
 branch and worktree; do not reuse an original `run-feature` agent branch.
 
+
 ### Branch and integration contract
 
-All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
-Starting from `main` or `master`, create normal `{type}/{TASK-ID}--{slug}` with `git branch` and create the agent
-worktree directly on that normal branch. There is no `--agents` branch in this mode. Starting from an existing normal
-feature/task branch, create local/audit only `{parent-branch}--agents-fix` with `git branch`, then create its agent
-worktree and squash it back
-to the normal parent after all gates. This workflow never pushes, creates a pull request, or merges into `main` or
-`master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
+Invoke `create-agent-worktree` with workflow identifier `fix`. It owns normal-branch selection, local/audit only branch
+allocation, collision handling, and agent worktree creation. This workflow never pushes, creates a pull request, or
+merges into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
 
 For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
 normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
 
+
 ### 0. Branch setup
 
-Before reading the existing project artifacts or changing code, record the parent worktree path,
-`{parent-branch}`, and immutable `{parent-base}` SHA.
-
-1. If the parent is `main` or `master`, obtain `{TASK-ID}`, derive `{type}` and `{slug}`, then create the normal
-   parent branch:
-   ```shell
-   git branch {type}/{TASK-ID}--{slug} {parent-base}
-   ```
-   Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
-2. Otherwise, create the temporary agent branch from the existing parent:
-   ```shell
-   git branch {parent-branch}--agents-fix {parent-base}
-   ```
-   Set `{agent-branch}` to `{parent-branch}--agents-fix`.
-3. Immediately after `git branch`, create the matching agent worktree:
-   ```shell
-   git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
-   ```
-
-Never use `git switch` in the human worktree. Extract the Jira ID from the parent branch name using the same rules as
+Before reading the existing project artifacts or changing code, invoke `create-agent-worktree` with the parent
+worktree, `{parent-branch}`, immutable `{parent-base}` SHA, workflow identifier `fix`, and normal-branch naming data.
+Extract the Jira ID from the parent branch name using the same rules as
 `run-feature`. Continue directly to stage 1 (plan) and its approval gate. Do not stop before that gate.
+
 
 ### Commits after each approved stage
 
@@ -150,10 +128,11 @@ Stage-specific commit types:
 - **After fix plan approved**: `docs(<jira-id>): add fix-{N} plan for {project-name}`
 - **After fix execution approved**: `fix(<jira-id>): apply fix-{N} for {project-name}`
 
+
 ### Final squash onto parent branch
 
-After the human approves the fix execution and the CHANGELOG is updated, squash all new
-`--agents` commits (those not already on the parent branch) onto the parent branch:
+After the human approves the fix execution and the CHANGELOG is updated, squash all new audit commits onto the parent
+branch:
 
 1. Propose a squash commit message to the human. **Wait for explicit approval.**
 2. Once approved:
@@ -161,7 +140,7 @@ After the human approves the fix execution and the CHANGELOG is updated, squash 
     git -C {parent-worktree} merge --squash {agent-branch}
     git -C {parent-worktree} commit -m "<approved message>"
    ```
-3. Do NOT delete the `--agents` branch.
+3. Invoke `cleanup-agent-worktree` only after successful integration; it preserves the audit branch.
 4. Do NOT push the parent branch — that is the human's decision.
 
 

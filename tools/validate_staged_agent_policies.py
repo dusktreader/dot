@@ -44,9 +44,6 @@ _PERSONAL_MODELS = {
 }
 _LIFECYCLE_REQUIREMENTS = {
     ".agents/skills/run-feature/SKILL.md": (
-        "parent worktree",
-        "parent branch",
-        "parent base",
         "agent worktree",
         "agent branch",
         "before any artifact",
@@ -55,9 +52,6 @@ _LIFECYCLE_REQUIREMENTS = {
         "locally indefinitely",
     ),
     ".agents/skills/run-task/SKILL.md": (
-        "parent worktree",
-        "parent branch",
-        "parent base",
         "agent worktree",
         "agent branch",
         "before any artifact",
@@ -72,9 +66,6 @@ _LIFECYCLE_REQUIREMENTS = {
         "only one artifact",
     ),
     ".agents/skills/run-bug-fix/SKILL.md": (
-        "parent worktree",
-        "parent branch",
-        "parent base",
         "agent worktree",
         "agent branch",
         "before investigation",
@@ -86,9 +77,6 @@ _LIFECYCLE_REQUIREMENTS = {
         "locally indefinitely",
     ),
     ".agents/skills/run-fix/SKILL.md": (
-        "parent worktree",
-        "parent branch",
-        "parent base",
         "agent worktree",
         "agent branch",
         "before reading or writing fix artifacts",
@@ -99,9 +87,6 @@ _LIFECYCLE_REQUIREMENTS = {
         "locally indefinitely",
     ),
     ".agents/skills/run-hotfix/SKILL.md": (
-        "parent worktree",
-        "parent branch",
-        "parent base",
         "agent worktree",
         "agent branch",
         "before investigation",
@@ -113,9 +98,6 @@ _LIFECYCLE_REQUIREMENTS = {
         "locally indefinitely",
     ),
     ".agents/skills/review-pr/SKILL.md": (
-        "parent worktree",
-        "parent branch",
-        "parent-base",
         "agent worktree",
         "agent branch",
         "stale-parent",
@@ -139,14 +121,42 @@ _BRANCH_WORKFLOWS = (
     ".agents/skills/run-hotfix/SKILL.md",
 )
 _TEMPORARY_BRANCH_WORKFLOWS = (*_BRANCH_WORKFLOWS, ".agents/skills/review-pr/SKILL.md")
+_SHARED_WORKTREE_SKILLS = (
+    ".agents/skills/create-agent-worktree/SKILL.md",
+    ".agents/skills/cleanup-agent-worktree/SKILL.md",
+)
+_SHARED_SKILL_CONTRACTS = {
+    ".agents/skills/create-agent-worktree/SKILL.md": (
+        "parent worktree",
+        "parent branch",
+        "immutable parent base",
+        "workflow identifier",
+        "git branch",
+        "git worktree add",
+        "<repo-root>/.worktrees/<agent-branch>",
+        "Never use `git switch`",
+        "zero-padded suffix",
+    ),
+    ".agents/skills/cleanup-agent-worktree/SKILL.md": (
+        "git worktree remove",
+        "git worktree list",
+        "git branch --list",
+        "creation result",
+        "no temporary audit branch was created",
+        "Audit branch deletion is forbidden",
+        "Declined integration",
+        "abandoned work",
+    ),
+}
+_DUPLICATE_WORKTREE_PLUMBING = re.compile(
+    r"\bgit (?:branch\s+(?!and\b|--list\b)|worktree (?:add|remove)\b)|"
+    r"--agents-(?:feature|task|bug-fix|fix|hotfix|review)(?:-\d+)?|"
+    r"(?:allocate|select)\s+(?:an?\s+)?(?:audit|branch)|"
+    r"(?:allocate|select)\s+(?:an?\s+)?(?:numbered|zero-padded|suffix)",
+    re.IGNORECASE,
+)
 _BRANCH_CONTRACT = (
-    "<repo-root>/.worktrees/<agent-branch>",
-    "Never use `git switch` in the human worktree.",
-    "Starting from `main` or `master`",
-    "git branch",
-    "Starting from an existing normal feature/task branch",
     "local/audit only",
-    "There is no `--agents` branch in this mode",
     "tell the human to invoke `run-pr`",
     "never pushes, creates a pull request, or merges into `main` or `master`",
     "stop and obtain explicit human approval before integration",
@@ -154,13 +164,6 @@ _BRANCH_CONTRACT = (
     "git merge --ff-only",
     "Never squash directly to main.",
 )
-_BRANCH_SETUP_CONTRACTS = {
-    ".agents/skills/run-feature/SKILL.md": ("{parent-branch}--agents-feature", "stage 1 (design)"),
-    ".agents/skills/run-task/SKILL.md": ("{parent-branch}--agents-task", "stage 1 (plan)"),
-    ".agents/skills/run-bug-fix/SKILL.md": ("{parent-branch}--agents-bug-fix", "stage 1 (investigate)"),
-    ".agents/skills/run-fix/SKILL.md": ("{parent-branch}--agents-fix", "stage 1 (plan)"),
-    ".agents/skills/run-hotfix/SKILL.md": ("{parent-branch}--agents-hotfix-{N}", "stage 1 (investigate)"),
-}
 _ORDERED_MAIN_INTEGRATION = re.compile(
     r"stop and obtain explicit human approval before integration.{0,500}"
     r"after approval rebase the\s+normal branch onto current main.{0,500}"
@@ -285,6 +288,15 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         content = policy_text.get(Path(path_name), "")
         if "principal's Model selection policy" not in content:
             failures.append(f"{path_name} does not require principal model selection for dispatch")
+    for path_name in _SHARED_WORKTREE_SKILLS:
+        path = Path(path_name)
+        if path not in policy_text:
+            failures.append(f"missing shared worktree skill: {path_name}")
+            continue
+        normalized_content = re.sub(r"\s+", " ", policy_text[path]).lower()
+        for requirement in _SHARED_SKILL_CONTRACTS[path_name]:
+            if requirement.lower() not in normalized_content:
+                failures.append(f"{path_name} missing shared worktree contract: {requirement}")
     for path_name, requirements in _LIFECYCLE_REQUIREMENTS.items():
         content = policy_text.get(Path(path_name), "")
         if not content:
@@ -365,6 +377,11 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
                 failures.append(f"{path_name} missing retained temporary branch policy: {requirement}")
         if re.search(r"git branch -[dD]\s+.*--agents", content, re.IGNORECASE):
             failures.append(f"{path_name} includes automatic temporary branch deletion")
+        if "create-agent-worktree" not in content or "cleanup-agent-worktree" not in content:
+            failures.append(f"{path_name} missing shared worktree reference")
+        shared_references_removed = re.sub(r"`?(?:create|cleanup)-agent-worktree`?", "", content)
+        if _DUPLICATE_WORKTREE_PLUMBING.search(shared_references_removed):
+            failures.append(f"{path_name} includes duplicate worktree plumbing")
     for path_name in _BRANCH_WORKFLOWS:
         content = policy_text.get(Path(path_name), "")
         normalized_content = re.sub(r"\s+", " ", content).lower()
@@ -375,31 +392,6 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
             failures.append(f"{path_name} permits git switch outside its human-worktree prohibition")
         if re.search(r"\bgit push\b|\bgh pr (?:create|edit)\b", content, re.IGNORECASE):
             failures.append(f"{path_name} includes publication mechanics")
-        temporary_branch, approval_workflow = _BRANCH_SETUP_CONTRACTS[path_name]
-        required_setup_phrases = (
-            "Record the parent worktree path",
-            "{parent-base}",
-            "If the parent is `main` or `master`",
-            "git branch {type}/{TASK-ID}--{slug} {parent-base}",
-            f"git branch {temporary_branch} {{parent-base}}",
-            "Immediately after `git branch`, create the matching agent worktree",
-            "git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}",
-            f"Continue directly to {approval_workflow}",
-            "Do not stop before that gate.",
-        )
-        for phrase in required_setup_phrases:
-            if phrase.lower() not in normalized_content:
-                failures.append(f"{path_name} missing ordered setup control: {phrase}")
-        setup_sequence = re.compile(
-            r"git branch \{(?:type/\{TASK-ID\}--\{slug\}|parent-branch\}--agents-.+?) \{parent-base\}"
-            r".{0,900}Immediately after `git branch`, create the matching agent worktree:.{0,300}"
-            r"git worktree add <repo-root>/\.worktrees/<agent-branch> \{agent-branch\}",
-            re.IGNORECASE | re.DOTALL,
-        )
-        if not setup_sequence.search(content):
-            failures.append(f"{path_name} does not create each branch before its matching worktree")
-        if re.search(r"\*\*STOP\b.{0,300}Immediately after `git branch`", content, re.IGNORECASE | re.DOTALL):
-            failures.append(f"{path_name} includes a pre-gate stop in branch setup")
         if not _ORDERED_MAIN_INTEGRATION.search(content):
             failures.append(f"{path_name} lacks ordered approval, rebase, and fast-forward main integration")
     run_pr = policy_text.get(Path(".agents/skills/run-pr/SKILL.md"), "")
@@ -423,12 +415,7 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         failures.append("review-pr includes a push command")
     if "direct the user to run-pr" not in review_pr.lower():
         failures.append("review-pr does not direct publication to run-pr")
-    review_setup = (
-        "git branch {parent-branch}--agents-review-{N} {parent-base}",
-        "git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}",
-        "Never use `git switch` in the human worktree.",
-        "Perform all comment triage artifacts, fixes, commits, and QA in `{agent-worktree}`",
-    )
+    review_setup = ("Perform all comment triage artifacts, fixes, commits, and QA in `{agent-worktree}`",)
     for requirement in review_setup:
         if requirement.lower() not in re.sub(r"\s+", " ", review_pr).lower():
             failures.append(f"review-pr missing worktree setup control: {requirement}")

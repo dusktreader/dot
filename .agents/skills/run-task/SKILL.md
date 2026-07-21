@@ -1,12 +1,3 @@
----
-name: run-task
-description: >-
-  Use for any well-scoped minor change where the human knows what they want and no design document is needed — small
-  features, localized refactors, config changes, test additions, formatting fixes, or doc updates. Reach for this before
-  run-feature whenever all affected files can be listed up front.
----
-
-
 # Run Task Skill
 
 Coordinate a bounded task with a human plan gate, focused execution, one final QA pass,
@@ -80,13 +71,12 @@ All artifacts for this task are stored there.
 
 Make all workflow commits in the agent worktree on `{agent-branch}`. The agent never switches the human's worktree.
 
+
 ### Branch and integration contract
 
-All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
-Starting from `main` or `master`, create normal `{type}/{TASK-ID}--{slug}` with `git branch` and create the agent
-worktree directly on that normal branch. There is no `--agents` branch in this mode. Starting from an existing normal
-feature/task branch, create local/audit only `{parent-branch}--agents-task` in its agent worktree and squash it back to
-the normal parent after all gates. This workflow never pushes, creates a pull request, or merges into `main` or `master`.
+Invoke `create-agent-worktree` with workflow identifier `task`. It owns normal-branch selection, local/audit only
+branch allocation, collision handling, and agent worktree creation. This workflow never pushes, creates a pull request,
+or merges into `main` or `master`.
 Once the normal branch is ready, tell the human to invoke `run-pr`.
 
 For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
@@ -99,9 +89,9 @@ git -C {parent-worktree} merge --squash {agent-branch}
 git commit -m "<message>"
 ```
 
-The `{agent-branch}` branch is **local only**. Do not push it to origin. Retain every temporary
-`--agents-*` branch locally indefinitely for audit and recovery; never delete it automatically.
-Only explicit human cleanup may delete it. Remove only the agent worktree after a successful squash.
+The audit branch is **local only**. Do not push it to origin. Retain it locally indefinitely for audit and recovery;
+never delete it automatically. Only explicit human cleanup may delete it. After successful squash, invoke
+`cleanup-agent-worktree` to remove only the agent worktree.
 
 Do NOT push the parent branch and do NOT create a PR — that is the human's decision.
 
@@ -129,29 +119,13 @@ Before creating the task plan or changing code, inspect the current parent workt
 - Otherwise, use the current parent branch as `{parent-branch}`. Extract `{JIRA-ID}` from it using `[A-Z]+-[0-9]+`; use
   `NO-TICKET` when present; otherwise omit the ticket segment from artifact paths and commit messages.
 
-Record the parent worktree path, `{parent-branch}`, and immutable parent base `{parent-base}` SHA.
-Create `{agent-branch}` and a distinct `{agent-worktree}` from that state before any artifact is
-created. Keep the human in the parent worktree. Create
+Invoke `create-agent-worktree` before any artifact with workflow identifier `task`, the parent worktree,
+`{parent-branch}`, immutable parent base `{parent-base}`, and normal-branch naming data if needed. Keep the human in
+the parent worktree. Create
 every task artifact, journal, and code change in the agent worktree. Report the agent worktree path, agent branch,
 parent branch, and recorded base at every later human gate.
 
-Use the ordered setup below. Never use `git switch` in the human worktree. Continue directly to stage 1 (plan) and its
-approval gate. Do not stop before that gate.
-
-1. If the parent is `main` or `master`, create the normal parent branch:
-   ```shell
-   git branch {type}/{TASK-ID}--{slug} {parent-base}
-   ```
-   Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
-2. Otherwise, create the temporary agent branch from the existing parent:
-   ```shell
-   git branch {parent-branch}--agents-task {parent-base}
-   ```
-   Set `{agent-branch}` to `{parent-branch}--agents-task`.
-3. Immediately after `git branch`, create the matching agent worktree:
-   ```shell
-   git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
-   ```
+Continue directly to stage 1 (plan) and its approval gate. Do not stop before that gate.
 
 
 ### 1. Plan
@@ -261,9 +235,10 @@ Never silently rebase, merge, discard, overwrite, or alter human work. If regene
 approved, explicitly discard the agent worktree and audit branch, record the decision, and
 restart from the updated parent.
 
-After successful exclusive squash integration, remove only the agent worktree and retain the
-temporary `--agents-*` branch locally indefinitely for audit and recovery. Never delete it
-preserve both until the human explicitly removes them.
+After successful exclusive squash integration, invoke `cleanup-agent-worktree` with the creation result and agent
+worktree. It must remove only the agent worktree and retain the audit branch locally indefinitely only when the
+creation result says one exists; otherwise it reports that no temporary audit branch was created. Never delete it
+automatically; preserve both until the human explicitly removes them.
 
 Successful cleanup preserves the local agent branch.
 
@@ -272,7 +247,7 @@ Perform the squash onto the parent branch (see Git workflow above).
 Report completion to the human with:
 - The project directory path
 - The squash commit SHA on the parent branch
-- The `--agents-task` branch name (preserved for history)
+- The audit branch name (preserved for history)
 - Any Significant findings deferred as follow-up work
 
 Once the normal branch is ready, tell the human to invoke `run-pr`.

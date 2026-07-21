@@ -1,8 +1,3 @@
----
-name: run-bug-fix
-description: Orchestrates the full bug fix workflow: investigate, plan, execute, and review.
----
-
 # Run Bug Fix Skill
 
 Coordinate the full bug fix workflow: investigation, implementation planning, execution, and review. All
@@ -55,8 +50,8 @@ text `NO-TICKET` into the path. All artifacts for this project are stored there.
 
 ## Isolated worktree lifecycle
 
-Before investigation or any bug-report artifact, record the parent worktree, parent branch, and
-immutable parent base. Create a distinct agent worktree and agent branch from that base. Keep every
+Before investigation or any bug-report artifact, invoke `create-agent-worktree` with workflow identifier `bug-fix`.
+Keep every
 bug report, implementation plan, journal, code change, QA correction, and review context in the
 agent worktree. Every later gate names the agent worktree path and agent branch.
 
@@ -74,11 +69,12 @@ squash integration into the ready-to-PR parent branch, compare the current paren
 and base with the recorded values. A stale-parent result stops the run and offers only an explicit
 human reconciliation decision. Never silently rebase, merge, discard, overwrite, or mutate human work.
 
-After successful squash, remove only the agent worktree and retain every temporary `--agents-*`
-branch locally indefinitely for audit and recovery. Never delete it automatically; only explicit
-human cleanup may delete it. If integration is declined or the run is abandoned, preserve both
-worktree and branch until the human explicitly requests cleanup. The workflow never pushes or
-creates a pull request.
+After successful squash, invoke `cleanup-agent-worktree` with the creation result and agent worktree. It must remove
+only the agent worktree and retain the audit branch locally indefinitely only when the creation result says one exists;
+otherwise it reports that no temporary audit branch was created. Never delete it automatically; only explicit human
+cleanup may delete it.
+If integration is declined or the run is abandoned, preserve both worktree and branch until the human explicitly
+requests cleanup. The workflow never pushes or creates a pull request.
 
 
 ## Git workflow
@@ -86,15 +82,12 @@ creates a pull request.
 This skill manages its own git branch and commits throughout the workflow. Follow these rules
 exactly.
 
+
 ### Branch and integration contract
 
-All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
-Starting from `main` or `master`, create normal `{type}/{TASK-ID}--{slug}` with `git branch` and create the agent
-worktree directly on that normal branch. There is no `--agents` branch in this mode. Starting from an existing normal
-feature/task branch, create local/audit only `{parent-branch}--agents-bug-fix` with `git branch`, then create its
-agent worktree and squash it
-back to the normal parent after all gates. This workflow never pushes, creates a pull request, or merges into `main` or
-`master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
+Invoke `create-agent-worktree` with workflow identifier `bug-fix`. It owns normal-branch selection, local/audit only
+branch allocation, collision handling, and agent worktree creation. This workflow never pushes, creates a pull request,
+or merges into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
 
 For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
 normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
@@ -102,32 +95,15 @@ normal branch onto current main, then use `git merge --ff-only`. Never squash di
 
 ### 0. Branch setup (before any work)
 
-Record the parent worktree path, `{parent-branch}`, and immutable `{parent-base}` SHA before creating a branch or
-worktree. Check the current branch:
-
-- If the parent is `main` or `master`: obtain `{TASK-ID}`, then create the normal parent branch:
-  ```shell
-  git branch {type}/{TASK-ID}--{slug} {parent-base}
-  ```
-  Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
-- Otherwise: create the temporary agent branch from the existing parent:
-  ```shell
-  git branch {parent-branch}--agents-bug-fix {parent-base}
-  ```
-  Set `{agent-branch}` to `{parent-branch}--agents-bug-fix`.
+Before any work, invoke `create-agent-worktree` with the parent worktree, `{parent-branch}`, immutable `{parent-base}`
+SHA, workflow identifier `bug-fix`, and normal-branch naming data when required.
 
 Extract the Jira ID from the current (parent) branch name:
 - Match the pattern `[A-Z]+-[0-9]+` (e.g. `FUS-123`) → use it as the Jira ID
 - If the branch contains `NO-TICKET` → use `NO-TICKET` as the Jira ID
 - If neither matches → no Jira ID; omit the parenthetical from commit messages
 
-Immediately after `git branch`, create the matching agent worktree:
-
-```shell
-git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
-```
-
-Never use `git switch` in the human worktree. All commits during stages 1–3 are made on the selected agent branch.
+All commits during stages 1–3 are made on the selected agent branch.
 Continue directly to stage 1 (investigate) and its root-cause approval gate. Do not stop before that gate.
 
 
@@ -156,15 +132,14 @@ Stage-specific commit types:
 
 The body bullets should summarise what the stage produced — not implementation detail.
 
-The `--agents-build` branch is **local only**. Do not push it to origin. It exists as a local
-audit trail and is preserved after the squash so the full history remains accessible on the
-machine.
+The audit branch is **local only**. Do not push it to origin. It is preserved after the squash so the full history
+remains accessible on the machine.
 
 
 ### Squash onto the feature branch
 
-After the execution is approved by both the agent reviewer and the human, squash all
-`--agents-build` commits onto the parent feature branch:
+After the execution is approved by both the agent reviewer and the human, squash the audit branch onto the parent
+feature branch:
 
 1. Propose a squash commit message to the human following the same format. **Wait for explicit
    approval before proceeding.**
@@ -173,12 +148,12 @@ After the execution is approved by both the agent reviewer and the human, squash
     git -C {parent-worktree} merge --squash {agent-branch}
     git -C {parent-worktree} commit -m "<approved message>"
    ```
-3. Do NOT delete the `--agents-build` branch — it is preserved locally as the full commit history.
+3. Invoke `cleanup-agent-worktree` only after the successful squash. It preserves the audit branch locally as the full
+   commit history.
 4. Do NOT push the parent branch — that is the human's decision.
 
 
 ## Process
-
 
 ### 1. Investigate
 
@@ -277,7 +252,7 @@ onto the feature branch (see Git workflow — "Squash onto the feature branch").
 Report completion to the human with:
 - The project directory path
 - The final status of each artifact
-- The `--agents-build` branch name (preserved for history)
+- The audit branch name (preserved for history)
 - The squash commit SHA on the parent branch
 
 Once the normal branch is ready, tell the human to invoke `run-pr`.

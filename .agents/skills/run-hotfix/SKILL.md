@@ -1,8 +1,3 @@
----
-name: run-hotfix
-description: Streamlined workflow for urgent fixes. Minimal Stop points, no plan review, lightweight code review.
----
-
 # Run Hotfix Skill
 
 Coordinate an urgent fix with minimal overhead: brief investigation, principal-authored plan, direct
@@ -56,10 +51,9 @@ not write the literal text `NO-TICKET` into the path. All artifacts for this pro
 
 ## Isolated worktree lifecycle
 
-Before investigation, the principal-authored minimal plan, or code changes, record the parent
-worktree, parent branch, and immutable parent base. Create a distinct agent worktree and agent branch
-from that base. Investigation notes, the minimal plan, code, QA-fix changes, and lightweight review
-context stay there, and every existing hotfix gate identifies the agent worktree path and branch.
+Before investigation, the principal-authored minimal plan, or code changes, invoke `create-agent-worktree` with
+workflow identifier `hotfix`. Investigation notes, the minimal plan, code, QA-fix changes, and lightweight review
+context stay there, and every existing hotfix gate identifies the agent worktree path and agent branch.
 
 Select a model-specific variant before every applicable handoff: use
 `engineer-investigator--{work|personal}-{suffix}` for investigation,
@@ -74,27 +68,20 @@ one lightweight review, and the existing approval thresholds. Do not add task-st
 independent review, or any additional human approval gate solely because isolation was added. Immediately before
 exclusive squash integration, compare the recorded parent worktree, branch, and base with current
 parent state. A stale parent stops the run and requires an explicit human reconciliation decision.
-Never silently rebase, merge, discard, overwrite, or mutate human work. After a successful squash,
-remove only the agent worktree and retain every temporary `--agents-*` branch locally indefinitely for audit and
-recovery. Never delete it automatically; only explicit human cleanup may delete it. Declined or
-abandoned runs preserve both until the human explicitly requests cleanup. Never push or create a pull
-request.
+Never silently rebase, merge, discard, overwrite, or mutate human work. After a successful squash, invoke
+`cleanup-agent-worktree` with the creation result and agent worktree. It must remove only the agent worktree and retain
+the audit branch locally indefinitely only when the creation result says one exists; otherwise it reports that no
+temporary audit branch was created. Never delete it automatically; only explicit human cleanup may delete it. Declined
+or abandoned runs preserve both until the human explicitly requests cleanup. Never push or create a pull request.
 
 
 ## Git workflow
 
-Determine the next hotfix number N by counting existing `--agents-hotfix-{N}` branches on the
-parent branch.
-
 ### Branch and integration contract
 
-All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
-Starting from `main` or `master`, create normal `{type}/{TASK-ID}--{slug}` with `git branch` and create the agent
-worktree directly on that normal branch. There is no `--agents` branch in this mode. Starting from an existing normal
-feature/task branch, create local/audit only `{parent-branch}--agents-hotfix-{N}` with `git branch`, then create its
-agent worktree and squash it
-back to the normal parent after all gates. This workflow never pushes, creates a pull request, or merges into `main` or
-`master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
+Invoke `create-agent-worktree` with workflow identifier `hotfix`. It owns normal-branch selection, local/audit only
+branch allocation, collision handling, and agent worktree creation. This workflow never pushes, creates a pull request,
+or merges into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
 
 For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
 normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
@@ -104,25 +91,9 @@ Extract the Jira ID from the parent branch name:
 - If the branch contains `NO-TICKET`, or neither matches → no Jira ID; omit the `{JIRA-ID}` segment
   from the project directory name (see Project directory above)
 
-Record the parent worktree path, `{parent-branch}`, and immutable `{parent-base}` SHA before creating a branch or
-worktree.
-
-1. If the parent is `main` or `master`, create the normal parent branch:
-   ```shell
-   git branch {type}/{TASK-ID}--{slug} {parent-base}
-   ```
-   Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
-2. Otherwise, create the temporary agent branch from the existing parent:
-   ```shell
-   git branch {parent-branch}--agents-hotfix-{N} {parent-base}
-   ```
-   Set `{agent-branch}` to `{parent-branch}--agents-hotfix-{N}`.
-3. Immediately after `git branch`, create the matching agent worktree:
-   ```shell
-   git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
-   ```
-
-Never use `git switch` in the human worktree. All commits are made on `{agent-branch}`. Continue directly to stage 1
+Before investigation, invoke `create-agent-worktree` with the parent worktree, `{parent-branch}`, immutable
+`{parent-base}` SHA, workflow identifier `hotfix`, and normal-branch naming data. All commits are made on
+`{agent-branch}`. Continue directly to stage 1
 (investigate), then proceed directly through the principal-authored plan and execution to stage 4 (review) and its
 existing lightweight review approval gate. Do not stop before that gate.
 
@@ -130,14 +101,14 @@ After the review is approved, squash onto the parent branch:
 
 Run the squash from the parent worktree with `git -C {parent-worktree} merge --squash {agent-branch}`, then commit.
 
-The `--agents-hotfix-{N}` branch is **local only**. Do not push it to origin. It exists as a
-local audit trail and is preserved after the squash.
+The audit branch is **local only**. Do not push it to origin. It is preserved after the squash.
+
+After successful squash, invoke `cleanup-agent-worktree` with the creation result and agent worktree.
 
 Do NOT push the parent branch — that is the human's decision.
 
 
 ## Process
-
 
 ### 1. Investigate
 

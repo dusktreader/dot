@@ -16,6 +16,8 @@ def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
     config_files = [path.relative_to(staging) for path in staging_config.glob("*.md")]
     paths_to_copy = [
         Path(".agents/agents/principal.md"),
+        Path(".agents/skills/create-agent-worktree/SKILL.md"),
+        Path(".agents/skills/cleanup-agent-worktree/SKILL.md"),
         Path(".agents/skills/run-feature/SKILL.md"),
         Path(".agents/skills/run-task/SKILL.md"),
         Path(".agents/skills/run-hack/SKILL.md"),
@@ -48,6 +50,81 @@ def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
 def test_validator_accepts_complete_fixture(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
     assert validate(root, manifest) == []
+
+
+def test_validator_requires_shared_worktree_skills(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    (root / ".agents/skills/create-agent-worktree/SKILL.md").unlink()
+    assert any("missing shared worktree skill" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        ".agents/skills/run-feature/SKILL.md",
+        ".agents/skills/run-task/SKILL.md",
+        ".agents/skills/run-bug-fix/SKILL.md",
+        ".agents/skills/run-fix/SKILL.md",
+        ".agents/skills/run-hotfix/SKILL.md",
+        ".agents/skills/review-pr/SKILL.md",
+    ],
+)
+def test_validator_requires_shared_worktree_references(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text().replace("create-agent-worktree", "missing-worktree-skill"))
+    assert any(relative in failure and "shared worktree reference" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    ("relative", "plumbing"),
+    [
+        (".agents/skills/run-feature/SKILL.md", "git branch feature/example"),
+        (".agents/skills/run-task/SKILL.md", "git worktree add /tmp/agent branch"),
+        (".agents/skills/run-bug-fix/SKILL.md", "feature/example--agents-bug-fix"),
+        (".agents/skills/run-fix/SKILL.md", "allocate an audit branch"),
+        (".agents/skills/run-hotfix/SKILL.md", "select a zero-padded suffix"),
+        (".agents/skills/review-pr/SKILL.md", "git worktree remove /tmp/agent"),
+    ],
+)
+def test_validator_rejects_duplicate_worktree_plumbing(tmp_path: Path, relative: str, plumbing: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text() + f"\n{plumbing}\n")
+    assert any(relative in failure and "duplicate worktree plumbing" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        ".agents/skills/run-feature/SKILL.md",
+        ".agents/skills/run-task/SKILL.md",
+        ".agents/skills/run-bug-fix/SKILL.md",
+        ".agents/skills/run-fix/SKILL.md",
+        ".agents/skills/run-hotfix/SKILL.md",
+        ".agents/skills/review-pr/SKILL.md",
+    ],
+)
+def test_validator_rejects_wrong_shared_worktree_skill(tmp_path: Path, relative: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text().replace("cleanup-agent-worktree", "create-agent-worktree"))
+    assert any(relative in failure and "shared worktree reference" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    ("relative", "needle"),
+    [
+        (".agents/skills/create-agent-worktree/SKILL.md", "zero-padded suffix"),
+        (".agents/skills/cleanup-agent-worktree/SKILL.md", "git worktree list"),
+        (".agents/skills/cleanup-agent-worktree/SKILL.md", "no temporary audit branch was created"),
+    ],
+)
+def test_validator_requires_shared_worktree_contract(tmp_path: Path, relative: str, needle: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(path.read_text().replace(needle, "removed contract"))
+    assert any("shared worktree contract" in failure for failure in validate(root, manifest))
 
 
 def test_validator_requires_all_work_claude_variants(tmp_path: Path) -> None:
@@ -230,37 +307,6 @@ def test_validator_rejects_git_switch_in_branch_setup(tmp_path: Path) -> None:
     assert any("permits git switch" in failure for failure in validate(root, manifest))
 
 
-@pytest.mark.parametrize(
-    "relative",
-    [
-        ".agents/skills/run-feature/SKILL.md",
-        ".agents/skills/run-task/SKILL.md",
-        ".agents/skills/run-bug-fix/SKILL.md",
-        ".agents/skills/run-fix/SKILL.md",
-        ".agents/skills/run-hotfix/SKILL.md",
-    ],
-)
-def test_validator_requires_branch_before_matching_worktree(tmp_path: Path, relative: str) -> None:
-    root, manifest = write_fixture(tmp_path)
-    path = root / relative
-    path.write_text(path.read_text().replace("Immediately after `git branch`", "After setup", 1))
-    assert any("ordered setup control" in failure for failure in validate(root, manifest))
-
-
-@pytest.mark.parametrize("relative", [
-    ".agents/skills/run-feature/SKILL.md",
-    ".agents/skills/run-task/SKILL.md",
-    ".agents/skills/run-bug-fix/SKILL.md",
-    ".agents/skills/run-fix/SKILL.md",
-    ".agents/skills/run-hotfix/SKILL.md",
-])
-def test_validator_rejects_pre_gate_setup_stop(tmp_path: Path, relative: str) -> None:
-    root, manifest = write_fixture(tmp_path)
-    path = root / relative
-    path.write_text(path.read_text().replace("Immediately after `git branch`", "**STOP**\n\nImmediately after `git branch`", 1))
-    assert any("pre-gate stop" in failure for failure in validate(root, manifest))
-
-
 @pytest.mark.parametrize("relative", [
     ".agents/skills/run-feature/SKILL.md",
     ".agents/skills/run-task/SKILL.md",
@@ -288,13 +334,6 @@ def test_validator_rejects_review_pr_push_command(tmp_path: Path) -> None:
     path = root / ".agents/skills/review-pr/SKILL.md"
     path.write_text(path.read_text() + "\ngit push origin feature\n")
     assert "review-pr includes a push command" in validate(root, manifest)
-
-
-def test_validator_requires_review_pr_worktree_setup(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    path = root / ".agents/skills/review-pr/SKILL.md"
-    path.write_text(path.read_text().replace("git worktree add", "worktree add", 1))
-    assert any("review-pr missing worktree setup control" in failure for failure in validate(root, manifest))
 
 
 @pytest.mark.parametrize(

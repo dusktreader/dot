@@ -1,8 +1,3 @@
----
-name: run-feature
-description: Orchestrates the full implementation workflow from feature description to reviewed code.
----
-
 # Run Feature Skill
 
 Coordinate a full feature workflow in an isolated agent worktree. The human's current worktree
@@ -22,7 +17,7 @@ Do not use when:
 - Addressing PR review comments → use `review-pr` instead
 - The work is exploratory with no clear output → use `run-architecture-audit` instead
 
-This is the only skill that manages the full feature lifecycle from worktree creation through
+This is the only skill that manages the full feature lifecycle from shared worktree creation through
 exclusive squash integration. It never pushes or creates a PR. Post-PR work uses `review-pr` and
 `run-hotfix`.
 
@@ -40,9 +35,9 @@ If not provided, ask before proceeding. Do not guess.
 
 Before creating any artifact, journal, plan, or code, and before any artifact is emitted:
 
-1. Record the human parent worktree path, parent branch, and immutable parent base SHA.
-2. Create an agent worktree and local agent branch from that recorded parent state. The agent
-   worktree must be a distinct path, and the human stays in the parent worktree.
+1. Invoke `create-agent-worktree` with workflow identifier `feature` before any artifact.
+2. Record its resolved agent worktree and agent branch. The agent worktree must be distinct, and the human stays in
+   the parent worktree.
 3. Put every project artifact and code change in the agent worktree. Record the agent worktree
    path and agent branch in every later gate and handoff.
 
@@ -79,18 +74,12 @@ the path. All artifacts for this project are stored there.
 This skill manages its own git branch and commits throughout the workflow. Follow these rules
 exactly.
 
+
 ### Branch and integration contract
 
-All worktrees must be exactly `<repo-root>/.worktrees/<agent-branch>`. Never use `git switch` in the human worktree.
-Starting from `main` or `master`, obtain `{TASK-ID}`, create normal `{type}/{TASK-ID}--{slug}` with `git branch`, and
-create the agent worktree directly on that normal branch. There is no `--agents` branch in this mode and the human stays
-on main or master. Starting from an existing normal feature/task branch, create local/audit only
-`{parent-branch}--agents-feature` with `git branch`, then create its agent worktree and squash it back to the normal
-parent after all gates.
-
-Immediately after creating either branch with `git branch`, use `git worktree add
-<repo-root>/.worktrees/<agent-branch> {agent-branch}`. This workflow never pushes, creates a pull request, or merges
-into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
+Invoke `create-agent-worktree` with workflow identifier `feature`. It owns branch selection, collision handling,
+local/audit only branch allocation, and worktree creation. This workflow never pushes, creates a pull request, or
+merges into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
 
 For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
 normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
@@ -123,9 +112,8 @@ Stage-specific commit types:
 
 The body bullets should summarise what the stage produced — not implementation detail.
 
-The `--agents-build` branch is **local only**. Do not push it to origin. It exists as a local
-audit trail and is preserved after the squash so the full history remains accessible on the
-machine.
+The audit branch is **local only**. Do not push it to origin. It is preserved after the squash so the full history
+remains accessible on the machine.
 
 
 ### Exclusive squash integration
@@ -141,42 +129,20 @@ ready-to-PR parent branch:
 3. Propose a squash commit message to the human and wait for explicit approval.
 4. Once approved:
    Run the squash from the parent worktree with `git -C {parent-worktree} merge --squash {agent-branch}`, then commit.
-5. Remove only the agent worktree after a successful squash. Retain every temporary `--agents-*`
-   branch locally indefinitely for audit and recovery; never delete it automatically. Only explicit
-   human cleanup may delete it. If integration is declined or the run is abandoned, preserve both
-   worktree and branch until the human explicitly removes them.
+5. After successful integration, invoke `cleanup-agent-worktree` with the creation result and agent worktree. It must
+   remove only the agent worktree and retain the audit branch locally indefinitely only when the creation result says
+   one exists; otherwise it reports that no temporary audit branch was created. Never delete it automatically; only
+   explicit human cleanup may delete it. If integration is declined or the run is abandoned, preserve both until the
+   human explicitly removes them.
 
 
 ## Process
 
-
 ### 0. Branch setup
 
-Record the parent worktree path, `{parent-branch}`, and immutable `{parent-base}` SHA before creating a branch or
-worktree. Check the current branch:
-
-- If the parent is `main` or `master`: ask the human for an associated work ticket ID. Wait for their
-  response — do not proceed without it. If they provide a ticket ID (e.g. `FUS-123`), use it
-  as `{TASK-ID}`. If they confirm there is no ticket, use `NO-TICKET` as `{TASK-ID}`.
-
-  Derive `{type}` from the nature of the work (same conventional-commit types used in commit
-  messages: `feat`, `fix`, `refactor`, `docs`, `ci`, etc.).
-
-  Derive `{slug}` from the feature description: kebab-case, lowercase, five words or fewer.
-
-   Create the normal parent branch:
-   ```shell
-   git branch {type}/{TASK-ID}--{slug} {parent-base}
-   ```
-
-   Set `{agent-branch}` to `{type}/{TASK-ID}--{slug}`.
-
-- Otherwise: create the temporary agent branch:
-  ```shell
-  git branch {parent-branch}--agents-feature {parent-base}
-  ```
-
-  Set `{agent-branch}` to `{parent-branch}--agents-feature`.
+Before any artifact, invoke `create-agent-worktree` with the recorded parent worktree, `{parent-branch}`, immutable
+`{parent-base}`, workflow identifier `feature`, and normal-branch naming data. If the parent is `main` or `master`,
+ask the human for `{TASK-ID}`, derive `{type}` and `{slug}`, and provide them to the shared skill.
 
 Extract the Jira ID from the current parent branch name:
 
@@ -184,13 +150,7 @@ Extract the Jira ID from the current parent branch name:
 - If the branch contains `NO-TICKET` → use `NO-TICKET` as the Jira ID
 - If neither matches → no Jira ID; omit the parenthetical from commit messages
 
-Immediately after `git branch`, create the matching agent worktree:
-
-```shell
-git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
-```
-
-Never use `git switch` in the human worktree. All commits during stages 1–4 are made on the selected agent branch.
+All commits during stages 1–4 are made on the selected agent branch.
 Continue directly to stage 1 (design) and its approval gate. Do not stop before that gate.
 
 
@@ -200,11 +160,11 @@ Before each dispatch, the principal selects the model using the principal's Mode
 corresponding model-specific specialist variant, and records and dispatches that exact variant agent name. Do not
 dispatch a generic unvaried specialist role name. Apply this requirement to every dispatch in this workflow.
 
-Dispatch the selected `architect-planner--{work|personal}-{suffix}` variant with the `create-design-plan` skill, the feature
-description, and the project directory.
+Dispatch the selected `architect-planner--{work|personal}-{suffix}` variant with the `create-design-plan` skill, the
+feature description, and the project directory.
 
-Then dispatch the selected `architect-reviewer--{work|personal}-{suffix}` variant with the `review-design-plan` skill, the design
-plan path, and iteration `01`.
+Then dispatch the selected `architect-reviewer--{work|personal}-{suffix}` variant with the `review-design-plan` skill,
+the design plan path, and iteration `01`.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
@@ -240,7 +200,7 @@ of objection as approval.
 
 Your final output in this turn must include this exact block, filled in:
 
-```
+```text
 AWAITING APPROVAL: design plan
 Path: {path to design-plan.md}
 Unlocks: stage 2 (implementation plan) — nothing else
@@ -249,7 +209,7 @@ Still requires separate approval before it can proceed: implementation plan, exe
 
 When the human responds with approval, your next turn must open with:
 
-```
+```text
 APPROVED: design plan
 NOT YET APPROVED: implementation plan, execution, manual testing
 Proceeding to: stage 2 (create implementation plan)
@@ -260,11 +220,11 @@ Once approved: commit (see Git workflow — "After design plan approved").
 
 ### 2. Plan
 
-Dispatch the selected `engineer-planner--{work|personal}-{suffix}` variant with the `create-implementation-plan` skill and the
-design plan path.
+Dispatch the selected `engineer-planner--{work|personal}-{suffix}` variant with the `create-implementation-plan` skill
+and the design plan path.
 
-Then dispatch the selected `architect-reviewer--{work|personal}-{suffix}` variant with the `review-implementation-plan` skill, the
-implementation plan path, and iteration `01`.
+Then dispatch the selected `architect-reviewer--{work|personal}-{suffix}` variant with the
+`review-implementation-plan` skill, the implementation plan path, and iteration `01`.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
@@ -286,7 +246,7 @@ of objection as approval.
 
 Your final output in this turn must include this exact block, filled in:
 
-```
+```text
 AWAITING APPROVAL: implementation plan
 Path: {path to implementation-plan.md}
 Unlocks: stage 3 (execution) — nothing else
@@ -295,7 +255,7 @@ Still requires separate approval before it can proceed: execution, manual testin
 
 When the human responds with approval, your next turn must open with:
 
-```
+```text
 APPROVED: implementation plan
 NOT YET APPROVED: execution, manual testing
 Proceeding to: stage 3 (execute)
@@ -306,8 +266,9 @@ Once approved: commit (see Git workflow — "After implementation plan approved"
 
 ### 3. Execute
 
-Dispatch the selected `engineer-executor--{work|personal}-{suffix}` variant with the `execute-implementation-plan` skill and the
-implementation plan path.
+Dispatch the selected `engineer-executor--{work|personal}-{suffix}` variant with the
+`execute-implementation-plan` skill and the implementation plan path.
+
 
 ### Final QA
 
@@ -317,8 +278,8 @@ The lightweight executor must not expand the work or make design decisions. Re-r
 changes an acceptance criterion, introduces a new code path, or changes behavior, an interface, data, security, or
 tests.
 
-Then dispatch the selected `engineer-reviewer--{work|personal}-{suffix}` variant with the `review-implementation-execution` skill,
-the journal path, scope `whole-plan`, and iteration `01`.
+Then dispatch the selected `engineer-reviewer--{work|personal}-{suffix}` variant with the
+`review-implementation-execution` skill, the journal path, scope `whole-plan`, and iteration `01`.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
@@ -339,7 +300,7 @@ explicitly approves.
 
 Your final output in this turn must include this exact block, filled in:
 
-```
+```text
 AWAITING APPROVAL: execution
 Review path: {path to execution-review--whole-plan--NN.md}
 Unlocks: stage 4 (manual testing) — nothing else
@@ -348,7 +309,7 @@ Still requires separate approval before it can proceed: manual testing
 
 When the human responds with approval, your next turn must open with:
 
-```
+```text
 APPROVED: execution
 NOT YET APPROVED: manual testing
 Proceeding to: stage 4 (manual testing)
@@ -372,7 +333,7 @@ testing.** Issues reported, silence, or questions are not approval.
 
 Your final output in this turn must include this exact block:
 
-```
+```text
 AWAITING APPROVAL: manual testing
 Branch: {agent branch name}
 Unlocks: stage 5 (squash) — nothing else
@@ -380,7 +341,7 @@ Unlocks: stage 5 (squash) — nothing else
 
 When the human responds with approval, your next turn must open with:
 
-```
+```text
 APPROVED: manual testing
 Proceeding to: stage 5 (squash)
 ```

@@ -1,8 +1,3 @@
----
-name: review-pr
-description: Works through PR review comments: triages findings, gets human input on non-trivial ones, applies fixes, and replies to each comment with the outcome.
----
-
 # Review PR Skill
 
 Work through open review comments on a pull request. Triage each comment by severity and
@@ -24,8 +19,7 @@ Do not use when:
 - The review is of a plan artifact, not code → use `review-implementation-plan` or
   `review-design-plan` instead
 
-This skill calls `review-code` internally for code quality assessment and manages its own
-`--agents-review-{N}` branch. Each round of review comments is a new cycle (N increments).
+This skill calls `review-code` internally for code quality assessment. Each round of review comments is a new cycle.
 
 
 ## Prerequisites
@@ -59,42 +53,34 @@ write the literal text `NO-TICKET` into the path. The artifact for this cycle is
 
 ## Git workflow
 
-Before fetching comments, record the parent worktree path, `{parent-branch}`, and immutable
-`{parent-base}` SHA. Derive `{agent-branch}` as `{parent-branch}--agents-review-{N}`, where N
-matches the review cycle number of the `pr-review--{N}.md` artifact. Create it from the recorded
-parent state, then immediately create its isolated agent worktree:
+Before fetching comments, invoke `create-agent-worktree` with workflow identifier `review`, the parent worktree,
+`{parent-branch}`, immutable `{parent-base}` SHA, and the review cycle as naming data. Perform all comment triage
+artifacts, fixes, commits, and QA in `{agent-worktree}` on the agent branch `{agent-branch}`.
 
-```shell
-git branch {parent-branch}--agents-review-{N} {parent-base}
-git worktree add <repo-root>/.worktrees/<agent-branch> {agent-branch}
-```
+All fix commits are made on `{agent-branch}`.
 
-Never use `git switch` in the human worktree. Perform all comment triage artifacts, fixes, commits,
-and QA in `{agent-worktree}` on the agent branch `{agent-branch}`.
-
-All fix commits are made on `{parent-branch}--agents-review-{N}`.
-
-The `--agents-review-{N}` branch is **local only**. Do not push it to origin. It exists as a
-local audit trail and is preserved after the squash.
+The audit branch is **local only**. Do not push it to origin. It is preserved after the squash.
 
 After all fixes are approved and the quality gate passes, compare the recorded parent worktree,
 branch, and base SHA with the current parent. If any differ, stop and present the stale-parent
 state to the human. Never silently rebase, merge, discard, overwrite, or alter human work. If the
-human approves regeneration, explicitly remove the agent worktree, retain the audit branch, and
+human approves regeneration, retain the agent worktree and audit branch until explicit human cleanup, and
 restart from the updated parent.
 
 After the stale-parent check and human approval of the squash message, squash locally onto the
 normal parent branch:
 
 ```shell
-git -C {parent-worktree} merge --squash {parent-branch}--agents-review-{N}
+git -C {parent-worktree} merge --squash {agent-branch}
 git -C {parent-worktree} commit -m "<review-fixes message>"
 ```
 
-After a successful squash, remove only the agent worktree. Retain the
-`--agents-review-{N}` branch locally indefinitely for audit and recovery; never delete it
-automatically. Only explicit human cleanup may delete the branch. If integration is declined or the
-run is abandoned, retain both the worktree and branch until explicit human cleanup.
+After a successful squash, invoke `cleanup-agent-worktree` with the creation result and agent worktree. It must remove
+only the agent worktree and retain the audit branch locally indefinitely only when the creation result says one exists;
+otherwise it reports that no temporary audit branch was created. Never delete it automatically. Only explicit human
+cleanup may delete the branch. If integration is declined or the run is abandoned, retain both the worktree and branch
+until explicit human cleanup.
+
 
 ## Process
 
@@ -137,6 +123,7 @@ Write `pr-review--{N}.md` in the project work directory. Read
 content — every line drawn from the retro encabulator — with real content for this review cycle.
 The rendered file must contain no placeholder text when submitted.
 
+
 ### 3. Escalate non-trivial comments
 
 **STOP — end your turn here.**
@@ -159,7 +146,7 @@ Update the `pr-review--{N}.md` artifact with the human's decisions before moving
 
 For each comment with disposition `auto-fix` or human-approved fix:
 
-1. Implement the fix on the `--agents-review-{N}` branch.
+1. Implement the fix on `{agent-branch}`.
 2. Run `make qa` and confirm it passes.
 3. Commit the fix:
    ```shell
@@ -181,11 +168,11 @@ After all fixes are committed and `make qa` passes on the full branch:
    worktree after the squash succeeds (see Git workflow).
 3. For each addressed comment, reply on GitHub:
 
-   ```
-   Addressed in <short-sha>
+```text
+Addressed in <short-sha>
 
    <One or two sentences describing what was changed and why.>
-   ```
+```
 
    Use:
    ```shell
@@ -195,8 +182,8 @@ After all fixes are committed and `make qa` passes on the full branch:
 
 4. For each `won't-fix` comment, reply:
 
-   ```
-   Won't fix: <brief rationale>
+```text
+Won't fix: <brief rationale>
    ```
 
 5. Re-request review from any human reviewers who left comments (skip bots):
