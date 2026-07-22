@@ -25,6 +25,7 @@
 # miscellaneous todos
 
 * cleanup unused scripts and executables
+* make Python agent tools directly executable with `uv run --script` shebangs, inline metadata, and executable bits
 
 
 # vim todos

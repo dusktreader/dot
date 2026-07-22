@@ -8,6 +8,9 @@
 .config/opencode/node_modules/
 .config/opencode/package-lock.json
 
+# OpenCode per-project state
+.opencode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

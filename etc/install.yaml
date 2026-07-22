@@ -13,7 +13,6 @@ link_paths:
   - .config/opencode/agents
   - .config/opencode/tools
   - .config/opencode/plugins
-  - .config/opencode/package.json
   - .config/ghostty
 copy_paths:
   - path: .ssh/config.base
@@ -113,6 +112,11 @@ tools:
         . "$HOME/.nvm/nvm.sh"
         nvm install 20
         nvm use 20
+  - name: bun
+    check: "command -v bun"
+    scripts:
+      generic: |
+        curl -fsSL https://bun.sh/install | bash
   - name: angular
     check: "command -v ng"
     scripts:
@@ -188,12 +192,11 @@ tools:
       generic: |
         curl -fsSL https://opencode.ai/install | bash
   - name: opencode-npm-deps
-    check: "test -d $HOME/.config/opencode/node_modules/@opencode-ai/plugin"
-    depends_on: [node]
+    check: "test -d $DOT_HOME/.config/opencode/node_modules/@opencode-ai/plugin"
+    depends_on: [bun]
     scripts:
       generic: |
-        . "$HOME/.nvm/nvm.sh"
-        npm install --prefix "$HOME/.config/opencode"
+        bun install --prefix "$DOT_HOME/.config/opencode"
   - name: 1password-cli
     check: "command -v op"
     scripts:

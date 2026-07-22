@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "": "/Users/tucker.beck/src/dusktreader/dot/.config/opencode",
     "@opencode-ai/plugin": "1.4.10"
   }
 }

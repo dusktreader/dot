@@ -90,7 +90,6 @@ alias ebash="$EDITOR $rc"
 alias sbash="source $rc"
 
 export SRC_HOME="$HOME/src"
-export WORK_HOME="$SRC_HOME/mhe"
 export DUSK_HOME="$SRC_HOME/dusktreader"
 
 # TODO: this should have a configurable dot location based on dot-configure root
@@ -105,7 +104,6 @@ alias cnotes='cd $DUSK_HOME/jot-down'
 alias pnotes='pushd $DUSK_HOME/jot-down'
 alias enotes='$EDITOR $DUSK_HOME/jot-down'
 
-alias cdwork='cd $WORK_HOME'
 alias cdmine='cd $DUSK_HOME'
 
 alias einstall="$EDITOR $DOT_HOME/install.sh"

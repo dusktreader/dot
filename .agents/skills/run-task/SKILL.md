@@ -205,6 +205,11 @@ Address all findings:
   quality gate.
 - Log Significant findings as follow-up work; they do not block the task.
 
+Before presenting the review, use any interactive diff-review capability available in the current runtime to gather
+human feedback on the change. Incorporate clear feedback before the approval gate. If no such capability is available,
+present the review artifact and a concise diff summary through the normal human-review channel. This supplements, and
+does not replace, explicit human approval.
+
 **STOP — end your turn here.**
 Present the review to the human. Wait for the human to ask questions, request revisions, or give approval.
 

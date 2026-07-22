@@ -232,6 +232,11 @@ Address all findings from the review:
 - Re-dispatch an `engineer-reviewer` at N+1 if changes were substantial. Repeat until the
   agent reviewer approves.
 
+Before presenting the review, use any interactive diff-review capability available in the current runtime to gather
+human feedback on the change. Incorporate clear feedback before the approval gate. If no such capability is available,
+present the review artifact and a concise diff summary through the normal human-review channel. This supplements, and
+does not replace, explicit human approval.
+
 **STOP — end your turn here.**
 The execution is ready for human review. Present the execution review to the human. Wait for the
 human to ask questions, request revisions, or give approval.

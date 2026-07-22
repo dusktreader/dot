@@ -18,8 +18,8 @@ export const StalenessGuard: Plugin = async () => {
     }
   }
 
-  function extractPaths(tool: string, args: Record<string, any>): string[] {
-    if (tool === "apply_patch" && typeof args.patchText === "string") {
+  function extractPaths(tool: string, args?: Record<string, unknown>): string[] {
+    if (tool === "apply_patch" && typeof args?.patchText === "string") {
       const paths: string[] = []
       const re = /^\*\*\* (?:Update|Add|Move to|Delete) File: (.+)$/gm
       let match
@@ -28,7 +28,7 @@ export const StalenessGuard: Plugin = async () => {
       }
       return paths
     }
-    if (args.filePath) return [args.filePath]
+    if (typeof args?.filePath === "string") return [args.filePath]
     return []
   }
 
@@ -46,7 +46,7 @@ export const StalenessGuard: Plugin = async () => {
       const editTools = ["edit", "write", "apply_patch"]
       if (!editTools.includes(input.tool)) return
 
-      const paths = extractPaths(input.tool, input.args)
+      const paths = extractPaths(input.tool, output.args)
       for (const filePath of paths) {
         const readTime = readTimestamps.get(filePath)
         if (readTime === undefined) {
