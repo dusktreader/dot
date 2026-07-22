@@ -39,9 +39,9 @@ class ReportColumns:
     agent: ReportColumn[str | None] = ReportColumn("Agent", "agent", "agent")
     model: ReportColumn[str | None] = ReportColumn("Model", "model", "model")
     date: ReportColumn[str] = ReportColumn("Date", "date")
-    recorded: ReportColumn[float | None] = ReportColumn("Recorded", "recorded_cost", "cost")
-    estimate: ReportColumn[float | None] = ReportColumn("Estimate", "local_estimate")
-    estimate_status: ReportColumn[str] = ReportColumn("Estimate Status", "estimate_status")
+    recorded: ReportColumn[float | None] = ReportColumn("Actual Cost", "recorded_cost", "cost")
+    estimate: ReportColumn[float | None] = ReportColumn("Estimated Cost", "local_estimate")
+    total_cost: ReportColumn[float | None] = ReportColumn("Total Cost", "total_cost")
     tokens: ReportColumn[dict[str, int | None]] = ReportColumn("", "tokens")
     cache_ratio: ReportColumn[float | None] = ReportColumn("Cache Ratio", "cache_ratio")
     cache_ratio_status: ReportColumn[str] = ReportColumn("", "cache_ratio_status")
@@ -116,20 +116,20 @@ class Report:
     outlier_eligible_count: int = 0
 
     @staticmethod
-    def _estimate(session: SessionRecord) -> tuple[float | None, str]:
+    def _estimate(session: SessionRecord) -> float | None:
         """Estimate cost with the pinned local pricing adaptation."""
         if not session.model:
-            return None, "unsupported-model:missing-model"
+            return None
         pricing = {"gpt-5.6-luna": (0.40, 1.60), "gpt-5.6-terra": (2.00, 8.00), "gpt-5.6-sol": (5.00, 20.00)}
         model_key = session.model.rsplit("/", 1)[-1]
         rates = pricing.get(model_key)
         if rates is None:
-            return None, f"unsupported-model:{session.model}"
+            return None
         if any(value is None for value in session.tokens.values()):
-            return None, "incomplete-token-data"
+            return None
         input_tokens = sum(session.tokens[name] or 0 for name in ("input", "cache_read", "cache_write"))
         output_tokens = (session.tokens["output"] or 0) + (session.tokens["reasoning"] or 0)
-        return (input_tokens * rates[0] + output_tokens * rates[1]) / 1_000_000, "estimated"
+        return (input_tokens * rates[0] + output_tokens * rates[1]) / 1_000_000
 
     @classmethod
     def build(
@@ -160,11 +160,11 @@ class Report:
                 continue
             selected.append(session)
         estimates = [cls._estimate(session) for session in selected]
-        numeric = [value for value, _ in estimates if value is not None]
+        numeric = [value for value in estimates if value is not None]
         recorded = [session.cost for session in selected if session.cost is not None]
         threshold = mean(recorded) + 2 * pstdev(recorded) if len(recorded) > 1 else None
         rows: list[ReportColumns] = []
-        for session, (estimate, status) in zip(selected, estimates):
+        for session, estimate in zip(selected, estimates):
             totals = [session.tokens[name] for name in ("input", "output", "reasoning", "cache_read", "cache_write")]
             denominator = sum(
                 value
@@ -188,7 +188,6 @@ class Report:
                     date=datetime.fromtimestamp(session.time_created / 1000, tz=timezone.utc).date().isoformat(),
                     recorded_cost=session.cost,
                     local_estimate=estimate,
-                    estimate_status=status,
                     tokens=session.tokens,
                     cache_ratio=cache_ratio,
                     cache_ratio_status=cache_status,
@@ -245,6 +244,7 @@ class Report:
                 column.field
                 for report_field in fields(REPORT_COLUMNS)
                 if (column := getattr(REPORT_COLUMNS, report_field.name)).label
+                and column.field != "total_cost"
             ]
             extra_fields = [
                 "parent_session",
@@ -268,7 +268,6 @@ class Report:
             if getattr(REPORT_COLUMNS, report_field.name).label
             and getattr(REPORT_COLUMNS, report_field.name).field != "root_session"
         ]
-        columns.append(ReportColumn("Total Cost", "total_cost"))
         rendered_rows: list[list[str]] = []
         for row, session_display, total_cost in table_rows(self.rows, self.sort):
             values = row.to_dict()
@@ -280,12 +279,6 @@ class Report:
                     values[metric_field] = f"${values[metric_field]:.2f}"
             if values["cache_ratio"] is not None:
                 values["cache_ratio"] = f"{values['cache_ratio']:.2f}"
-            status = values["estimate_status"]
-            values["estimate_status"] = (
-                "estimated"
-                if status == "estimated"
-                else ("incomplete" if status == "incomplete-token-data" else "unsupported")
-            )
             rendered_rows.append(
                 [str(values[column.field]) if values[column.field] is not None else "" for column in columns]
             )
@@ -330,8 +323,8 @@ class Report:
             return f"[{style}]{value}[/]"
 
         flagged_count = sum(row.get_value("outlier") is True for row in self.rows)
-        summary.add_row("[bold]Recorded total[/bold]", summary_value(f"${self.recorded_total:.2f}", "green"))
-        summary.add_row("[bold]Local estimate[/bold]", summary_value(
+        summary.add_row("[bold]Actual cost total[/bold]", summary_value(f"${self.recorded_total:.2f}", "green"))
+        summary.add_row("[bold]Estimated cost total[/bold]", summary_value(
             f"${self.estimated_total:.2f}" if self.estimated_total is not None else None, "green"
         ))
         summary.add_row("[bold]Outlier metric[/bold]", summary_value(self.outlier_metric, "yellow"))
@@ -512,6 +505,8 @@ def sort_report_rows(rows: list[ReportColumns], sort: list[tuple[str, bool]] | N
     """Sort report rows by requested keys, keeping unavailable values last."""
     sorted_rows = rows[:]
     for sort_field, reverse in (sort or []):
+        if sort_field == "total_cost":
+            continue
         available = [row for row in sorted_rows if row.get_value(sort_field) is not None]
         unavailable = [row for row in sorted_rows if row.get_value(sort_field) is None]
         available.sort(key=lambda row: row.get_value(sort_field), reverse=reverse)
@@ -555,7 +550,25 @@ def table_rows(
             rendered[rendered_index] = (row, prefix + display, total_cost)
         return total_cost
 
-    for root in sort_report_rows(roots, sort):
+    root_totals: list[tuple[ReportColumns, float]] = []
+    for root in roots:
+        subtree: list[ReportColumns] = [root]
+        index = 0
+        while index < len(subtree):
+            current = subtree[index]
+            subtree.extend(children[str(current.get_value("session_id"))])
+            index += 1
+        root_totals.append((root, sum(row.get_value("recorded_cost") or 0.0 for row in subtree)))
+    for sort_field, reverse in (sort or []):
+        def value(item: tuple[ReportColumns, float]) -> object:
+            """Return the requested sortable value for a root group."""
+            return item[1] if sort_field == "total_cost" else item[0].get_value(sort_field)
+
+        available = [item for item in root_totals if value(item) is not None]
+        unavailable = [item for item in root_totals if value(item) is None]
+        available.sort(key=value, reverse=reverse)
+        root_totals = available + unavailable
+    for root, _ in root_totals:
         add_subtree(root, "", True, is_root=True)
     for row in rows:
         if str(row.get_value("session_id")) not in visited:

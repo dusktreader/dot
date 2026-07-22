@@ -72,10 +72,17 @@ def test_costs_reports_database_error() -> None:
     assert result.exit_code != 0
 
 
-@pytest.mark.parametrize("sort", ["asc:Nope", "sideways:Recorded"])
+@pytest.mark.parametrize("sort", ["asc:Nope", "sideways:Actual Cost"])
 def test_costs_rejects_invalid_sort_with_actionable_error(sort: str) -> None:
     with pytest.raises(OpenCodeError, match="Invalid sort"):
         _parse_sort(sort)
+
+
+def test_costs_resolves_unique_partial_sort_columns_and_rejects_ambiguous_matches() -> None:
+    assert _parse_sort("total") == [("total_cost", True)]
+    assert _parse_sort("model") == [("model", True)]
+    with pytest.raises(OpenCodeError, match="Ambiguous sort column"):
+        _parse_sort("e")
 
 
 @pytest.mark.parametrize(

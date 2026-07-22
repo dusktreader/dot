@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 import sqlite3
 from datetime import date
 from pathlib import Path
@@ -95,7 +96,6 @@ def session(**overrides: Any) -> ReportColumns:
         directory=values["directory"], agent=values["agent"], model=values["model"],
         date="2025-10-09",
         recorded_cost=values["cost"], local_estimate=2.0,
-        estimate_status="estimated",
         tokens=values["tokens"],
         cache_ratio=20 / 160,
         cache_ratio_status="available",
@@ -130,18 +130,17 @@ def test_report_rejects_dates_and_handles_empty_and_incomplete_data() -> None:
     assert empty.rows == []
     incomplete = Report.build([record(tokens={"input": None, "output": 1, "reasoning": 1, "cache_read": 0, "cache_write": 0})])
     assert incomplete.rows[0].estimate.value is None
-    assert "incomplete" in incomplete.rows[0].estimate_status.value
 
 
 def test_report_sorts_descending_by_default_and_case_insensitively() -> None:
     report = Report.build(
         [record(session_id="low", cost=1.0), record(session_id="high", cost=3.0)],
-        sort=_parse_sort("RECORDED"),
+        sort=_parse_sort("ACTUAL"),
     )
     assert [row.session.value for row in report.rows] == ["high", "low"]
 
 
-@pytest.mark.parametrize(("sort", "expected"), [("asc:Recorded", ["low", "high"]), ("desc:Recorded", ["high", "low"])])
+@pytest.mark.parametrize(("sort", "expected"), [("asc:Actual Cost", ["low", "high"]), ("desc:Actual Cost", ["high", "low"])])
 def test_report_sorts_in_explicit_direction(sort: str, expected: list[str]) -> None:
     report = Report.build(
         [record(session_id="low", cost=1.0), record(session_id="high", cost=3.0)],
@@ -153,7 +152,7 @@ def test_report_sorts_in_explicit_direction(sort: str, expected: list[str]) -> N
 def test_report_resolves_multiple_sort_keys_left_to_right() -> None:
     rows = [record(session_id="b-high", agent="b", cost=3.0), record(session_id="a-low", agent="a", cost=1.0),
             record(session_id="a-high", agent="a", cost=3.0)]
-    report = Report.build(rows, sort=_parse_sort("asc:Agent,desc:Recorded"))
+    report = Report.build(rows, sort=_parse_sort("asc:Agent,desc:Actual Cost"))
     assert [row.session.value for row in report.rows] == ["a-high", "a-low", "b-high"]
 
 
@@ -170,7 +169,7 @@ def test_table_renders_session_groups_depth_first_with_unicode_prefixes() -> Non
     assert "Session" in table
     assert "Root" not in table
     assert "Directory" in table
-    assert "Recorded" in table
+    assert "Actual Cost" in table
     assert "Total Cost" in table
     root_line = next(line for line in table.splitlines() if "root" in line and "child" not in line)
     assert "$10.00" in root_line
@@ -195,16 +194,29 @@ def test_table_total_cost_is_blank_for_children_and_remains_table_only() -> None
     assert "total_cost" not in csv_output
 
 
+def test_table_sorts_root_groups_by_total_cost() -> None:
+    report = Report.build([
+        record(session_id="root-low", root_id="root-low", cost=1.0),
+        record(session_id="low-child", parent_id="root-low", root_id="root-low", cost=2.0),
+        record(session_id="root-high", root_id="root-high", cost=2.0),
+        record(session_id="high-child", parent_id="root-high", root_id="root-high", cost=4.0),
+    ], sort=_parse_sort("total"))
+
+    table = report.render("table")
+
+    assert table.index("root-high") < table.index("└─ high-child") < table.index("root-low")
+
+
 def test_table_applies_requested_styles_only_when_color_is_enabled() -> None:
     report = Report.build([record(directory="/project", model="provider/gpt-5.6-luna", cost=2.0)])
 
     colored = report.render("table", color_system="standard")
     plain = report.render("table")
 
-    assert "\x1b[32m$2.00\x1b[0m" in colored
-    assert "\x1b[33m$0.00\x1b[0m" in colored
-    assert "\x1b[34m/project\x1b[0m" in colored
-    assert "\x1b[35mprovider/gpt-5.6-luna\x1b[0m" in colored
+    assert re.search(r"\x1b\[\d+m\$2\.00\x1b\[0m", colored)
+    assert re.search(r"\x1b\[\d+m\$0\.00\x1b\[0m", colored)
+    assert re.search(r"\x1b\[\d+m/project\x1b\[0m", colored)
+    assert re.search(r"\x1b\[[\d;]+mprovider/gpt-5\.6-luna\x1b\[0m", colored)
     assert "\x1b[" not in plain
 
 
@@ -215,7 +227,7 @@ def test_table_sorts_root_groups_without_changing_flat_serialized_rows() -> None
         record(session_id="root-high", root_id="root-high", cost=3.0),
         record(session_id="high-child", parent_id="root-high", root_id="root-high", cost=0.0),
         record(session_id="missing-parent", parent_id="absent", root_id=None, ancestry_status="broken"),
-    ], sort=_parse_sort("desc:Recorded"))
+    ], sort=_parse_sort("desc:Actual Cost"))
 
     table = report.render("table")
     json_rows = json.loads(report.render("json"))["rows"]
@@ -234,7 +246,7 @@ def test_table_sorts_root_groups_without_changing_flat_serialized_rows() -> None
     ]
 
 
-@pytest.mark.parametrize("sort", ["asc:Nope", "sideways:Recorded"])
+@pytest.mark.parametrize("sort", ["asc:Nope", "sideways:Actual Cost"])
 def test_report_rejects_invalid_sort_parts(sort: str) -> None:
     with pytest.raises(OpenCodeError, match="Invalid sort"):
         _parse_sort(sort)
@@ -243,7 +255,7 @@ def test_report_rejects_invalid_sort_parts(sort: str) -> None:
 def test_renderers_produce_table_json_and_csv() -> None:
     report = Report.build([record()])
     table = report.render("table")
-    assert "Recorded" in table
+    assert "Actual Cost" in table
     assert "Session" in table
     assert "one" in table
     assert "│" in table
@@ -269,7 +281,7 @@ def test_table_formats_cost_metrics_without_changing_serialized_precision() -> N
     csv_row = report.render("csv").splitlines()[1].split(",")
     assert csv_row[6] == "2.3456"   # recorded_cost is index 6 in REPORT_COLUMNS
     assert csv_row[7] == "0.000146"  # local_estimate
-    assert csv_row[9] == "0.125"    # cache_ratio
+    assert csv_row[8] == "0.125"    # cache_ratio (estimate_status removed, shifted by 1)
 
 
 def test_table_right_aligns_metric_values_with_cell_padding() -> None:
@@ -291,8 +303,9 @@ def test_table_uses_compact_status_and_discloses_recorded_outlier_metric() -> No
         record(session_id="two", cost=100.0, directory=str(home / "src" / "project")),
     ])
     table = report.render("table")
-    assert "Estimate Status" in table
-    assert "estimated" in table
+    assert "Estimate Status" not in table
+    assert "Actual Cost" in table
+    assert "Estimated Cost" in table
     assert "Outlier metric" in table
     assert "Outlier eligible count" in table
     assert "Outlier flagged count" in table

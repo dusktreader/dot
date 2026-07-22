@@ -25,7 +25,7 @@ class OutputFormat(AutoNameEnum):
 def _parse_sort(value: str) -> list[tuple[str, bool]]:
     """Parse comma-separated sort keys into (field, descending) pairs, last key first."""
     report_columns = [getattr(REPORT_COLUMNS, f.name) for f in fields(REPORT_COLUMNS)]
-    sort_lookup = {col.label.lower(): col.field for col in report_columns if col.label}
+    sortable_columns = [column for column in report_columns if column.label]
     parsed: list[tuple[str, bool]] = []
     for item in value.split(","):
         direction, separator, column = item.strip().partition(":")
@@ -34,9 +34,20 @@ def _parse_sort(value: str) -> list[tuple[str, bool]]:
             OpenCodeError.require_condition(direction in {"asc", "desc"}, f"Invalid sort direction {direction!r}; use 'asc' or 'desc'")
         else:
             direction, column = "desc", item.strip()
+        query = column.strip().casefold()
+        matches = [
+            sort_column
+            for sort_column in sortable_columns
+            if all(part in sort_column.label.casefold() for part in query.split())
+        ]
+        choices = ", ".join(sort_column.label for sort_column in sortable_columns)
         field = OpenCodeError.enforce_defined(
-            sort_lookup.get(column.strip().casefold()),
-            f"Invalid sort column {column.strip()!r}; choose one of: {', '.join(col.label for col in report_columns if col.label)}",
+            matches[0].field if len(matches) == 1 else None,
+            (
+                f"Ambiguous sort column {column.strip()!r}; matches: {', '.join(match.label for match in matches)}"
+                if matches
+                else f"Invalid sort column {column.strip()!r}; choose one of: {choices}"
+            ),
         )
         parsed.insert(0, (field, direction == "desc"))
     return parsed
