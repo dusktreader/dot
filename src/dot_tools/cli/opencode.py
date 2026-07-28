@@ -84,8 +84,8 @@ def costs(
     )
     with OpenCodeSessionStore() as store:
         report = Report.build(store.sessions(), since, until, directory, agent, model, parsed_sort)
-    rendered = report.render(format.value, color_system="auto" if file is None else None)
     if file is None:
-        typer.echo(rendered)
+        report.display()
     else:
+        rendered = report.render(format.value)
         file.write_text(rendered + ("\n" if not rendered.endswith("\n") else ""))

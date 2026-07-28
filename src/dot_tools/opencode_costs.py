@@ -1,8 +1,8 @@
 import csv
 import io
 import json
+import shutil
 import sqlite3
-from contextlib import redirect_stdout
 from dataclasses import dataclass, fields, replace
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -11,6 +11,7 @@ from typing import Generic, Iterable, Literal, TypeVar
 
 from rich.align import Align
 from rich.console import Console
+from rich.pager import Pager
 from rich.table import Table
 from rich.text import Text
 
@@ -102,6 +103,20 @@ class SessionRecord:
     metadata: dict[str, object] | None
     root_id: str | None
     ancestry_status: str
+
+
+class _NoWrapPager(Pager):
+    """Pager that invokes ``less -RS``: preserve ANSI styles and chop long lines instead of wrapping."""
+
+    def show(self, content: str) -> None:
+        import subprocess
+        proc = subprocess.Popen(["less", "-RS"], stdin=subprocess.PIPE)
+        try:
+            proc.communicate(input=content.encode())
+        except KeyboardInterrupt:
+            pass
+        finally:
+            proc.wait()
 
 
 @dataclass(frozen=True)
@@ -234,34 +249,12 @@ class Report:
         }
         return result
 
-    def render(self, output_format: str, color_system: Literal["auto", "standard", "256", "truecolor", "windows"] | None = None) -> str:
-        """Render this report as a table, JSON, or CSV."""
-        if output_format == "json":
-            return json.dumps(self.to_dict(), indent=2, sort_keys=True)
-        if output_format == "csv":
-            output = io.StringIO()
-            table_fields = [
-                column.field
-                for report_field in fields(REPORT_COLUMNS)
-                if (column := getattr(REPORT_COLUMNS, report_field.name)).label
-                and column.field != "total_cost"
-            ]
-            extra_fields = [
-                "parent_session",
-                "cache_ratio_status",
-                "ancestry_status",
-                "outlier_metric",
-                "outlier_threshold",
-            ]
-            csv_fields = table_fields + extra_fields
-            writer = csv.DictWriter(output, fieldnames=csv_fields)
-            writer.writeheader()
-            for row in self.rows:
-                data = row.to_dict()
-                data["tokens"] = json.dumps(data["tokens"], sort_keys=True)
-                writer.writerow({field: data[field] for field in csv_fields})
-            return output.getvalue()
-        table = Table(title="OpenCode session costs", show_lines=False, expand=False)
+    def _build_table_renderables(self) -> tuple[Table, Table, int]:
+        """Build the Rich Table and summary renderables plus the computed table width.
+
+        Shared by :meth:`render` and :meth:`display` so neither repeats the
+        data-preparation logic.
+        """
         columns = [
             getattr(REPORT_COLUMNS, report_field.name)
             for report_field in fields(REPORT_COLUMNS)
@@ -283,30 +276,31 @@ class Report:
                 [str(values[column.field]) if values[column.field] is not None else "" for column in columns]
             )
 
+        table = Table(title="OpenCode session costs", show_lines=False, expand=False)
         for column in columns:
-            table.add_column(
-                column.label,
-                no_wrap=True,
-                overflow="ignore",
-            )
-        right_aligned_fields = {"recorded_cost", "local_estimate", "cache_ratio", "total_cost"}
-        cell_styles = {
-            "recorded_cost": "green",
-            "total_cost": "green",
-            "local_estimate": "yellow",
-            "directory": "blue",
-            "model": "purple",
-        }
+            table.add_column(column.label, no_wrap=True, overflow="ignore")
+
+        def _style(field: Field, value: Any) -> str | None:
+            style = None
+            align_right = False
+            match field:
+                case "recorded_cost" | "total_cost":
+                    style = "green"
+                    align_right = True
+                case "local_estimate":
+                    style = "yellow"
+                    align_right = True
+                case "directory":
+                    style = "blue"
+                case "model":
+                    style = "purple"
+            text = Text(value, style=style)
+            if align_right:
+                return Align.right(text)
+            return text
+
         for values in rendered_rows:
-            table.add_row(
-                *[
-                    Align.right(Text(value, style=cell_styles.get(field))) if field in right_aligned_fields else Text(
-                        value, style=cell_styles.get(field)
-                    )
-                    for value, column in zip(values, columns)
-                    for field in [column.field]
-                ]
-            )
+            table.add_row(*[_style(column.field, value) for value, column in zip(values, columns)])
 
         column_widths = [len(column.label) for column in columns]
         for values in rendered_rows:
@@ -334,19 +328,65 @@ class Report:
         summary.add_row("[bold]Outlier eligible count[/bold]", summary_value(self.outlier_eligible_count, "yellow"))
         summary.add_row("[bold]Outlier flagged count[/bold]", summary_value(flagged_count, "yellow"))
 
+        return table, summary, table_width
+
+    def _render_csv(self) -> str:
+        """Render this report as CSV."""
+        output = io.StringIO()
+        table_fields = [
+            column.field
+            for report_field in fields(REPORT_COLUMNS)
+            if (column := getattr(REPORT_COLUMNS, report_field.name)).label
+            and column.field != "total_cost"
+        ]
+        extra_fields = [
+            "parent_session",
+            "cache_ratio_status",
+            "ancestry_status",
+            "outlier_metric",
+            "outlier_threshold",
+        ]
+        csv_fields = table_fields + extra_fields
+        writer = csv.DictWriter(output, fieldnames=csv_fields)
+        writer.writeheader()
+        for row in self.rows:
+            data = row.to_dict()
+            data["tokens"] = json.dumps(data["tokens"], sort_keys=True)
+            writer.writerow({field: data[field] for field in csv_fields})
+        return output.getvalue()
+
+    def render(self, output_format: str, color_system: Literal["auto", "standard", "256", "truecolor", "windows"] | None = None) -> str:
+        """Render this report as a string in the requested format (table, JSON, or CSV)."""
+        if output_format == "json":
+            return json.dumps(self.to_dict(), indent=2, sort_keys=True)
+        if output_format == "csv":
+            return self._render_csv()
+        table, summary, table_width = self._build_table_renderables()
         output = io.StringIO()
         # Match the capture width to the unwrapped table so Rich does not impose a terminal-sized crop.
         console = Console(
             file=output,
-            record=True,
             force_terminal=color_system == "auto",
             color_system=color_system,
             width=max(80, table_width),
         )
-        with redirect_stdout(output):
+        console.print(table)
+        console.print(summary)
+        return output.getvalue().rstrip("\n")
+
+    def display(self, color_system: Literal["auto", "standard", "256", "truecolor", "windows"] | None = "auto") -> None:
+        """Print the table report to the terminal, using a pager when the table is wider than the terminal."""
+        table, summary, table_width = self._build_table_renderables()
+        terminal_width = shutil.get_terminal_size().columns
+        console = Console(color_system=color_system, width=max(80, table_width))
+        use_pager = table_width > terminal_width
+        if use_pager:
+            with console.pager(pager=_NoWrapPager(), styles=True):
+                console.print(table)
+                console.print(summary)
+        else:
             console.print(table)
             console.print(summary)
-        return output.getvalue().rstrip("\n")
 
 
 def normalize_model(value: str | None) -> str | None:

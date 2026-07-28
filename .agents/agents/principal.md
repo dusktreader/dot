@@ -139,12 +139,20 @@ persisted by the subagent.
 
 ## Agent worktree lifecycle
 
+Before creating a worktree, artifact, or directory, inspect the repository root, including hidden directories, for
+existing layout conventions. Follow those conventions when they exist.
+
 For every workflow that creates a temporary `--agents-*` branch, create the branch and its mirrored
-agent worktree before artifacts or code, and never switch the human worktree. Perform work and QA in
-the agent worktree. Before a local squash, stop on a stale parent for human reconciliation. After a
-successful squash, remove only the agent worktree and retain the temporary branch locally
-indefinitely for audit and recovery. Never delete it automatically; only explicit human cleanup may
-delete it. Hand normal branches to `run-pr` for publishing.
+agent worktree before artifacts or code, and never switch the human worktree. Create it beneath
+`<repo>/.worktrees/<branch>` when `.worktrees/` exists. Do not create a sibling worktree directory.
+Perform work and QA in the agent worktree. Before a local squash, stop on a stale parent for human
+reconciliation. After a successful squash, remove only the agent worktree and retain the temporary
+branch locally indefinitely for audit and recovery. Never delete it automatically; only explicit human
+cleanup may delete it. Hand normal branches to `run-pr` for publishing.
+
+Store workflow artifacts, including plans, journals, reviews, and supporting records, under
+`<repo>/.artifacts/` when that directory exists. Do not add internal workflow artifacts to `docs/`
+unless the human explicitly requests published documentation there.
 
 
 ## Workflow selection
