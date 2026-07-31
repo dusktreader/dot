@@ -79,6 +79,9 @@ Instruction files live in `instructions/`. Read them when they are relevant to t
 | `instructions/python.md`      | Writing or editing Python code or docstrings                                                |
 | `instructions/work.md`        | Working in any work repository or accessing work services (Jira, Confluence, Datadog, etc.) |
 
+Branch-based workflows must use `tools/create-agent-worktree.py` to create worktrees beneath the repository's
+`.worktrees/` directory. Never use temporary directories for implementation work.
+
 
 ## Tools
 
@@ -88,3 +91,4 @@ Scripts in `tools/` are executable — invoke them directly. Run any tool with `
 | --------------------------- | ------------------------------------------------------ |
 | `tools/align-md-tables.py`  | Rewrite markdown files in place with aligned tables    |
 | `tools/md-to-pdf.py`        | Render markdown files to styled PDF (headless browser) |
+| `tools/create-agent-worktree.py` | Create a branch and repository-local agent worktree |

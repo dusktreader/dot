@@ -22,8 +22,26 @@ When the parent is an existing normal branch, use `{parent-branch}--agents-{work
 both local branch names and `git worktree list` for collisions. If that unnumbered audit branch is retained, select
 the next unused zero-padded suffix, such as `{parent-branch}--agents-{workflow}-02`.
 
-Create the selected branch with `git branch`, then create its worktree with `git worktree add`. The resulting path
-must be exactly `<repo-root>/.worktrees/<agent-branch>`. Do not create a branch without its matching worktree.
+Invoke the canonical tool below. Do not create branches or worktrees directly with ad hoc shell commands. The tool is
+the single source of truth for branch naming, collision handling, and repository-local placement:
+
+```shell
+python3 ~/.agents/tools/create-agent-worktree.py \
+  --repository <repo-root> \
+  --parent-worktree <parent-worktree> \
+  --parent-branch <parent-branch> \
+  --parent-base <parent-base> \
+  --workflow <workflow> \
+  --type <type> \
+  --task-id <TASK-ID> \
+  --slug <slug>
+```
+
+The tool checks the repository root, allocates the branch, and creates the matching worktree. The resulting path must
+be exactly `<repo-root>/.worktrees/<agent-branch>`. It rejects temporary or sibling worktree locations and cleans up a
+new branch if worktree creation fails.
+
+Never use `/tmp`, `/private/var`, or another tool-generated temporary directory for implementation worktrees.
 
 
 ## Caller handoff

@@ -36,51 +36,46 @@ classification wins.
 
 ### Work projects
 
-GPT-5.6 Luna, Terra, and Sol are the normal work ladder. Prefer them for planning and execution. GitHub Copilot Claude
+GPT-5.6 Luna is the default for all work — planning, execution, investigation, and review. GitHub Copilot Claude
 models are permitted as deliberate independent perspectives, especially for reviews. Work models are preferred, not
 exclusive. Never use OpenCode Zen for work.
 
-| Selection                    | Variant suffix     | Model                                 | Guidance                                  |
-| ---------------------------- | ------------------ | ------------------------------------- | ----------------------------------------- |
-| Work economy                 | `--work-luna`      | `github-copilot/gpt-5.6-luna`         | Normal economy work                       |
-| Work capable or premium      | `--work-terra`     | `github-copilot/gpt-5.6-terra`        | Normal capable or premium work            |
-| Work exceptional escalation  | `--work-sol`       | `github-copilot/gpt-5.6-sol`          | Objective exceptional escalation          |
-| Work bounded check           | `--work-haiku`     | `github-copilot/claude-haiku-4.5`     | Cheap investigation, QA, or narrow checks |
-| Work independent review      | `--work-sonnet`    | `github-copilot/claude-sonnet-5`      | Standard independent plan or code review  |
-| Work difficult review        | `--work-opus`      | `github-copilot/claude-opus-4.8`      | Architectural or high-risk review         |
+| Selection                    | Variant suffix   | Model                              | Guidance                                        |
+| ---------------------------- | ---------------- | ---------------------------------- | ----------------------------------------------- |
+| Work default                 | `--work-luna`    | `github-copilot/gpt-5.6-luna`      | Default for all work                            |
+| Work high capability         | `--work-sol`     | `github-copilot/gpt-5.6-sol`       | Only when highest-capability reasoning needed   |
+| Work independent review      | `--work-sonnet`  | `github-copilot/claude-sonnet-5`   | Standard independent plan or code review        |
+| Work difficult review        | `--work-opus`    | `github-copilot/claude-opus-4.8`   | Architectural or high-risk review               |
 
-Haiku, Sonnet, and Opus are independent-purpose selections, not an escalation ladder. Haiku handles cheap bounded
-investigation, mechanical QA, and narrow checks. Sonnet handles standard independent plan and code review. Opus handles
-difficult architectural or high-risk review. Do not use these Claude variants as substitutes for the normal GPT-5.6
-planning and execution preference.
+Sonnet and Opus are independent-purpose review selections, not a GPT-5.6 escalation ladder. Sonnet handles standard
+independent plan and code review. Opus handles difficult architectural or high-risk review. Do not use these Claude
+variants as substitutes for the normal GPT-5.6 planning and execution preference.
 
-Dispatch `--work-luna`, `--work-terra`, `--work-sol`, `--work-haiku`, `--work-sonnet`, or `--work-opus` variants only
-for work. Never dispatch a personal variant for work. Never use Zen.
+Dispatch `--work-luna`, `--work-sol`, `--work-sonnet`, or `--work-opus` variants only for work. Never dispatch a
+personal variant for work. Never use Zen.
 
 
 ### Personal projects
 
-- `opencode/deepseek-v4-flash`: economy, mechanical work, or QA fixes
-- `opencode/kimi-k2.7-code`: bounded code or tasks
-- `opencode/gpt-5.6-luna`: nontrivial review or execution
-- `opencode/gpt-5.6-terra`: difficult reasoning
-- `opencode/gpt-5.6-sol`: last resort
+- `opencode/gpt-5.6-luna`: default for all personal work — planning, execution, review, and investigation
+- `opencode/deepseek-v4-flash`: strict budget only — purely mechanical or repetitive work where cost is the overriding constraint
+- `opencode/kimi-k2.7-code`: strict budget only — very small, tightly scoped code tasks where cost is the overriding constraint
+- `opencode/gpt-5.6-sol`: only when highest-capability reasoning is genuinely required
 
-Dispatch `--personal-deepseek`, `--personal-kimi`, `--personal-luna`, `--personal-terra`, or `--personal-sol` variants
-only. Personal projects normally use `--personal-deepseek` for economy or mechanical work, `--personal-kimi` for bounded
-code, `--personal-luna` for nontrivial review or execution, `--personal-terra` for difficult reasoning, and
-`--personal-sol` only as a last resort. Never dispatch a work variant for personal work. Zen free models are not
-defaults because of their retention and training terms.
+GPT-5.6 Luna is the default for all personal work. Use `--personal-deepseek` or `--personal-kimi` only under strict
+budget pressure for purely mechanical tasks — not as a general economy default. Reserve `--personal-sol` for tasks
+that objectively require the most capable model. Never use `--personal-terra` — luna covers its use cases at lower
+cost and higher capability. Never dispatch a work variant for personal work. Zen free models are not defaults because
+of their retention and training terms.
 
 The exact dispatch suffix mapping is:
 
-| Selection                               | Variant suffix         | Model                              |
-| --------------------------------------- | ---------------------- | ---------------------------------- |
-| Personal economy                        | `--personal-deepseek`  | `opencode/deepseek-v4-flash`       |
-| Personal bounded code                   | `--personal-kimi`      | `opencode/kimi-k2.7-code`          |
-| Personal nontrivial review or execution | `--personal-luna`      | `opencode/gpt-5.6-luna`            |
-| Personal difficult reasoning            | `--personal-terra`     | `opencode/gpt-5.6-terra`           |
-| Personal last resort                    | `--personal-sol`       | `opencode/gpt-5.6-sol`             |
+| Selection                          | Variant suffix         | Model                        |
+| ---------------------------------- | ---------------------- | ---------------------------- |
+| Personal default                   | `--personal-luna`      | `opencode/gpt-5.6-luna`      |
+| Personal strict-budget mechanical  | `--personal-deepseek`  | `opencode/deepseek-v4-flash` |
+| Personal strict-budget small code  | `--personal-kimi`      | `opencode/kimi-k2.7-code`    |
+| Personal high capability           | `--personal-sol`       | `opencode/gpt-5.6-sol`       |
 
 
 ## Artifact classes and review phases
@@ -141,6 +136,10 @@ persisted by the subagent.
 
 Before creating a worktree, artifact, or directory, inspect the repository root, including hidden directories, for
 existing layout conventions. Follow those conventions when they exist.
+
+Use the canonical `~/.agents/tools/create-agent-worktree.py` tool for every branch-based worktree. Never dispatch an
+executor to create its own worktree and never use a temporary directory such as `/tmp` or `/private/var`. Verify the
+tool's JSON handoff before creating artifacts or dispatching work.
 
 For every workflow that creates a temporary `--agents-*` branch, create the branch and its mirrored
 agent worktree before artifacts or code, and never switch the human worktree. Create it beneath
