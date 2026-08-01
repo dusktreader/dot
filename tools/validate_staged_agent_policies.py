@@ -29,19 +29,18 @@ _SPECIALIST_ROLES = (
 )
 _WORK_MODELS = {
     "luna": "github-copilot/gpt-5.6-luna",
-    "terra": "github-copilot/gpt-5.6-terra",
     "sol": "github-copilot/gpt-5.6-sol",
-    "haiku": "github-copilot/claude-haiku-4.5",
     "sonnet": "github-copilot/claude-sonnet-5",
-    "opus": "github-copilot/claude-opus-4.8",
 }
+_WORK_NON_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" not in role)
+_WORK_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" in role)
 _PERSONAL_MODELS = {
-    "deepseek": "opencode/deepseek-v4-flash",
-    "kimi": "opencode/kimi-k2.7-code",
     "luna": "opencode/gpt-5.6-luna",
-    "terra": "opencode/gpt-5.6-terra",
     "sol": "opencode/gpt-5.6-sol",
+    "glm": "opencode/glm-5",
 }
+_PERSONAL_NON_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" not in role)
+_PERSONAL_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" in role)
 _LIFECYCLE_REQUIREMENTS = {
     ".agents/skills/run-feature/SKILL.md": (
         "agent worktree",
@@ -131,8 +130,6 @@ _SHARED_SKILL_CONTRACTS = {
         "parent branch",
         "immutable parent base",
         "workflow identifier",
-        "git branch",
-        "git worktree add",
         "<repo-root>/.worktrees/<agent-branch>",
         "Never use `git switch`",
         "zero-padded suffix",
@@ -225,17 +222,21 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         failures.append("Zen model appears in work-project dispatch policy")
     config_agents = staging_root / ".config/opencode/agents"
     expected_variants = {
-        f"{role}--work-{suffix}.md": ("work", suffix, model)
-        for role in _SPECIALIST_ROLES
-        for suffix, model in _WORK_MODELS.items()
+        f"{role}--work-{suffix}.md": ("work", suffix, _WORK_MODELS[suffix])
+        for role in _WORK_NON_REVIEW_ROLES
+        for suffix in ("luna", "sol")
     } | {
-        f"{role}--personal-{suffix}.md": ("personal", suffix, model)
-        for role in _SPECIALIST_ROLES
-        for suffix, model in _PERSONAL_MODELS.items()
+        f"{role}--work-sonnet.md": ("work", "sonnet", _WORK_MODELS["sonnet"])
+        for role in _WORK_REVIEW_ROLES
+    } | {
+        f"{role}--personal-{suffix}.md": ("personal", suffix, _PERSONAL_MODELS[suffix])
+        for role in _PERSONAL_NON_REVIEW_ROLES
+        for suffix in ("luna", "sol")
+    } | {
+        f"{role}--personal-glm.md": ("personal", "glm", _PERSONAL_MODELS["glm"])
+        for role in _PERSONAL_REVIEW_ROLES
     }
     actual_variants = {path.name for path in config_agents.glob("*.md") if path.name != "principal.md"}
-    if any("--personal-sonnet" in filename for filename in actual_variants):
-        failures.append("personal Sonnet variants are forbidden; use personal Luna")
     missing = sorted(set(expected_variants) - actual_variants)
     extra = sorted(actual_variants - set(expected_variants))
     if missing:
@@ -264,26 +265,30 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
     )
     required_models = {
         "github-copilot/gpt-5.6-luna",
-        "github-copilot/gpt-5.6-terra",
         "github-copilot/gpt-5.6-sol",
-        "github-copilot/claude-haiku-4.5",
         "github-copilot/claude-sonnet-5",
-        "github-copilot/claude-opus-4.8",
-        "opencode/deepseek-v4-flash",
-        "opencode/kimi-k2.7-code",
         "opencode/gpt-5.6-luna",
-        "opencode/gpt-5.6-terra",
         "opencode/gpt-5.6-sol",
+        "opencode/glm-5",
     }
     if "## Model selection" not in principal_text or not required_models.issubset(set(re.findall(r"`([^`]+)`", principal_text))):
         failures.append("principal model selection policy is incomplete")
-    if "--personal-sonnet" in principal_text or "opencode/claude-sonnet-5" in principal_text:
-        failures.append("principal personal model policy still references personal Sonnet")
-    for phrase in ("preferred, not", "not an escalation ladder", "independent perspectives"):
-        if phrase.lower() not in principal_text.lower():
-            failures.append(f"principal work model policy is missing: {phrase}")
-    if "github-copilot/gpt-5.6-terra" not in (config_agents / "principal.md").read_text(errors="replace"):
-        failures.append("staged principal agent must use github-copilot/gpt-5.6-terra")
+    normalized_principal = re.sub(r"\s+", " ", principal_text).lower()
+    for phrase in (
+        "there are no opus variants",
+        "requires explicit human permission before dispatch",
+        "never dispatch a `--work-sol` or `--personal-sol` variant without explicit human permission",
+        "use the `--work-sonnet` variant for every review",
+        "never dispatch an unlisted work variant",
+        "use the `--personal-glm` variant for every review",
+        "never dispatch an unlisted personal variant",
+    ):
+        if phrase.lower() not in normalized_principal:
+            failures.append(f"principal model policy is missing: {phrase}")
+    if re.search(r"(?:work|personal)-opus|claude-opus|gpt-5\.6-terra|deepseek-v4-flash|kimi-k2\.7-code", principal_text, re.IGNORECASE):
+        failures.append("principal model policy still references a removed Opus or Terra variant")
+    if "github-copilot/gpt-5.6-luna" not in (config_agents / "principal.md").read_text(errors="replace"):
+        failures.append("staged principal agent must use github-copilot/gpt-5.6-luna")
     for path_name in (".agents/skills/run-feature/SKILL.md", ".agents/skills/run-task/SKILL.md"):
         content = policy_text.get(Path(path_name), "")
         if "principal's Model selection policy" not in content:

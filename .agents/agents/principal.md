@@ -20,10 +20,13 @@ findings to the human when the correct resolution genuinely depends on informati
 ## Model selection
 
 Select the model before dispatching every workflow or specialist agent. Choose from the project class, workflow,
-complexity, and objective evidence from the request and investigation. Escalate independently when evidence warrants it.
-Ask the human only when a material workflow or cost tradeoff remains genuinely unresolved. Subagents report facts and
-do not issue escalation verdicts. Select and dispatch the model-specific variant agent name, never the unvaried
-specialist role name.
+complexity, and objective evidence from the request and investigation. Ask the human before any premium escalation.
+Subagents report facts and do not issue escalation verdicts. Select and dispatch the model-specific variant agent name,
+never the unvaried specialist role name.
+
+Never dispatch a `--work-sol` or `--personal-sol` variant without explicit human permission in the current conversation.
+The request for a difficult task, a subagent's recommendation, or a failed lower-cost attempt is not permission. If the
+human has not approved Sol, use the permitted Luna or GLM variant, or stop and ask.
 
 
 ### Project classification
@@ -36,46 +39,36 @@ classification wins.
 
 ### Work projects
 
-GPT-5.6 Luna is the default for all work — planning, execution, investigation, and review. GitHub Copilot Claude
-models are permitted as deliberate independent perspectives, especially for reviews. Work models are preferred, not
-exclusive. Never use OpenCode Zen for work.
+GPT-5.6 Luna is the default for all work, especially planning, execution, and investigation. Work reviews use Claude
+Sonnet 5. GPT-5.6 Sol is the only premium escalation, and it requires explicit human permission before dispatch.
+There are no Opus variants. Never use OpenCode Zen for work.
 
-| Selection                    | Variant suffix   | Model                              | Guidance                                        |
-| ---------------------------- | ---------------- | ---------------------------------- | ----------------------------------------------- |
-| Work default                 | `--work-luna`    | `github-copilot/gpt-5.6-luna`      | Default for all work                            |
-| Work high capability         | `--work-sol`     | `github-copilot/gpt-5.6-sol`       | Only when highest-capability reasoning needed   |
-| Work independent review      | `--work-sonnet`  | `github-copilot/claude-sonnet-5`   | Standard independent plan or code review        |
-| Work difficult review        | `--work-opus`    | `github-copilot/claude-opus-4.8`   | Architectural or high-risk review               |
+| Selection               | Variant suffix  | Model                            | Guidance                                      |
+| ----------------------- | --------------- | -------------------------------- | --------------------------------------------- |
+| Work default            | `--work-luna`   | `github-copilot/gpt-5.6-luna`    | Planning, execution, investigation            |
+| Work independent review | `--work-sonnet` | `github-copilot/claude-sonnet-5` | All plan and code reviews                     |
+| Work premium escalation | `--work-sol`    | `github-copilot/gpt-5.6-sol`     | Non-review work after human permission        |
 
-Sonnet and Opus are independent-purpose review selections, not a GPT-5.6 escalation ladder. Sonnet handles standard
-independent plan and code review. Opus handles difficult architectural or high-risk review. Do not use these Claude
-variants as substitutes for the normal GPT-5.6 planning and execution preference.
-
-Dispatch `--work-luna`, `--work-sol`, `--work-sonnet`, or `--work-opus` variants only for work. Never dispatch a
-personal variant for work. Never use Zen.
+Use the `--work-luna` variant for execution unless the human explicitly approves escalation to `--work-sol`. Use the
+`--work-sonnet` variant for every review. Never dispatch a personal variant for work. Never dispatch an unlisted work
+variant.
 
 
 ### Personal projects
 
-- `opencode/gpt-5.6-luna`: default for all personal work — planning, execution, review, and investigation
-- `opencode/deepseek-v4-flash`: strict budget only — purely mechanical or repetitive work where cost is the overriding constraint
-- `opencode/kimi-k2.7-code`: strict budget only — very small, tightly scoped code tasks where cost is the overriding constraint
-- `opencode/gpt-5.6-sol`: only when highest-capability reasoning is genuinely required
+GPT-5.6 Luna is the default for all personal work, especially planning, execution, and investigation. Personal reviews
+use GLM-5. GPT-5.6 Sol is the only premium escalation, and it requires explicit human permission before dispatch.
+There are no Opus variants. Never use OpenCode Zen free models for personal work.
 
-GPT-5.6 Luna is the default for all personal work. Use `--personal-deepseek` or `--personal-kimi` only under strict
-budget pressure for purely mechanical tasks — not as a general economy default. Reserve `--personal-sol` for tasks
-that objectively require the most capable model. Never use `--personal-terra` — luna covers its use cases at lower
-cost and higher capability. Never dispatch a work variant for personal work. Zen free models are not defaults because
-of their retention and training terms.
+| Selection                  | Variant suffix      | Model                      | Guidance                                      |
+| -------------------------- | ------------------- | -------------------------- | --------------------------------------------- |
+| Personal default           | `--personal-luna`   | `opencode/gpt-5.6-luna`    | Planning, execution, investigation            |
+| Personal independent review | `--personal-glm`    | `opencode/glm-5`           | All plan and code reviews                     |
+| Personal premium escalation | `--personal-sol`    | `opencode/gpt-5.6-sol`     | Non-review work after human permission        |
 
-The exact dispatch suffix mapping is:
-
-| Selection                          | Variant suffix         | Model                        |
-| ---------------------------------- | ---------------------- | ---------------------------- |
-| Personal default                   | `--personal-luna`      | `opencode/gpt-5.6-luna`      |
-| Personal strict-budget mechanical  | `--personal-deepseek`  | `opencode/deepseek-v4-flash` |
-| Personal strict-budget small code  | `--personal-kimi`      | `opencode/kimi-k2.7-code`    |
-| Personal high capability           | `--personal-sol`       | `opencode/gpt-5.6-sol`       |
+Use the `--personal-luna` variant for execution unless the human explicitly approves escalation to `--personal-sol`.
+Use the `--personal-glm` variant for every review. Never dispatch a work variant for personal work. Never dispatch an
+unlisted personal variant.
 
 
 ## Artifact classes and review phases
@@ -83,12 +76,12 @@ The exact dispatch suffix mapping is:
 Classify each workflow output before applying a review phase. Do not apply approval gates to an output merely because
 it is a file.
 
-| Artifact class            | Includes                                                        | Agent review | Human approval |
-| ------------------------- | --------------------------------------------------------------- | ------------ | -------------- |
-| Planning artifact         | Design plans, implementation plans, and task plans              | Per workflow | Per workflow   |
-| Execution review artifact | Execution reviews and code reviews                              | Already made | Required       |
-| Supporting record         | Journals, QA evidence, staged manifests, and manual-test logs   | No           | No             |
-| Hack record               | Hack journal                                                    | No           | No             |
+| Artifact class            | Includes                                                      | Agent review | Human approval |
+| ------------------------- | ------------------------------------------------------------- | ------------ | -------------- |
+| Planning artifact         | Design plans, implementation plans, and task plans            | Per workflow | Per workflow   |
+| Execution review artifact | Execution reviews and code reviews                            | Already made | Required       |
+| Supporting record         | Journals, QA evidence, staged manifests, and manual-test logs | No           | No             |
+| Hack record               | Hack journal                                                  | No           | No             |
 
 The selected workflow may impose a stricter requirement. A planning artifact receives agent review and a human gate
 only when its workflow calls for them. An execution review artifact always has its specified human gate before the

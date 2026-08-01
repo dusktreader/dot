@@ -47,6 +47,16 @@ def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
     return root, manifest
 
 
+def add_manifest_file(root: Path, manifest: Path, relative: Path) -> None:
+    """Add a newly created fixture file to its manifest inventory."""
+    manifest_data = json.loads(manifest.read_text())
+    manifest_data["files"].append({
+        "staged_path": str(relative),
+        "sha256": hashlib.sha256((root / relative).read_bytes()).hexdigest(),
+    })
+    manifest.write_text(json.dumps(manifest_data))
+
+
 def test_validator_accepts_complete_fixture(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
     assert validate(root, manifest) == []
@@ -127,27 +137,61 @@ def test_validator_requires_shared_worktree_contract(tmp_path: Path, relative: s
     assert any("shared worktree contract" in failure for failure in validate(root, manifest))
 
 
-def test_validator_requires_all_work_claude_variants(tmp_path: Path) -> None:
+def test_validator_requires_all_work_variants(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    variant = root / ".config/opencode/agents/architect-planner--work-haiku.md"
+    variant = root / ".config/opencode/agents/architect-reviewer--work-sonnet.md"
     variant.unlink()
-    assert "architect-planner--work-haiku.md" in "\n".join(validate(root, manifest))
+    assert "architect-reviewer--work-sonnet.md" in "\n".join(validate(root, manifest))
 
 
-def test_validator_requires_personal_luna_variants(tmp_path: Path) -> None:
+def test_validator_rejects_added_work_opus_variants(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    variant = root / ".config/opencode/agents/architect-planner--personal-luna.md"
-    variant.unlink()
-    assert "architect-planner--personal-luna.md" in "\n".join(validate(root, manifest))
+    relative = Path(".config/opencode/agents/architect-planner--work-opus.md")
+    variant = root / relative
+    source = root / ".config/opencode/agents/architect-planner--work-luna.md"
+    variant.write_text(source.read_text().replace("work-luna", "work-opus").replace("gpt-5.6-luna", "claude-opus-4.8"))
+    add_manifest_file(root, manifest, relative)
+    assert "architect-planner--work-opus.md" in "\n".join(validate(root, manifest))
 
 
-def test_validator_rejects_personal_sonnet_variants(tmp_path: Path) -> None:
+def test_validator_rejects_added_personal_terra_variants(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    luna = root / ".config/opencode/agents/architect-planner--personal-luna.md"
-    sonnet = root / ".config/opencode/agents/architect-planner--personal-sonnet.md"
-    luna.rename(sonnet)
+    relative = Path(".config/opencode/agents/architect-planner--personal-terra.md")
+    terra = root / relative
+    source = root / ".config/opencode/agents/architect-planner--personal-luna.md"
+    terra.write_text(source.read_text().replace("personal-luna", "personal-terra").replace("gpt-5.6-luna", "gpt-5.6-terra"))
+    add_manifest_file(root, manifest, relative)
     failures = validate(root, manifest)
-    assert any("personal Sonnet" in failure for failure in failures)
+    assert any("unexpected or generic specialist agents" in failure for failure in failures)
+
+
+def test_validator_rejects_non_review_work_sonnet_variants(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    relative = Path(".config/opencode/agents/engineer-executor--work-sonnet.md")
+    variant = root / relative
+    source = root / ".config/opencode/agents/engineer-executor--work-luna.md"
+    variant.write_text(source.read_text().replace("work-luna", "work-sonnet").replace("gpt-5.6-luna", "claude-sonnet-5"))
+    add_manifest_file(root, manifest, relative)
+    failures = validate(root, manifest)
+    assert any("unexpected or generic specialist agents" in failure for failure in failures)
+
+
+def test_validator_requires_personal_variants(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    variant = root / ".config/opencode/agents/architect-reviewer--personal-glm.md"
+    variant.unlink()
+    assert "architect-reviewer--personal-glm.md" in "\n".join(validate(root, manifest))
+
+
+def test_validator_rejects_non_review_personal_glm_variants(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    relative = Path(".config/opencode/agents/architect-planner--personal-glm.md")
+    variant = root / relative
+    source = root / ".config/opencode/agents/architect-planner--personal-luna.md"
+    variant.write_text(source.read_text().replace("personal-luna", "personal-glm").replace("gpt-5.6-luna", "glm-5"))
+    add_manifest_file(root, manifest, relative)
+    failures = validate(root, manifest)
+    assert any("unexpected or generic specialist agents" in failure for failure in failures)
 
 
 def test_validator_reports_inventory_stale_reference_and_promotion_failures(tmp_path: Path) -> None:
