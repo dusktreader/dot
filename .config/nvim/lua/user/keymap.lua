@@ -62,3 +62,6 @@ vim.keymap.set("n", "<leader>n", "<cmd>Noice dismiss<cr>", { noremap = true })
 
 -- Toggle render-markdown
 vim.keymap.set("n", "<leader>M", "<cmd>RenderMarkdown toggle<cr>", { noremap = true })
+
+-- Enable worktree diff
+vim.keymap.set("n", "<leader>wtd", function() require("user.worktree").diff() end, { noremap = true })

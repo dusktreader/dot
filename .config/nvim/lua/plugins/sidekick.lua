@@ -14,6 +14,11 @@ return {
           cmd = { "opencode", "--continue" },
         },
       },
+      context = {
+        worktree_diff = function(ctx)
+          return require("user.opencode").diff_context(ctx)
+        end,
+      },
     },
   },
   keys = {

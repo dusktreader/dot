@@ -127,3 +127,6 @@ vim.keymap.set("n", "xa", function()
   vim.cmd("xa")
 end)
 
+vim.api.nvim_create_user_command("WtDiff", function(opts)
+  require("user.worktree").diff(opts.args ~= "" and opts.args or nil)
+end, { nargs = "?" })

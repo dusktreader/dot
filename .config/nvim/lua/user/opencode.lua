@@ -42,40 +42,61 @@ local function is_file_buf(buf)
     and vim.fn.filereadable(vim.api.nvim_buf_get_name(buf)) == 1
 end
 
--- Scan upward from a line in the buffer to find diff context:
--- returns { file = "path/to/file.ts", line = 42 } or nil.
-local function find_diff_context(buf, from_line)
-  local all_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
-  local file, hunk_start
+local diff_context = require("user.diff_context")
 
-  -- Scan upward from the selection start.
-  for i = from_line, 1, -1 do
-    local line = all_lines[i]
+local function location_text(item)
+  if item.kind == "add" then return ("inserted before base line %d, worktree lines %d-%d"):format(item.anchor or 1, item.work_from, item.work_to)
+  elseif item.kind == "delete" then return ("base lines %d-%d (deleted)"):format(item.base_from, item.base_to)
+  elseif item.kind == "context" then return ("base lines %d-%d, worktree lines %d-%d"):format(item.base_from, item.base_to, item.work_from, item.work_to) end
+end
 
-    -- Match hunk header: @@ -oldstart,oldcount +newstart,newcount @@
-    if not hunk_start then
-      local new_start = line:match("^@@[^+]*%+(%d+)")
-      if new_start then
-        hunk_start = tonumber(new_start)
+--- Render selected lines from a worktree diff as explicit Sidekick context.
+--- Sidekick calls this while the visual range is still available.
+function M.diff_context(ctx)
+  local metadata = vim.b[ctx.buf].worktree_diff_metadata
+  if not metadata or not ctx.range then return false end
+  local selected = diff_context.selected_lines(vim.api, ctx)
+  if #selected == 0 then return false end
+
+  local groups, order = {}, {}
+  for _, item in ipairs(diff_context.aggregate(metadata, ctx.range.from[1], ctx.range.to[1])) do
+    if item.path then
+      local key = item.path
+      if not groups[key] then
+        groups[key] = { path = item.path, worktree = item.worktree, repo_root = item.repo_root, locations = {} }
+        table.insert(order, key)
       end
+      local location = location_text(item)
+      if location then table.insert(groups[key].locations, location) end
     end
-
-    -- Match "modified   path/to/file" or "new file   path/to/file"
-    if not file then
-      local f = line:match("^%s*modified%s+(.+)$")
-             or line:match("^%s*new file%s+(.+)$")
-             or line:match("^%s*renamed%s+.+%->%s+(.+)$")
-      if f then
-        file = vim.trim(f)
-      end
-    end
-
-    if file and hunk_start then break end
   end
 
-  if file or hunk_start then
-    return { file = file, line = hunk_start }
+  local context = { "Selected patch:" }
+  for _, key in ipairs(order) do
+    local group = groups[key]
+    table.insert(context, ("File: %s"):format(group.path))
+    local display = group.worktree
+    local root = group.repo_root
+    if root and display == root then
+      display = "."
+    elseif root and display:sub(1, #root + 1) == root .. "/" then
+      display = display:sub(#root + 2)
+    end
+    table.insert(context, ("Worktree: %s"):format(display))
+    if #group.locations == 0 then
+      table.insert(context, "Location: selected diff header or hunk metadata")
+    else
+      for _, location in ipairs(group.locations) do
+        table.insert(context, "Location: " .. location)
+      end
+    end
   end
+  if #order == 0 then table.insert(context, "Location: no source hunk line selected") end
+  table.insert(context, "")
+  table.insert(context, "```diff")
+  vim.list_extend(context, selected)
+  table.insert(context, "```")
+  return table.concat(context, "\n")
 end
 
 -- Start a code review by sending the staged diff to opencode.
@@ -104,10 +125,6 @@ end
 -- In a real file buffer: uses sidekick's {this} behavior (file + position context).
 -- In a diff buffer: wraps the selection with file/line context extracted from the hunk.
 function M.send_selection()
-  -- Exit visual mode and capture the marks it leaves behind.
-  local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
-  vim.api.nvim_feedkeys(esc, "x", false)
-
   local buf = vim.api.nvim_get_current_buf()
 
   -- For real file buffers, delegate to sidekick's own send so {this} works normally.
@@ -116,36 +133,11 @@ function M.send_selection()
     return
   end
 
-  local from = vim.api.nvim_buf_get_mark(buf, "<")
-  local to   = vim.api.nvim_buf_get_mark(buf, ">")
-
-  local lines = vim.api.nvim_buf_get_lines(buf, from[1] - 1, to[1], false)
-  if #lines == 0 then
-    vim.notify("opencode: nothing selected", vim.log.levels.WARN)
-    return
-  end
-
-  -- Build a context prefix from the nearest file/hunk header above the selection.
-  local ctx = find_diff_context(buf, from[1])
-  local context_str = ""
-  if ctx and ctx.file then
-    context_str = "In `" .. ctx.file .. "`"
-    if ctx.line then
-      context_str = context_str .. " around line " .. ctx.line
-    end
-    context_str = context_str .. ", look at this part of the diff:\n\n"
+  if vim.b[buf].worktree_diff_metadata then
+    require("sidekick.cli").send({ msg = "{worktree_diff}" })
   else
-    context_str = "Look at this part of the diff specifically:\n\n"
+    require("sidekick.cli").send({ msg = "{selection}" })
   end
-
-  local text = table.concat(lines, "\n")
-  local msg = context_str .. "```diff\n" .. text .. "\n```"
-
-  ensure_open(function()
-    send_to_session(msg, false, function()
-      vim.notify("opencode: selection sent", vim.log.levels.INFO)
-    end)
-  end, true)
 end
 
 return M
