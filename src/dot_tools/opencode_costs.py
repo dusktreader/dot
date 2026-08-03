@@ -7,7 +7,7 @@ from dataclasses import dataclass, fields, replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 from statistics import mean, pstdev
-from typing import Generic, Iterable, Literal, TypeVar
+from typing import Any, Generic, Iterable, Literal, TypeVar
 
 from rich.align import Align
 from rich.console import Console
@@ -280,7 +280,7 @@ class Report:
         for column in columns:
             table.add_column(column.label, no_wrap=True, overflow="ignore")
 
-        def _style(field: Field, value: Any) -> str | None:
+        def _style(field: str, value: Any) -> object:
             style = None
             align_right = False
             match field:

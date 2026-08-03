@@ -13,6 +13,7 @@ dependencies = [
     "gitpython~=3.1",
     "loguru~=0.7",
     "paramiko~=3.5",
+    "plotille>=5.0.0",
     "pprintpp>=0.4.0",
     "py-buzz>=8.0",
     "pydantic>=2.11.4",

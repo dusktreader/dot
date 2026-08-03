@@ -2,6 +2,7 @@
 
 from datetime import date
 from pathlib import Path
+import sys
 from typing import Annotated
 
 import dateparser
@@ -11,6 +12,7 @@ from typerdrive import handle_errors, log_error
 
 from dot_tools.exceptions import OpenCodeError
 from dot_tools.opencode_costs import REPORT_COLUMNS, OpenCodeSessionStore, Report, fields
+from dot_tools.opencode_trends import aggregate_daily_model_costs, render_trends
 
 
 cli = typer.Typer(no_args_is_help=True)
@@ -84,8 +86,23 @@ def costs(
     )
     with OpenCodeSessionStore() as store:
         report = Report.build(store.sessions(), since, until, directory, agent, model, parsed_sort)
-    if file is None:
+    if file is None and format is OutputFormat.table and sys.stdout.isatty():
         report.display()
+    elif file is None:
+        print(report.render(format.value))
     else:
         rendered = report.render(format.value)
         file.write_text(rendered + ("\n" if not rendered.endswith("\n") else ""))
+
+
+@cli.command()
+@handle_errors("Failed to report OpenCode usage trends", do_except=log_error)
+def trends(
+    ctx: typer.Context,
+    since: Annotated[date | None, typer.Option(help="Inclusive start date", parser=_parse_date)] = None,
+    max_models: Annotated[int, typer.Option(min=0, help="Maximum named models before grouping the rest as other")] = 3,
+) -> None:
+    """Chart recorded OpenCode session costs over time."""
+    with OpenCodeSessionStore() as store:
+        series = aggregate_daily_model_costs(store.sessions(), since, max_models)
+    print(render_trends(series))

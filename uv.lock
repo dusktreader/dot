@@ -321,6 +321,7 @@ dependencies = [
     { name = "gitpython" },
     { name = "loguru" },
     { name = "paramiko" },
+    { name = "plotille" },
     { name = "pprintpp" },
     { name = "py-buzz" },
     { name = "pydantic" },
@@ -356,6 +357,7 @@ requires-dist = [
     { name = "gitpython", specifier = "~=3.1" },
     { name = "loguru", specifier = "~=0.7" },
     { name = "paramiko", specifier = "~=3.5" },
+    { name = "plotille", specifier = ">=5.0.0" },
     { name = "pprintpp", specifier = ">=0.4.0" },
     { name = "py-buzz", specifier = ">=8.0" },
     { name = "pydantic", specifier = ">=2.11.4" },
@@ -623,6 +625,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523", size = 63772, upload-time = "2023-11-25T06:56:14.81Z" },
+]
+
+[[package]]
+name = "plotille"
+version = "6.0.5"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/51/a6093145179139e7dffc01aa499b0169c91154a743197a3fd16252a9e90d/plotille-6.0.5.tar.gz", hash = "sha256:26d2cef5d4feb8632c9710442ad49fc57f9d5b20881c21ac7954c76208b5600b", size = 58167, upload-time = "2026-02-17T14:30:31.323Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/08/b7/a098cacb7f81f617157cb9c9c7c5ac66b6ac886075722d443e8e25b5a4b8/plotille-6.0.5-py3-none-any.whl", hash = "sha256:c35be42f8aa080853904d123894194a5ea7e095bdeb76d7b61fd41c89cdeaeee", size = 62532, upload-time = "2026-02-17T14:30:30.235Z" },
 ]
 
 [[package]]
