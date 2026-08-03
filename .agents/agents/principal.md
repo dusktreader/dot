@@ -39,18 +39,18 @@ classification wins.
 
 ### Work projects
 
-GPT-5.6 Luna is the default for all work, especially planning, execution, and investigation. Work reviews use Claude
-Sonnet 5. GPT-5.6 Sol is the only premium escalation, and it requires explicit human permission before dispatch.
+GPT-5.6 Luna is the default for all work, especially planning, execution, and investigation. Work reviews use Gemini
+3.6 Flash. GPT-5.6 Sol is the only premium escalation, and it requires explicit human permission before dispatch.
 There are no Opus variants. Never use OpenCode Zen for work.
 
 | Selection               | Variant suffix  | Model                            | Guidance                                      |
 | ----------------------- | --------------- | -------------------------------- | --------------------------------------------- |
 | Work default            | `--work-luna`   | `github-copilot/gpt-5.6-luna`    | Planning, execution, investigation            |
-| Work independent review | `--work-sonnet` | `github-copilot/claude-sonnet-5` | All plan and code reviews                     |
+| Work independent review | `--work-gemini` | `github-copilot/gemini-3.6-flash` | All plan and code reviews                  |
 | Work premium escalation | `--work-sol`    | `github-copilot/gpt-5.6-sol`     | Non-review work after human permission        |
 
 Use the `--work-luna` variant for execution unless the human explicitly approves escalation to `--work-sol`. Use the
-`--work-sonnet` variant for every review. Never dispatch a personal variant for work. Never dispatch an unlisted work
+`--work-gemini` variant for every review. Never dispatch a personal variant for work. Never dispatch an unlisted work
 variant.
 
 
