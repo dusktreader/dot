@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from typing import Any, Iterable, cast
 
 import plotille
@@ -101,7 +101,7 @@ def render_trends(series: TrendSeries) -> str:
     if not series.dates:
         return NO_DATA_MESSAGE
 
-    x_values = [datetime.combine(value, datetime.min.time()) for value in series.dates]
+    x_values = list(range(len(series.dates)))
     totals = [sum(series.values[name][index] for name in series.series_names) for index in range(len(series.dates))]
     maximum = max(totals, default=0.0)
 
@@ -109,29 +109,31 @@ def render_trends(series: TrendSeries) -> str:
     figure.color_mode = "rgb"
     figure.width = 80
     figure.height = 20
+    columns_per_date = 11
+    figure.width = max(figure.width, (len(series.dates) + 1) * columns_per_date)
     figure.x_label = "Date"
     figure.y_label = "USD"
     figure.set_y_limits(0, max(1.0, maximum * 1.1))
-    if len(x_values) == 1:
-        figure.set_x_limits(x_values[0] - timedelta(days=1), x_values[0] + timedelta(days=1))
+    # Plotille places x-axis ticks every ten columns. Use a separate label line so the
+    # ten-character ISO labels can have a separating column without changing the bars.
+    figure.set_x_limits(-1, -1 + figure.width / columns_per_date)
 
-    def format_date(value: datetime, chars: int, delta: object, left: bool = False) -> str:
-        """Format x-axis ticks as ISO dates."""
-        label = value.date().isoformat()
-        return label.ljust(chars) if left else label.rjust(chars)
+    def format_empty_tick(_value: float, _next_value: float) -> str:
+        """Suppress plotille's fixed-width x-axis tick labels."""
+        return ""
 
     def format_currency(value: float, chars: int, delta: float, left: bool = False) -> str:
         """Format y-axis values as dollar amounts."""
         label = f"${value:.2f}"
         return label.ljust(chars) if left else label.rjust(chars)
 
-    figure.register_label_formatter(datetime, cast(Any, format_date))
     figure.register_label_formatter(float, cast(Any, format_currency))
+    figure.x_ticks_fkt = cast(Any, format_empty_tick)
 
     for model_index, model in enumerate(series.series_names):
         color = series.colors[model]
         values = series.values[model]
-        plot_x: list[datetime] = []
+        plot_x: list[int] = []
         plot_y: list[float] = []
         for index, value in enumerate(values):
             bottom = sum(series.values[name][index] for name in series.series_names[:model_index])
@@ -148,10 +150,40 @@ def render_trends(series: TrendSeries) -> str:
     legend = ["Legend:", "-------"]
     legend.extend(
         plotille.color(
-            f"⠤█⠤ {model}",
+            f"⠤█⠤ {model} (${sum(series.values[model]):.2f})",
             fg=series.colors[model],
             mode=figure.color_mode,
         )
         for model in series.series_names
     )
-    return "OpenCode recorded cost trends ($)\n\n" + figure.show() + "\n\n" + "\n".join(legend)
+    rendered = figure.show()
+    rendered_lines = rendered.splitlines()
+    axis_line = rendered_lines[-1]
+    nonzero_date_indices = [index for index, total in enumerate(totals) if total > 0]
+    baseline_line = next((line for line in rendered_lines if "$0.00 |" in line), "")
+    baseline_bar_positions = [index for index, character in enumerate(baseline_line) if character == "█"]
+    if baseline_bar_positions:
+        first_bar_start = baseline_bar_positions[0] - nonzero_date_indices[0] * columns_per_date
+    else:
+        # A zero-cost series has no plotted points, so use a temporary baseline plot to
+        # obtain plotille's x geometry without displaying fabricated bars in the result.
+        geometry_figure = plotille.Figure()
+        geometry_figure.color_mode = figure.color_mode
+        geometry_figure.width = figure.width
+        geometry_figure.height = figure.height
+        geometry_figure.y_label = "USD"
+        geometry_figure.set_y_limits(0, max(1.0, maximum * 1.1))
+        geometry_figure.set_x_limits(-1, -1 + figure.width / columns_per_date)
+        geometry_figure.register_label_formatter(float, cast(Any, format_currency))
+        geometry_figure.x_ticks_fkt = cast(Any, format_empty_tick)
+        geometry_figure.plot(x_values, [0.0] * len(x_values), interp=None, marker="█")
+        geometry_baseline = next(line for line in geometry_figure.show().splitlines() if "$0.00 |" in line)
+        first_bar_start = geometry_baseline.index("█")
+    label_line = list(axis_line.ljust(first_bar_start + len(series.dates) * columns_per_date))
+    for index, value in enumerate(series.dates):
+        label_start = first_bar_start + index * columns_per_date
+        label_line[label_start : label_start + len(value.isoformat())] = value.isoformat()
+    axis_line = "".join(label_line)
+    rendered_lines[-1] = axis_line
+    rendered = "\n".join(rendered_lines)
+    return "OpenCode recorded cost trends ($)\n\n" + rendered + "\n\n" + "\n".join(legend)
