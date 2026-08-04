@@ -30,14 +30,12 @@ _SPECIALIST_ROLES = (
 _WORK_MODELS = {
     "luna": "github-copilot/gpt-5.6-luna",
     "sol": "github-copilot/gpt-5.6-sol",
-    "sonnet": "github-copilot/claude-sonnet-5",
 }
 _WORK_NON_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" not in role)
 _WORK_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" in role)
 _PERSONAL_MODELS = {
     "luna": "opencode/gpt-5.6-luna",
     "sol": "opencode/gpt-5.6-sol",
-    "glm": "opencode/glm-5",
 }
 _PERSONAL_NON_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" not in role)
 _PERSONAL_REVIEW_ROLES = tuple(role for role in _SPECIALIST_ROLES if "reviewer" in role)
@@ -226,14 +224,14 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         for role in _WORK_NON_REVIEW_ROLES
         for suffix in ("luna", "sol")
     } | {
-        f"{role}--work-sonnet.md": ("work", "sonnet", _WORK_MODELS["sonnet"])
+        f"{role}--work-luna.md": ("work", "luna", _WORK_MODELS["luna"])
         for role in _WORK_REVIEW_ROLES
     } | {
         f"{role}--personal-{suffix}.md": ("personal", suffix, _PERSONAL_MODELS[suffix])
         for role in _PERSONAL_NON_REVIEW_ROLES
         for suffix in ("luna", "sol")
     } | {
-        f"{role}--personal-glm.md": ("personal", "glm", _PERSONAL_MODELS["glm"])
+        f"{role}--personal-luna.md": ("personal", "luna", _PERSONAL_MODELS["luna"])
         for role in _PERSONAL_REVIEW_ROLES
     }
     actual_variants = {path.name for path in config_agents.glob("*.md") if path.name != "principal.md"}
@@ -266,10 +264,8 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
     required_models = {
         "github-copilot/gpt-5.6-luna",
         "github-copilot/gpt-5.6-sol",
-        "github-copilot/claude-sonnet-5",
         "opencode/gpt-5.6-luna",
         "opencode/gpt-5.6-sol",
-        "opencode/glm-5",
     }
     if "## Model selection" not in principal_text or not required_models.issubset(set(re.findall(r"`([^`]+)`", principal_text))):
         failures.append("principal model selection policy is incomplete")
@@ -278,9 +274,9 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         "there are no opus variants",
         "requires explicit human permission before dispatch",
         "never dispatch a `--work-sol` or `--personal-sol` variant without explicit human permission",
-        "use the `--work-sonnet` variant for every review",
+        "including planning, execution, investigation, and independent review",
         "never dispatch an unlisted work variant",
-        "use the `--personal-glm` variant for every review",
+        "never dispatch a work variant for personal work",
         "never dispatch an unlisted personal variant",
     ):
         if phrase.lower() not in normalized_principal:

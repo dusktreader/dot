@@ -15,6 +15,8 @@ from dot_tools.opencode_costs import (
     ReportColumns,
     SessionRecord,
     Report,
+    model_matches_provider,
+    model_provider,
     normalize_model,
 )
 from dot_tools.cli.opencode import _parse_sort
@@ -121,6 +123,30 @@ def test_report_filters_metrics_estimates_and_outliers() -> None:
     assert row.recorded.value == 2.0
     assert row.cache_ratio.value == pytest.approx(20 / 160)
     assert report.recorded_total == 2.0
+
+
+def test_provider_matching_requires_exact_provider_component() -> None:
+    assert model_provider("github-copilot/gpt-5.6-luna") == "github-copilot"
+    assert model_provider("openai/gpt-5.6-luna") == "openai"
+    assert model_provider("gpt-5.6-luna") is None
+    assert model_matches_provider("github-copilot/gpt-5.6-luna", "github-copilot")
+    assert not model_matches_provider("github-copilot/gpt-5.6-luna", "copilot")
+    assert not model_matches_provider("gpt-5.6-luna", "github-copilot")
+
+
+def test_report_filters_provider_before_metrics_and_discloses_it_in_json() -> None:
+    report = Report.build(
+        [
+            record(session_id="github", model="github-copilot/gpt-5.6-luna", cost=2.0),
+            record(session_id="openai", model="openai/gpt-5.6-luna", cost=100.0),
+            record(session_id="unqualified", model="gpt-5.6-luna", cost=100.0),
+        ],
+        provider="github-copilot",
+    )
+    payload = json.loads(report.render("json"))
+    assert [row["session_id"] for row in payload["rows"]] == ["github"]
+    assert payload["filters"]["provider"] == "github-copilot"
+    assert payload["metadata"]["provider"] == "github-copilot"
 
 
 def test_report_rejects_dates_and_handles_empty_and_incomplete_data() -> None:

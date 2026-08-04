@@ -24,6 +24,26 @@ def test_costs_help_and_json_output() -> None:
     assert json.loads(result.output)["rows"][0]["session_id"] == "one"
 
 
+def test_costs_provider_option_filters_sessions_and_help_discloses_option() -> None:
+    runner = CliRunner()
+    with patch("dot_tools.cli.opencode.OpenCodeSessionStore") as store:
+        store.return_value.__enter__.return_value.sessions.return_value = [
+            SessionRecord("work", None, str(Path.home() / "src" / "personal"), "agent", "github-copilot/gpt-5.6-luna",
+                          1760000000000, 1.0, {"input": 1, "output": 1, "reasoning": 0, "cache_read": 0, "cache_write": 0}, None,
+                          "work", "ok"),
+            SessionRecord("personal", None, str(Path.home() / "src" / "personal"), "agent", "openai/gpt-5.6-luna",
+                          1760000000000, 2.0, {"input": 1, "output": 1, "reasoning": 0, "cache_read": 0, "cache_write": 0}, None,
+                          "personal", "ok"),
+        ]
+        result = runner.invoke(cli, ["opencode", "costs", "--provider", "github-copilot", "--format", "json"])
+    assert result.exit_code == 0
+    assert [row["session_id"] for row in json.loads(result.output)["rows"]] == ["work"]
+    assert json.loads(result.output)["filters"]["provider"] == "github-copilot"
+    help_output = runner.invoke(cli, ["opencode", "costs", "--help"]).output
+    assert "--provider" in help_output
+    assert "--scope" not in help_output
+
+
 def test_costs_table_output_is_aligned_and_file_output_has_no_terminal_codes(tmp_path: Path) -> None:
     runner = CliRunner()
     with patch("dot_tools.cli.opencode.OpenCodeSessionStore") as store:

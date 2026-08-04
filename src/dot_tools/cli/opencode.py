@@ -12,7 +12,7 @@ from typerdrive import handle_errors, log_error
 
 from dot_tools.exceptions import OpenCodeError
 from dot_tools.opencode_costs import REPORT_COLUMNS, OpenCodeSessionStore, Report, fields
-from dot_tools.opencode_trends import aggregate_daily_model_costs, render_trends
+from dot_tools.opencode_trends import DEFAULT_MAX_MODELS, aggregate_daily_model_costs, render_trends
 
 
 cli = typer.Typer(no_args_is_help=True)
@@ -77,6 +77,7 @@ def costs(
     sort: Annotated[str | None, typer.Option(help="Sort rows: [asc:|desc:]<column>[,...]")] = None,
     format: Annotated[OutputFormat, typer.Option("--format", help="Output format")] = OutputFormat.table,
     file: Annotated[Path | None, typer.Option("--file", help="Write output to an existing parent directory")] = None,
+    provider: Annotated[str | None, typer.Option(help="Exact model provider filter")] = None,
 ) -> None:
     """Report recorded and locally estimated OpenCode session costs."""
     parsed_sort = _parse_sort(sort) if sort is not None else None
@@ -85,7 +86,7 @@ def costs(
         f"Output parent directory does not exist: {file.parent}" if file is not None else "",
     )
     with OpenCodeSessionStore() as store:
-        report = Report.build(store.sessions(), since, until, directory, agent, model, parsed_sort)
+        report = Report.build(store.sessions(), since, until, directory, agent, model, parsed_sort, provider)
     if file is None and format is OutputFormat.table and sys.stdout.isatty():
         report.display()
     elif file is None:
@@ -100,9 +101,16 @@ def costs(
 def trends(
     ctx: typer.Context,
     since: Annotated[date | None, typer.Option(help="Inclusive start date", parser=_parse_date)] = None,
-    max_models: Annotated[int, typer.Option(min=0, help="Maximum named models before grouping the rest as other")] = 3,
+    max_models: Annotated[
+        int,
+        typer.Option(
+            min=0,
+            help=f"Maximum named models before grouping the rest as other (default: {DEFAULT_MAX_MODELS})",
+        ),
+    ] = DEFAULT_MAX_MODELS,
+    provider: Annotated[str | None, typer.Option(help="Exact model provider filter")] = None,
 ) -> None:
     """Chart recorded OpenCode session costs over time."""
     with OpenCodeSessionStore() as store:
-        series = aggregate_daily_model_costs(store.sessions(), since, max_models)
+        series = aggregate_daily_model_costs(store.sessions(), since, max_models, provider)
     print(render_trends(series))

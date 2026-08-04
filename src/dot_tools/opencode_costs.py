@@ -17,8 +17,6 @@ from rich.text import Text
 
 
 from dot_tools.exceptions import OpenCodeError
-
-
 T = TypeVar("T")
 
 
@@ -156,6 +154,7 @@ class Report:
         agent: str | None = None,
         model: str | None = None,
         sort: list[tuple[str, bool]] | None = None,
+        provider: str | None = None,
     ) -> "Report":
         """Filter sessions, calculate metrics, and identify population outliers."""
         OpenCodeError.require_condition(
@@ -172,6 +171,8 @@ class Report:
             if agent is not None and session.agent != agent:
                 continue
             if model is not None and session.model != model:
+                continue
+            if provider is not None and not model_matches_provider(session.model, provider):
                 continue
             selected.append(session)
         estimates = [cls._estimate(session) for session in selected]
@@ -222,6 +223,7 @@ class Report:
                 "directory": directory,
                 "agent": agent,
                 "model": model,
+                "provider": provider,
             },
             sort=sort,
             recorded_total=recorded_total,
@@ -242,6 +244,7 @@ class Report:
         }
         result["metadata"] = {
             "row_count": len(self.rows),
+            "provider": self.filters["provider"],
             "outlier_metric": self.outlier_metric,
             "outlier_threshold": self.outlier_threshold,
             "outlier_eligible_count": self.outlier_eligible_count,
@@ -398,6 +401,18 @@ def normalize_model(value: str | None) -> str | None:
         provider = parsed["providerID"]
         model = parsed["id"]
     return f"{provider}/{model}"
+
+
+def model_provider(model: str | None) -> str | None:
+    """Return the exact provider component from a normalized model value."""
+    if model is None or "/" not in model:
+        return None
+    return model.split("/", 1)[0]
+
+
+def model_matches_provider(model: str | None, provider: str) -> bool:
+    """Return whether a model has the requested exact provider component."""
+    return model_provider(model) == provider
 
 
 def display_directory(value: str) -> str:
