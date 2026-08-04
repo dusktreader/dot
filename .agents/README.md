@@ -93,3 +93,10 @@ Scripts in `tools/` are executable — invoke them directly. Run any tool with `
 | `tools/align-md-tables.py`       | Rewrite markdown files in place with aligned tables    |
 | `tools/md-to-pdf.py`             | Render markdown files to styled PDF (headless browser) |
 | `tools/create-agent-worktree.py` | Create a branch and repository-local agent worktree    |
+
+
+## Skill discovery
+
+Skills are directories containing a `SKILL.md` file. Search for a named skill with
+`**/*<skill-name>*/SKILL.md` under the skills directory, or read a known skill using its full path. Searching only
+for a skill directory name may not return a result with all filesystem glob implementations.

@@ -48,6 +48,9 @@ export PATH="$PATH:$GOENV_ROOT/bin"
 # Add gobin to path
 export PATH="$PATH:$(go env GOBIN)"
 
+# Add bun to path
+export PATH="$PATH:$HOME/.bun/bin"
+
 # Add generic binaries to the path
 export PATH="~/bin:$PATH"
 
