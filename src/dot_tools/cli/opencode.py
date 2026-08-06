@@ -12,16 +12,36 @@ from typerdrive import handle_errors, log_error
 
 from dot_tools.exceptions import OpenCodeError
 from dot_tools.opencode_costs import REPORT_COLUMNS, OpenCodeSessionStore, Report, fields
+from dot_tools.opencode_staleness_guard import check_before_edit, record_read
 from dot_tools.opencode_trends import DEFAULT_MAX_MODELS, aggregate_daily_model_costs, render_trends
 
 
 cli = typer.Typer(no_args_is_help=True)
+staleness_guard_cli = typer.Typer(no_args_is_help=True)
+cli.add_typer(staleness_guard_cli, name="staleness-guard")
 
 
 class OutputFormat(AutoNameEnum):
     table = auto()
     json = auto()
     csv = auto()
+
+
+@staleness_guard_cli.command("read")
+def staleness_guard_read(file_paths: Annotated[list[Path], typer.Argument()]) -> None:
+    """Record files after OpenCode reads them."""
+    for file_path in file_paths:
+        record_read(file_path)
+
+
+@staleness_guard_cli.command("check")
+def staleness_guard_check(file_paths: Annotated[list[Path], typer.Argument()]) -> None:
+    """Reject files changed since OpenCode last read them."""
+    for file_path in file_paths:
+        error = check_before_edit(file_path)
+        if error is not None:
+            typer.echo(error, err=True)
+            raise typer.Exit(code=1)
 
 
 def _parse_sort(value: str) -> list[tuple[str, bool]]:

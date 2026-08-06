@@ -92,6 +92,12 @@ link_paths=(
     .config/nvim/init.lua
     .config/nvim/lua
     .config/oh-my-posh/dusktreader.omp.yaml
+    .config/opencode/AGENTS.md
+    .config/opencode/agents
+    .config/opencode/tools
+    .config/opencode/plugins
+    .config/opencode/package.json
+    .config/opencode/opencode.json
 )
 for path in "${link_paths[@]}"
 do

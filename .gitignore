@@ -7,6 +7,7 @@
 
 # OpenCode local npm artifacts
 .config/opencode/node_modules/
+.config/opencode/bun.lock
 .config/opencode/package-lock.json
 
 # OpenCode per-project state

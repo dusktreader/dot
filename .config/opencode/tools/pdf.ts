@@ -1,5 +1,4 @@
-import { tool } from "@opencode-ai/plugin"
-async function ensurePypdfCommand(): Promise<boolean> {
+async function ensurePypdfCommand() {
   if (Bun.which("pypdf")) {
     return true
   }
@@ -15,11 +14,14 @@ async function ensurePypdfCommand(): Promise<boolean> {
   return Boolean(Bun.which("pypdf"))
 }
 
-export const extract = tool({
+export const extract = {
   description:
     "Extract readable text from a PDF. Installs the pypdf command with uv on first use when it is unavailable.",
   args: {
-    file_path: tool.schema.string().describe("Absolute path to the PDF file"),
+    file_path: {
+      type: "string",
+      description: "Absolute path to the PDF file",
+    },
   },
   async execute(args, _context) {
     try {
@@ -54,4 +56,4 @@ export const extract = tool({
       return `PDF extraction failed: ${error instanceof Error ? error.message : String(error)}`
     }
   },
-})
+}
