@@ -74,15 +74,13 @@ function validateFile(path, contents) {
     const heading = isHeading(line);
     if (!heading || index === 0) continue;
 
-    const level = heading[1].length;
-    if (level >= 5) errors.push(`${lineNumber}: Avoid heading levels 5 and deeper.`);
     if (/\*\*/.test(line)) errors.push(`${lineNumber}: Do not use bold text in headings.`);
     if (/[.:;!?]$/.test(line)) errors.push(`${lineNumber}: Headings must not end with punctuation.`);
 
     const priorIndex = previousNonBlankLine(lines, index);
     const priorLine = lines[priorIndex] ?? "";
     const priorHeading = isHeading(priorLine);
-    const expectedBlankLines = priorLine === "----" || (priorHeading && level > priorHeading[1].length)
+    const expectedBlankLines = priorLine === "----" || (priorHeading && heading[1].length > priorHeading[1].length)
       ? 1
       : 2;
     const actualBlankLines = blankLinesBefore(lines, index);

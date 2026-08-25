@@ -1,7 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "default_agent": "principal",
-  "model": "github-copilot/claude-sonnet-4.6",
+  "model": "github-copilot/gpt-5.6-luna",
+  "agent": {
+    "build": { "disable": true },
+    "plan": { "model": "github-copilot/gpt-5.6-luna" }
+  },
   "permission": {
     "external_directory": {
       "~/.agents/**": "allow",

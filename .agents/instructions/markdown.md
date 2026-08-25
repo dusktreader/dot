@@ -27,7 +27,7 @@ A brief paragraph describing what this document covers.
 - H1 (`#`): document title only — one per file, first line
 - H2 (`##`): major sections
 - H3–H4 (`###`, `####`): subsections
-- H5+: avoid unless there is very good reason
+- H5+: use when the document structure requires it
 
 No trailing punctuation on headings. No bold in headings.
 
@@ -153,7 +153,6 @@ Wrap all prose lines at 120 characters. Code blocks and tables are exempt.
 
 - Redundant introductions ("This document explains...")
 - Restating the H1 in the first paragraph
-- Deep heading nesting (H5+)
 - Walls of prose — break up into paragraphs or subsections
 - Overuse of bullet lists
 - Inconsistent bullet markers (`-` vs `*` in the same file)
