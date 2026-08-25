@@ -25,5 +25,5 @@ Record the low-risk policy change that removes premium review variants and requi
 
 - `uv run pytest tests/test_validate_staged_agent_policies.py --no-cov`: 74 passed.
 - `uv run ruff check tools/validate_staged_agent_policies.py tests/test_validate_staged_agent_policies.py`: passed.
-- `node ~/.agents/tools/check-markdown-format.mjs .agents/agents/principal.md`: passed.
+- `~/.agents/tools/markdown-format.py check .agents/agents/principal.md`: passed.
 - `git diff --check`: passed.

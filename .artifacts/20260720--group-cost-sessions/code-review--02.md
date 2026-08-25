@@ -48,9 +48,9 @@ workflow-policy validator, and affected tests.
 
 ### Summary
 
-| Finding | Title | Outcome |
-|---------|-------|---------|
-| None    | No new findings | N/A |
+| Finding | Title           | Outcome |
+| ------- | --------------- | ------- |
+| None    | No new findings | N/A     |
 
 
 ## Skills applied

@@ -74,7 +74,7 @@ Expected Output:
 Command:
 
 ```shell
-node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/*.md
+~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/*.md
 ```
 
 Expected Output:

@@ -1,6 +1,5 @@
 # Execution Review: Install manifest dependency ordering
 
-
 ## Source Artifacts
 
 - **Implementation journal**: `.agents/work/20260623-182800--install-manifest-deps/implementation-journal.md`
@@ -21,7 +20,7 @@
 
 ## Verification Evidence
 
-```
+```text
 Linter:   uv run ruff check src tests           → 27 errors (1 in configure.py: E741 ambiguous
                                                    variable `l` at line 412; 26 pre-existing
                                                    errors in other files unrelated to this feature)
@@ -44,53 +43,53 @@ type errors are in files unrelated to this feature.
 
 ## Acceptance Criteria Verification
 
-| AC        | Status | Evidence                                                                                             |
-| --------- | ------ | ---------------------------------------------------------------------------------------------------- |
-| **Task 01**                                                                                                               |
-| 01/AC01   | ✓      | `configure.py:53` — `depends_on` field declared; `test_configure.py:110–112`                         |
-| 01/AC02   | ✓      | `configure.py:53`; `test_configure.py:114–121`                                                       |
-| 01/AC03   | ✓      | `configure.py:53` (default_factory); `test_configure.py:110–112`                                     |
-| 01/AC04   | ✓      | Pydantic handles serialization; `test_configure.py:114–131` load round-trips correctly               |
-| 01/AC05   | ✓      | All existing `TestToolSpecs` tests pass; 43/43 suite green                                           |
-| **Task 02**                                                                                                               |
-| 02/AC01   | ✓      | `configure.py:91–129`; `test_configure.py:224–232` (`test_resolve_tool_order__no_dependencies_returns_valid_order`) |
-| 02/AC02   | ✓      | `configure.py:91–129`; `test_configure.py:234–243` (`test_resolve_tool_order__simple_chain_abc`) and `test_configure.py:245–256` |
-| 02/AC03   | ✓      | `configure.py:100–103`; `test_configure.py:275–283` (`test_resolve_tool_order__unknown_dependency_raises_error`) |
-| 02/AC04   | ⚠      | `configure.py:121–125` raises `DotError` with cycle message, but the message format buries tool names inside a Python tuple string rather than the clean `A → B → C` format specified in the plan. Test only asserts `"Cycle detected"` in message, not that tool names are clearly surfaced. See **S01**. |
-| 02/AC05   | ✓      | `configure.py:104–108`; `test_configure.py:296–302` (`test_resolve_tool_order__self_dependency_raises_error`) — self-dependency detected before `TopologicalSorter`, raises clearly |
-| 02/AC06   | ✓      | `configure.py:91–92`; `test_configure.py:220–222` (`test_resolve_tool_order__empty_list_returns_empty`) |
-| **Task 03**                                                                                                               |
-| 03/AC01   | ✓      | `configure.py:282–283`; `test_configure.py:590–603` (`test_install_tools__calls_resolve_tool_order`) |
-| 03/AC02   | ⚠      | `configure.py:282–283` iterates `resolved_tools`; however the integration test for end-to-end install order (`_install_tools` iterating resolved order with A→B→C) is absent — the test only verifies `resolve_tool_order` was called, not that the install loop actually respects the order under real conditions. See **S02**. |
-| 03/AC03   | ✓      | `configure.py:282` — `resolve_tool_order` is called before the loop; any raised `DotError` propagates through `DotError.handle_errors()` in `install_dot()` at line 745 |
-| 03/AC04   | ✓      | `configure.py:292–294` — check-command skip path is inside the loop over `resolved_tools`, so order is not disturbed |
-| 03/AC05   | ✓      | `configure.py:285–287` — gui_only skip is inside the loop, order not disturbed                       |
-| 03/AC06   | ✓      | All 43 configure tests pass                                                                          |
-| **Task 04**                                                                                                               |
-| 04/AC01   | ✓      | `etc/install.yaml:254–263` — `asdf` entry has no `depends_on` field                                 |
-| 04/AC02   | ✓      | `etc/install.yaml:264–275` — `asdf-go` entry has `depends_on: [asdf]`                               |
-| 04/AC03   | ✓      | `etc/install.yaml:287–297` — `usql` entry has `depends_on: [asdf-go]`                               |
-| 04/AC04   | ✓      | `test_configure.py:179–211` loads the file without error; full suite passes                          |
-| 04/AC05   | ✓      | `test_configure.py:197–211` — verifies dependency fields and `resolve_tool_order` produces correct chain |
-| **Task 05**                                                                                                               |
-| 05/AC01   | ✓      | `test_configure.py:224–232` — multiple independent tools produce valid topological set               |
-| 05/AC02   | ⚠      | `test_configure.py:569–603` verifies `resolve_tool_order` was called, but does not assert the actual installation order of tools A → B → C. The mock returns the raw tool list unchanged, so the test does not exercise the order produced by the resolver. See **S02**. |
-| **Task 06**                                                                                                               |
-| 06/AC01   | ✓      | 43/43 configure tests pass; full suite 233/233 pass                                                  |
-| 06/AC02   | ✓      | 11 new tests pass                                                                                    |
-| 06/AC03   | ✓      | No new ruff errors introduced in `configure.py` or `tests/test_configure.py`                         |
-| 06/AC04   | ✓      | No new `ty check` errors in `configure.py` or `tests/test_configure.py`                              |
-| 06/AC05   | ✓      | All pre-existing `InstallManifest` and `DotInstaller` tests pass unchanged                           |
-| 06/AC06   | ✓      | `configure.py:699` — `_create_local_agents_file` uses `self.install_manifest.tools` (raw YAML order) |
+| AC          | Status | Evidence                                                                                                                                                                                                                                                                                                                         |
+| ----------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Task 01** |        |                                                                                                                                                                                                                                                                                                                                  |
+| 01/AC01     | ✓      | `configure.py:53` — `depends_on` field declared; `test_configure.py:110–112`                                                                                                                                                                                                                                                     |
+| 01/AC02     | ✓      | `configure.py:53`; `test_configure.py:114–121`                                                                                                                                                                                                                                                                                   |
+| 01/AC03     | ✓      | `configure.py:53` (default_factory); `test_configure.py:110–112`                                                                                                                                                                                                                                                                 |
+| 01/AC04     | ✓      | Pydantic handles serialization; `test_configure.py:114–131` load round-trips correctly                                                                                                                                                                                                                                           |
+| 01/AC05     | ✓      | All existing `TestToolSpecs` tests pass; 43/43 suite green                                                                                                                                                                                                                                                                       |
+| **Task 02** |        |                                                                                                                                                                                                                                                                                                                                  |
+| 02/AC01     | ✓      | `configure.py:91–129`; `test_configure.py:224–232` (`test_resolve_tool_order__no_dependencies_returns_valid_order`)                                                                                                                                                                                                              |
+| 02/AC02     | ✓      | `configure.py:91–129`; `test_configure.py:234–243` (`test_resolve_tool_order__simple_chain_abc`) and `test_configure.py:245–256`                                                                                                                                                                                                 |
+| 02/AC03     | ✓      | `configure.py:100–103`; `test_configure.py:275–283` (`test_resolve_tool_order__unknown_dependency_raises_error`)                                                                                                                                                                                                                 |
+| 02/AC04     | ⚠      | `configure.py:121–125` raises `DotError` with cycle message, but the message format buries tool names inside a Python tuple string rather than the clean `A → B → C` format specified in the plan. Test only asserts `"Cycle detected"` in message, not that tool names are clearly surfaced. See **S01**.                       |
+| 02/AC05     | ✓      | `configure.py:104–108`; `test_configure.py:296–302` (`test_resolve_tool_order__self_dependency_raises_error`) — self-dependency detected before `TopologicalSorter`, raises clearly                                                                                                                                              |
+| 02/AC06     | ✓      | `configure.py:91–92`; `test_configure.py:220–222` (`test_resolve_tool_order__empty_list_returns_empty`)                                                                                                                                                                                                                          |
+| **Task 03** |        |                                                                                                                                                                                                                                                                                                                                  |
+| 03/AC01     | ✓      | `configure.py:282–283`; `test_configure.py:590–603` (`test_install_tools__calls_resolve_tool_order`)                                                                                                                                                                                                                             |
+| 03/AC02     | ⚠      | `configure.py:282–283` iterates `resolved_tools`; however the integration test for end-to-end install order (`_install_tools` iterating resolved order with A→B→C) is absent — the test only verifies `resolve_tool_order` was called, not that the install loop actually respects the order under real conditions. See **S02**. |
+| 03/AC03     | ✓      | `configure.py:282` — `resolve_tool_order` is called before the loop; any raised `DotError` propagates through `DotError.handle_errors()` in `install_dot()` at line 745                                                                                                                                                          |
+| 03/AC04     | ✓      | `configure.py:292–294` — check-command skip path is inside the loop over `resolved_tools`, so order is not disturbed                                                                                                                                                                                                             |
+| 03/AC05     | ✓      | `configure.py:285–287` — gui_only skip is inside the loop, order not disturbed                                                                                                                                                                                                                                                   |
+| 03/AC06     | ✓      | All 43 configure tests pass                                                                                                                                                                                                                                                                                                      |
+| **Task 04** |        |                                                                                                                                                                                                                                                                                                                                  |
+| 04/AC01     | ✓      | `etc/install.yaml:254–263` — `asdf` entry has no `depends_on` field                                                                                                                                                                                                                                                              |
+| 04/AC02     | ✓      | `etc/install.yaml:264–275` — `asdf-go` entry has `depends_on: [asdf]`                                                                                                                                                                                                                                                            |
+| 04/AC03     | ✓      | `etc/install.yaml:287–297` — `usql` entry has `depends_on: [asdf-go]`                                                                                                                                                                                                                                                            |
+| 04/AC04     | ✓      | `test_configure.py:179–211` loads the file without error; full suite passes                                                                                                                                                                                                                                                      |
+| 04/AC05     | ✓      | `test_configure.py:197–211` — verifies dependency fields and `resolve_tool_order` produces correct chain                                                                                                                                                                                                                         |
+| **Task 05** |        |                                                                                                                                                                                                                                                                                                                                  |
+| 05/AC01     | ✓      | `test_configure.py:224–232` — multiple independent tools produce valid topological set                                                                                                                                                                                                                                           |
+| 05/AC02     | ⚠      | `test_configure.py:569–603` verifies `resolve_tool_order` was called, but does not assert the actual installation order of tools A → B → C. The mock returns the raw tool list unchanged, so the test does not exercise the order produced by the resolver. See **S02**.                                                         |
+| **Task 06** |        |                                                                                                                                                                                                                                                                                                                                  |
+| 06/AC01     | ✓      | 43/43 configure tests pass; full suite 233/233 pass                                                                                                                                                                                                                                                                              |
+| 06/AC02     | ✓      | 11 new tests pass                                                                                                                                                                                                                                                                                                                |
+| 06/AC03     | ✓      | No new ruff errors introduced in `configure.py` or `tests/test_configure.py`                                                                                                                                                                                                                                                     |
+| 06/AC04     | ✓      | No new `ty check` errors in `configure.py` or `tests/test_configure.py`                                                                                                                                                                                                                                                          |
+| 06/AC05     | ✓      | All pre-existing `InstallManifest` and `DotInstaller` tests pass unchanged                                                                                                                                                                                                                                                       |
+| 06/AC06     | ✓      | `configure.py:699` — `_create_local_agents_file` uses `self.install_manifest.tools` (raw YAML order)                                                                                                                                                                                                                             |
 
 
 ## Scope Verification
 
-| File                          | Justified By                          | Status |
-| ----------------------------- | ------------------------------------- | ------ |
-| `src/dot_tools/configure.py`  | Task 01 (ToolSpecs), Task 02 (resolver), Task 03 (_install_tools) | ✓ |
-| `tests/test_configure.py`     | Tasks 01–06 (all test requirements)   | ✓      |
-| `etc/install.yaml`            | Task 04 (seed manifest)               | ✓      |
+| File                         | Justified By                                                      | Status |
+| ---------------------------- | ----------------------------------------------------------------- | ------ |
+| `src/dot_tools/configure.py` | Task 01 (ToolSpecs), Task 02 (resolver), Task 03 (_install_tools) | ✓      |
+| `tests/test_configure.py`    | Tasks 01–06 (all test requirements)                               | ✓      |
+| `etc/install.yaml`           | Task 04 (seed manifest)                                           | ✓      |
 
 
 ## Prior Review Resolution
@@ -102,34 +101,35 @@ type errors are in files unrelated to this feature.
 
 ### Summary
 
-| Finding | Title                                                               | Outcome |
-| ------- | ------------------------------------------------------------------- | ------- |
-| S01     | Cycle error message buries tool names; format deviates from plan spec |        |
-| S02     | Integration test does not verify actual install ordering            |         |
-| T01     | Redundant `pydantic.Field` annotation on `depends_on`               |         |
-| T02     | Extra blank line at `test_configure.py:315`                         |         |
+| Finding | Title                                                                 | Outcome |
+| ------- | --------------------------------------------------------------------- | ------- |
+| S01     | Cycle error message buries tool names; format deviates from plan spec |         |
+| S02     | Integration test does not verify actual install ordering              |         |
+| T01     | Redundant `pydantic.Field` annotation on `depends_on`                 |         |
+| T02     | Extra blank line at `test_configure.py:315`                           |         |
 
 
 ### Significant
 
 #### S01: Cycle error message buries tool names; format deviates from plan spec
 
-##### Where
+
+#### Where
 
 `src/dot_tools/configure.py:123–125`
 
 
-##### Issue
+#### Issue
 
 The plan's Technical Notes section specifies the cycle error message format as:
 
-```
+```text
 "Cycle detected in tool dependencies: asdf-go → usql → asdf-go. Please check your dependency declarations."
 ```
 
 The implementation produces:
 
-```
+```text
 "Cycle detected in tool dependencies. Please check your dependency declarations. Error: ('nodes are in a cycle', ['asdf-go', 'usql', 'asdf-go'])"
 ```
 
@@ -143,14 +143,14 @@ The test at `test_configure.py:292–294` asserts only `"Cycle detected" in str(
 so this deviation is untested.
 
 
-##### Impact
+#### Impact
 
 A manifest author who triggers a cycle will receive a confusing message with raw Python data
 structures. This degrades the usability guarantee stated in the design plan (AC06 of the design:
 "raises a clear error that names the tools involved in the cycle").
 
 
-##### Fix
+#### Fix
 
 Extract the cycle participants from `CycleError.args[1]` (the list of tool names) and format
 them as an arrow-separated chain:
@@ -176,12 +176,13 @@ assert "c" in str(exc_info.value)
 
 #### S02: Integration test does not verify actual install ordering
 
-##### Where
+
+#### Where
 
 `tests/test_configure.py:569–603` (`test_install_tools__calls_resolve_tool_order`)
 
 
-##### Issue
+#### Issue
 
 The test patches `resolve_tool_order` and asserts it was called, but `mock_resolve.return_value`
 is set to `installer.install_manifest.tools` — the original, unresolved order. The mock bypasses
@@ -197,13 +198,13 @@ Without this test, the key behavioral guarantee — that `_install_tools` actual
 resolved order — is covered only by integration (visual) confidence, not by an automated assertion.
 
 
-##### Impact
+#### Impact
 
 If a future refactor accidentally breaks the loop to iterate `self.install_manifest.tools`
 instead of `resolved_tools`, no test would catch the regression.
 
 
-##### Fix
+#### Fix
 
 Add a test that:
 1. Creates a manifest with tools declared in non-dependency order: C→B, B→A, A (no dep).
@@ -222,12 +223,13 @@ or inspect the sequence of `subprocess.run` calls with the check commands.
 
 #### T01: Redundant `pydantic.Field` in `depends_on` field definition
 
-##### Where
+
+#### Where
 
 `src/dot_tools/configure.py:53`
 
 
-##### Issue
+#### Issue
 
 The `depends_on` field is declared as:
 
@@ -242,7 +244,7 @@ with all other fields in the same file that use only one form. `ServiceSpecs.arg
 which is the canonical pattern in this codebase.
 
 
-##### Fix
+#### Fix
 
 Choose one form. The `Annotated` form matches `ServiceSpecs.args` and the rest of the file:
 
@@ -254,19 +256,20 @@ depends_on: Annotated[list[str], pydantic.Field(default_factory=lambda: [])]
 
 #### T02: Spurious blank line at `test_configure.py:315`
 
-##### Where
+
+#### Where
 
 `tests/test_configure.py:315`
 
 
-##### Issue
+#### Issue
 
 There is an extra blank line between the end of `TestResolveToolOrder` and the
 `TestDotInstallerInit` class. Two blank lines between top-level classes is the Python standard
 (PEP 8); three are present here.
 
 
-##### Fix
+#### Fix
 
 Remove the extra blank line.
 

@@ -7,13 +7,12 @@ and returned to the caller — not written as a persistent file artifact in most
 
 ## Template Variables
 
-| Variable  | Description                                              |
-| --------- | -------------------------------------------------------- |
-| `title`   | Short descriptive title for the investigation            |
+| Variable | Description                                   |
+| -------- | --------------------------------------------- |
+| `title`  | Short descriptive title for the investigation |
 
 
 ## Sections
-
 
 ### Question
 

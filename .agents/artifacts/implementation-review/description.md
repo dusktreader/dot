@@ -6,14 +6,13 @@ consumed by the orchestrator to drive a conversation with the human before the p
 
 ## Template Variables
 
-| Variable  | Description                                                              |
-| --------- | ------------------------------------------------------------------------ |
-| `title`   | Title of the implementation plan being reviewed                          |
-| `n`       | Zero-padded iteration number (`01` for first review, `02`+ for re-reviews) |
+| Variable | Description                                                                |
+| -------- | -------------------------------------------------------------------------- |
+| `title`  | Title of the implementation plan being reviewed                            |
+| `n`      | Zero-padded iteration number (`01` for first review, `02`+ for re-reviews) |
 
 
 ## Sections
-
 
 ### Source Artifact
 
@@ -35,7 +34,6 @@ Omit entirely for the first review.
 
 
 ### Findings
-
 
 #### Summary
 

@@ -5,8 +5,10 @@ description: Makes a low-risk current-branch change with a hack journal and focu
 
 # Run Hack Skill
 
-Make a low-risk change directly on the current branch with the smallest useful record and verification. This workflow uses
+Make a low-risk change directly on the current branch with the smallest useful record and verification. This workflow
+uses
 no agent worktree and no Git lifecycle. It uses no worktree and does not create one.
+
 
 ## When to use
 
@@ -15,14 +17,18 @@ the current branch, including `main`.
 
 Do not use it when objective evidence requires a fuller workflow.
 
+
 ## Artifacts
 
 Create only one artifact: `.artifacts/{YYYYMMDD}--{project-name}/hack-journal.md`.
 
+
 ## Prohibitions
 
-This workflow never creates or switches branches, never creates a worktree, never commits or squashes, never pushes, and never creates a PR. It
+This workflow never creates or switches branches, never creates a worktree, never commits or squashes, never pushes, and
+never creates a PR. It
 has no plan, reviewer, or human gate by default.
+
 
 ## Process
 

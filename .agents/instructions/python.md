@@ -10,7 +10,7 @@ file explicitly overrides them.
 
 Docstrings that can be written on a single line should have their triple quotes in-line:
 
-```
+```text
 # WRONG
 def foo(client: Client) -> Result:
     """
@@ -24,7 +24,7 @@ def foo(client: Client) -> Result:
 
 Docstring sthat require multiple lines due to their length should have triple quotes on their own lines:
 
-```
+```text
 # WRONG
 def foo(client: Client) -> Result:
     """Execute a foo operation on the client and reformat the response as a Result.
@@ -41,13 +41,14 @@ def foo(client: Client) -> Result:
     """
 ```
 
+
 ### Voice and content
 
 The first line of a docstring should always use imperative voice and include proper punctuation. It should be a single
 line followed by an empty line. Further explanation, argument documentation, return explanation, examples, callouts,
 etc may be included after the empty line:
 
-```
+```text
 # WRONG
 def foo(client: Client) -> Result:
     """
@@ -63,6 +64,7 @@ def foo(client: Client) -> Result:
     The result will be validated and missing values will be filled in with defaults.
     """
 ```
+
 
 ### Assume markdown (not Sphinx)
 

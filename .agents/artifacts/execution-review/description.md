@@ -7,13 +7,12 @@ quality standards. Produced by a reviewer agent.
 
 ## Template Variables
 
-| Variable  | Description                                        |
-| --------- | -------------------------------------------------- |
-| `title`   | Title of the implementation plan being reviewed    |
+| Variable | Description                                     |
+| -------- | ----------------------------------------------- |
+| `title`  | Title of the implementation plan being reviewed |
 
 
 ## Sections
-
 
 ### Source Artifacts
 

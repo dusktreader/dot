@@ -28,12 +28,11 @@ The review surfaced findings:
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                                    | Outcome |
-| ------- | ------------------------------------------------------------------------ | ------- |
-| S01     | Task 08 AC02 covers happy path only; missing-project-context AC absent   |         |
+| Finding | Title                                                                           | Outcome |
+| ------- | ------------------------------------------------------------------------------- | ------- |
+| S01     | Task 08 AC02 covers happy path only; missing-project-context AC absent          |         |
 | T01     | Task 06 AC06 still overlaps Task 05 AC04 without a worktree-specific observable |         |
 
 
@@ -41,12 +40,13 @@ The review surfaced findings:
 
 #### S01: Task 08 AC02 covers happy path only; missing-project-context AC absent
 
-##### Where
+
+#### Where
 
 Execution — Task 08 — Acceptance Criteria — approximately line 555.
 
 
-##### Issue
+#### Issue
 
 AC02 asserts the happy path: the workflow locates the existing implementation project and attaches artifacts at its
 established path. The failure mode — when the project cannot be located, the artifact directory is ambiguous, or the
@@ -60,14 +60,14 @@ external context before worktree setup can proceed meaningfully. A missing or am
 high-probability failure mode, not an edge case.
 
 
-##### Impact
+#### Impact
 
 An executor implementing Task 08 can pass all AC without implementing closed-failure behavior. A reviewer checking
 AC01–AC06 at completion will find no basis to flag a missing-project-path guard as an omission. The gap surfaces at
 runtime rather than at review time.
 
 
-##### Suggestion
+#### Suggestion
 
 Add an AC between the current AC02 and AC03:
 
@@ -78,22 +78,22 @@ Add an AC between the current AC02 and AC03:
 Renumber subsequent ACs or use the `AC02b` label to preserve existing references.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ### Trivial
 
 #### T01: Task 06 AC06 still overlaps Task 05 AC04 without a worktree-specific observable
 
-##### Where
+
+#### Where
 
 Execution — Task 06 — Acceptance Criteria — AC06 — approximately line 458.
 
 
-##### Issue
+#### Issue
 
 AC06 asserts principal ownership of model choice, escalation, risk classification, approval decisions, and Zen
 exclusion for work-project dispatch. Task 05 AC04 already asserts: "Staged principal, executor, investigator,
@@ -103,14 +103,14 @@ is the worktree-enabled feature and task guidance; AC06 adds no observable behav
 integration gates, or cleanup.
 
 
-##### Impact
+#### Impact
 
 An executor completing Task 06 has no worktree-scoped criterion to verify for AC06. The coverage gap may cause a
 reviewer to accept Task 06 as done without verifying any worktree-lifecycle-specific observable tied to model
 dispatch.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace AC06 with a worktree-specific observable:
 
@@ -119,11 +119,10 @@ Replace AC06 with a worktree-specific observable:
 > policy documented in Task 05 AC04.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ## Notes
 

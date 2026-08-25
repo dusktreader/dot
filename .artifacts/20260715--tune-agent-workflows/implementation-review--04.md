@@ -37,7 +37,6 @@ The review surfaced findings:
 
 ## Findings
 
-
 ### Summary
 
 | Finding | Title                                                  | Outcome |
@@ -49,12 +48,13 @@ The review surfaced findings:
 
 #### T01: Task 06 AC06 still overlaps Task 05 AC04 substantively
 
-##### Where
+
+#### Where
 
 Task 06 — Acceptance Criteria — AC06 — approximately line 456.
 
 
-##### Issue
+#### Issue
 
 AC06 now reads: "Staged guidance selects model-specific specialist variants from the defined staged OpenCode variant
 inventory, assigns model choice, escalation, risk classification, and approval decisions to the principal, and prevents
@@ -65,7 +65,7 @@ enforce the work-project versus personal-project model menus." Both criteria ass
 integration gates, or the lifecycle changes that are Task 06's subject matter.
 
 
-##### Impact
+#### Impact
 
 An executor completing Task 06 has no worktree-scoped check to verify. If model dispatch is already asserted by
 Task 05 AC04, a later execution review will either mark AC06 redundant or accept Task 06 as done without verifying
@@ -73,18 +73,17 @@ any worktree-specific observable. The criterion does not block implementation, b
 review time.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace AC06 with a worktree-specific observable: "Worktree creation, gate prompts, integration steps, and cleanup
 instructions in the staged `run-feature` and `run-task` guidance contain no model-selection language, deferring model
 choice entirely to the principal dispatch policy documented in Task 05 AC04."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ## Notes
 

@@ -44,11 +44,11 @@ outcome instead. Those details belong in the implementation plan.
 
 The line between design and implementation:
 
-| Design plan (correct)                              | Implementation plan (not here)                        |
-| -------------------------------------------------- | ----------------------------------------------------- |
-| The UI fetches runtime config at startup           | `config.ts` calls `fetch('/config.json')` on load     |
-| The release pipeline verifies images before deploy | `verify-images/action.yml` accepts a `sha` input      |
-| Terraform applies are manually triggered only      | `terraform-dev.yml` uses `on: workflow_dispatch`      |
+| Design plan (correct)                              | Implementation plan (not here)                          |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| The UI fetches runtime config at startup           | `config.ts` calls `fetch('/config.json')` on load       |
+| The release pipeline verifies images before deploy | `verify-images/action.yml` accepts a `sha` input        |
+| Terraform applies are manually triggered only      | `terraform-dev.yml` uses `on: workflow_dispatch`        |
 | The bundle is built once and promoted unchanged    | `release.yml` uploads `ui/dist/` as a workflow artifact |
 
 Implementation plans follow design plans. Those documents explain the HOW.
@@ -85,3 +85,6 @@ project. The rendered file must contain no placeholder text when submitted.
 
 Before writing, read and follow `~/.agents/instructions/markdown.md`. All heading spacing,
 list formatting, line length, and code fence rules apply to every plan artifact.
+
+Before submitting the artifact, run the `markdown_format` OpenCode tool with `mode: "format"`. Do not run `check`
+during normal agent work; formatting handles the Markdown style rules automatically.

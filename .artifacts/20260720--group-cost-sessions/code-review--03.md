@@ -40,10 +40,10 @@ main-integration invariants.
 
 ### Summary
 
-| Finding | Title | Outcome |
-|---------|-------|---------|
-| C01 | `review-pr` remains an additional publishing workflow | Resolved |
-| S01 | Validator does not enforce rebase and approval before main integration | Resolved |
+| Finding | Title                                                                  | Outcome  |
+| ------- | ---------------------------------------------------------------------- | -------- |
+| C01     | `review-pr` remains an additional publishing workflow                  | Resolved |
+| S01     | Validator does not enforce rebase and approval before main integration | Resolved |
 
 
 ### Critical

@@ -72,7 +72,6 @@ documents.
 
 ## Process
 
-
 ### 1. Understand the plan
 
 - Read the complete implementation plan document.

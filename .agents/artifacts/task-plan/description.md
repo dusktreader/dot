@@ -12,13 +12,12 @@ a full implementation plan would be more appropriate.
 
 ## Template variables
 
-| Variable | Description                                         |
-| -------- | --------------------------------------------------- |
-| `title`  | Short descriptive title for the task (≤ 8 words)    |
+| Variable | Description                                      |
+| -------- | ------------------------------------------------ |
+| `title`  | Short descriptive title for the task (≤ 8 words) |
 
 
 ## Sections
-
 
 ### Goal
 

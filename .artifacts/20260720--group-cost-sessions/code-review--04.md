@@ -46,9 +46,9 @@ main-integration ordering, and normal versus temporary agent-branch behavior.
 
 ### Summary
 
-| Finding | Title | Outcome |
-|---------|-------|---------|
-| C01 | `run-pr` can publish the temporary `review-pr` audit branch | Open |
+| Finding | Title                                                       | Outcome |
+| ------- | ----------------------------------------------------------- | ------- |
+| C01     | `run-pr` can publish the temporary `review-pr` audit branch | Open    |
 
 
 ### Critical

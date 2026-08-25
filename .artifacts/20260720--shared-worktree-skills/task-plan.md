@@ -45,7 +45,7 @@ Validated complete staged policy set: <staging-root>
 Command:
 
 ```shell
-node ~/.agents/tools/check-markdown-format.mjs \
+~/.agents/tools/markdown-format.py check \
   .agents/skills/create-agent-worktree/SKILL.md \
   .agents/skills/cleanup-agent-worktree/SKILL.md \
   .agents/skills/run-feature/SKILL.md \

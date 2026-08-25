@@ -49,9 +49,9 @@ approval cannot establish that the current setup and validation contracts remain
 
 ### Summary
 
-| Finding | Title                                                        | Outcome |
-| ------- | ------------------------------------------------------------ | ------- |
-| S01     | Workflow setup does not consistently implement branch modes | Resolved |
+| Finding | Title                                                        | Outcome  |
+| ------- | ------------------------------------------------------------ | -------- |
+| S01     | Workflow setup does not consistently implement branch modes  | Resolved |
 | S02     | Validator replaces required policy checks with weaker checks | Resolved |
 
 

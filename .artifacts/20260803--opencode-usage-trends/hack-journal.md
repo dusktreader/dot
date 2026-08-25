@@ -48,7 +48,7 @@ labels and two spaces between `2025-10-09`, `2025-10-10`, and `2025-10-11`.
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -70,7 +70,7 @@ Added focused coverage for the six-model default, seventh-model grouping, and ex
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -89,7 +89,7 @@ Updated focused trend coverage to assert that the divider directly precedes the 
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -109,7 +109,7 @@ Added focused coverage for multi-model totals, provider-filtered totals, grouped
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -135,7 +135,7 @@ tests/test_cli_opencode_trends.py` passed with 61 tests.
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -158,7 +158,7 @@ tests/test_cli_opencode_trends.py` passed with 61 tests.
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -176,7 +176,7 @@ tests/test_cli_opencode_trends.py` passed.
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -195,7 +195,7 @@ tests/test_cli_opencode_trends.py` passed.
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
@@ -229,12 +229,12 @@ entry, total, and single divider immediately before the total. Provider filterin
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.
 
 `uv run ruff check src tests` passed.
 
-`node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
+`~/.agents/tools/markdown-format.py check .artifacts/20260803--opencode-usage-trends/hack-journal.md` passed.
 
 `git diff --check` passed.

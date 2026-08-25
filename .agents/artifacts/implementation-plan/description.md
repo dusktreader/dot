@@ -7,13 +7,12 @@ It names specific files, modules, functions, and parameters. It defines tests at
 
 ## Template Variables
 
-| Variable  | Description                                          |
-| --------- | ---------------------------------------------------- |
-| `title`   | Short descriptive title for the implementation plan  |
+| Variable | Description                                         |
+| -------- | --------------------------------------------------- |
+| `title`  | Short descriptive title for the implementation plan |
 
 
 ## Sections
-
 
 ### Goal
 
@@ -51,6 +50,7 @@ two-digit prefix (e.g. `### 01: task-name`).
 
 Each task contains:
 
+
 #### Acceptance Criteria
 
 Testable criteria for the task. Numbered `AC01`, `AC02`, etc. within the task.
@@ -61,11 +61,13 @@ observable and directly verifiable in code or output.
 Good AC: `AC01`: `GET /users` returns 200 with `[]` when no users exist
 Bad AC: The API works as expected
 
+
 #### Steps
 
 Concise, sequential steps to complete the task. Steps for functionality tasks follow
 test-driven design: write the failing test → run it → implement → run it again. Steps for
 infrastructure tasks are literal shell or file operations.
+
 
 #### Technical Notes
 

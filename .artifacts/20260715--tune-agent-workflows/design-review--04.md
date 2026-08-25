@@ -31,10 +31,10 @@ The review surfaced findings:
 
 ### Summary
 
-| Finding | Title                                               | Outcome |
-| ------- | --------------------------------------------------- | ------- |
+| Finding | Title                                               | Outcome                                                                                                                                                            |
+| ------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | S01     | "Regenerating" in AC17 is undefined                 | Accepted: parent drift stops the workflow; with explicit approval, regeneration discards the agent worktree and audit branch and restarts from the updated parent. |
-| T01     | AC04 escalation signal not cross-referenced to AC08 | Accepted: AC04 now explicitly uses AC08's hard-signal list. |
+| T01     | AC04 escalation signal not cross-referenced to AC08 | Accepted: AC04 now explicitly uses AC08's hard-signal list.                                                                                                        |
 
 
 ### Significant

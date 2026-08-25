@@ -7,9 +7,9 @@ Reference: "GitHub Copilot Token Optimization Deep Dive," Microsoft Reactor
 
 ## Template variables
 
-| Variable | Description                              |
-| -------- | ---------------------------------------- |
-| `label`  | Short label or first line of the prompt  |
+| Variable | Description                             |
+| -------- | --------------------------------------- |
+| `label`  | Short label or first line of the prompt |
 
 
 ## Sections

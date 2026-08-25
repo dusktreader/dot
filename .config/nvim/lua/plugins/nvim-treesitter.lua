@@ -27,11 +27,6 @@ return {
       "vim",
       "vimdoc",
     },
-    auto_install = true,
-    indent = {
-      enable = true,
-      disable = { "python" },
-    },
   },
   config = function(_, opts)
     -- On Apple Silicon, ensure parsers are compiled for ARM64
@@ -44,11 +39,13 @@ return {
       end
     end
     
-    local ok, configs = pcall(require, "nvim-treesitter.configs")
-    if ok then
-      configs.setup(opts)
-    else
-      vim.notify("nvim-treesitter.configs not available yet. Try running :TSUpdate", vim.log.levels.WARN)
-    end
+    require("nvim-treesitter").setup({ install_dir = vim.fn.stdpath("data") .. "/site" })
+    require("nvim-treesitter").install(opts.ensure_installed)
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = opts.ensure_installed,
+      callback = function(args)
+        vim.treesitter.start(args.buf)
+      end,
+    })
   end,
 }

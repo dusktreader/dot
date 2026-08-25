@@ -32,9 +32,9 @@ The review surfaced findings:
 
 ### Summary
 
-| Finding | Title                                             | Outcome |
-| ------- | ------------------------------------------------- | ------- |
-| S01     | "by default" leaves task workflow push scope open | Made the workflow's push and PR prohibition unconditional. |
+| Finding | Title                                             | Outcome                                                        |
+| ------- | ------------------------------------------------- | -------------------------------------------------------------- |
+| S01     | "by default" leaves task workflow push scope open | Made the workflow's push and PR prohibition unconditional.     |
 | T01     | "selects suggestively" is undefined in AC09       | Replaced the phrase with direct model-recommendation behavior. |
 
 
@@ -42,12 +42,13 @@ The review surfaced findings:
 
 #### S01: "by default" leaves task workflow push scope open
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC02, line 36
 
 
-##### Issue
+#### Issue
 
 AC02 states the task workflow "does not push or create a pull request by default." The phrase
 "by default" implies that push and pull-request creation are available through some non-default
@@ -55,7 +56,7 @@ opt-in path, but no such path is defined anywhere in the plan. An implementer re
 need to invent — or omit — the opt-in mechanism.
 
 
-##### Impact
+#### Impact
 
 If the intent is that push and PR are simply never performed by `run-task`, "by default" is
 misleading and blocks a clean implementation boundary. If a future opt-in is intended, the
@@ -64,14 +65,14 @@ testable: a reviewer cannot determine whether the absence of a push flag is corr
 or a missing feature.
 
 
-##### Suggestion
+#### Suggestion
 
 If push and PR are permanently outside `run-task`'s authority, remove "by default" and state
 the prohibition unconditionally. If a future opt-in is planned, name the flag or mechanism and
 describe its authority boundary.
 
 
-##### Outcome
+#### Outcome
 
 Made the workflow's push and PR prohibition unconditional.
 
@@ -81,33 +82,34 @@ Made the workflow's push and PR prohibition unconditional.
 
 #### T01: "selects suggestively" is undefined in AC09
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC09, line 95
 
 
-##### Issue
+#### Issue
 
 AC09 says "The principal selects suggestively." "Suggestively" is not a standard term for
 model-selection behavior. It is likely intended to mean the principal proposes a model and may
 escalate independently without requiring approval, but this reading requires inference.
 
 
-##### Impact
+#### Impact
 
 Minimal — the surrounding sentences make the intent recoverable. However, the word could lead
 to inconsistent behavior across agents interpreting this AC, particularly for the escalation
 path.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace with a direct statement of what the principal does: "The principal recommends a model
 based on project class and evidence, and may escalate independently without seeking approval
 unless the change represents a material cost tradeoff."
 
 
-##### Outcome
+#### Outcome
 
 Replaced the phrase with direct model-recommendation behavior.
 

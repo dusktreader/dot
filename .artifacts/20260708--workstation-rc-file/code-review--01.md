@@ -33,11 +33,11 @@ Coverage: 28% total (below 70% threshold) — pre-existing gap, not introduced h
 
 ### Summary
 
-| Finding | Title                                                                  | Outcome |
-| ------- | ---------------------------------------------------------------------- | ------- |
-| S01     | `~/` path detection fragile: won't match bare `~` or `~user/` forms   | Fixed: guard broadened to `raw.startswith("~")`; uses `lstrip` to strip prefix; comment added explaining why `expanduser()` is avoided. |
-| S02     | Missing test: `_create_dotrc_local` content verified only by existence | Fixed: added `assert "# ~/.dotrc_local" in content` and `assert "machine-local" in content`. |
-| T01     | Trailing blank lines in `TestDotInstallerUpdateDotfiles`               | Fixed: reduced to single blank line before section divider. |
+| Finding | Title                                                                  | Outcome                                                                                                                                                       |
+| ------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| S01     | `~/` path detection fragile: won't match bare `~` or `~user/` forms    | Fixed: guard broadened to `raw.startswith("~")`; uses `lstrip` to strip prefix; comment added explaining why `expanduser()` is avoided.                       |
+| S02     | Missing test: `_create_dotrc_local` content verified only by existence | Fixed: added `assert "# ~/.dotrc_local" in content` and `assert "machine-local" in content`.                                                                  |
+| T01     | Trailing blank lines in `TestDotInstallerUpdateDotfiles`               | Fixed: reduced to single blank line before section divider.                                                                                                   |
 | T02     | `TestDotInstallerUpdateDotfiles` methods over-indented by one level    | Deferred: indentation is pre-existing across the whole class; correcting it produces a noisy unrelated diff with no correctness benefit. Logged as follow-up. |
 
 
@@ -45,12 +45,13 @@ Coverage: 28% total (below 70% threshold) — pre-existing gap, not introduced h
 
 #### S01: `~/` path detection fragile — won't match bare `~` or `~user/` forms
 
-##### Where
+
+#### Where
 
 `src/dot_tools/configure.py:418`
 
 
-##### Issue
+#### Issue
 
 The `~/` check uses `raw.startswith("~/")`, which correctly handles the one declared path
 (`~/.dotrc_local`). However, the logic is brittle in two ways:
@@ -74,7 +75,7 @@ test harness. The right fix is to guard the whole branch on `raw.startswith("~")
 comment explaining why `expanduser()` is intentionally avoided.
 
 
-##### Impact
+#### Impact
 
 Silent wrong-path entries in `.extra_dotfiles` for any manifest path starting with `~` but
 not followed by `/`. A future typo won't produce an error — the shell will just silently
@@ -82,7 +83,7 @@ source a non-existent file (no-op under `[[ -e ... ]]` guard), making the dotfil
 be missing with no clear error message.
 
 
-##### Fix
+#### Fix
 
 ```python
 raw = str(path)
@@ -102,12 +103,13 @@ or add a `DotError.require_condition` assertion that rejects bare `~` without a 
 
 #### S02: Missing content assertion in `test_create_dotrc_local__creates_file_when_absent`
 
-##### Where
+
+#### Where
 
 `tests/test_configure.py:484`
 
 
-##### Issue
+#### Issue
 
 `test_create_dotrc_local__creates_file_when_absent` only asserts `dotrc_local_path.exists()`.
 It does not verify that the created file contains the expected comment header. If
@@ -117,13 +119,13 @@ The behavior being tested is "creates a file with a comment header on first run"
 that behavior — the header content — is untested.
 
 
-##### Impact
+#### Impact
 
 The content contract for the stub file is invisible to tests. A refactor that silently
 changes or removes the header passes all tests.
 
 
-##### Fix
+#### Fix
 
 Add content assertions to the existing test:
 
@@ -139,12 +141,13 @@ assert "machine-local" in content
 
 #### T01: Trailing blank lines in `TestDotInstallerUpdateDotfiles`
 
-##### Where
+
+#### Where
 
 `tests/test_configure.py:472`
 
 
-##### Issue
+#### Issue
 
 Four consecutive blank lines appear after the last method of `TestDotInstallerUpdateDotfiles`
 (lines 472–476). The rest of the file uses a single blank line between the last method and
@@ -152,7 +155,7 @@ the section divider comment. This is inconsistent and was likely left over from 
 edit.
 
 
-##### Fix
+#### Fix
 
 Reduce to a single blank line before the `# ---` section divider.
 
@@ -160,12 +163,13 @@ Reduce to a single blank line before the `# ---` section divider.
 
 #### T02: `TestDotInstallerUpdateDotfiles` methods over-indented by one level
 
-##### Where
+
+#### Where
 
 `tests/test_configure.py:430`
 
 
-##### Issue
+#### Issue
 
 All four methods in `TestDotInstallerUpdateDotfiles` are indented with 5 spaces instead of
 4. This is a visible artifact from the diff — the existing three tests were re-indented as
@@ -177,7 +181,7 @@ because the code is syntactically valid Python (Python accepts any consistent in
 inside a class body).
 
 
-##### Fix
+#### Fix
 
 Re-indent all four method bodies in `TestDotInstallerUpdateDotfiles` to 4-space indentation,
 matching the rest of the test file.
@@ -193,4 +197,5 @@ matching the rest of the test file.
 
 **APPROVED**
 
-All Critical and Significant findings resolved. T01 fixed. T02 deferred as follow-up (pre-existing indentation issue, not introduced by this task).
+All Critical and Significant findings resolved. T01 fixed. T02 deferred as follow-up (pre-existing indentation issue,
+not introduced by this task).

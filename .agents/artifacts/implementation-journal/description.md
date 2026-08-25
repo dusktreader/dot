@@ -11,13 +11,12 @@ implementer as they work, one section per task. Provides the evidence trail for 
 
 ## Template Variables
 
-| Variable     | Description                                              |
-| ------------ | -------------------------------------------------------- |
-| `plan_title` | Title of the implementation plan this journal covers     |
+| Variable     | Description                                          |
+| ------------ | ---------------------------------------------------- |
+| `plan_title` | Title of the implementation plan this journal covers |
 
 
 ## Sections
-
 
 ### Source Plan
 
@@ -35,6 +34,7 @@ followed by a brief explanation if incomplete.
 One `### Task NN: name` subsection per task in the plan, in order.
 
 Each task subsection contains:
+
 
 #### Status
 

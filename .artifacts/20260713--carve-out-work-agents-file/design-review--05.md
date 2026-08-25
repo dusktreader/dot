@@ -29,52 +29,54 @@ The review surfaced the following findings:
 
 ### Summary
 
-| Finding | Title                                              | Outcome |
-| ------- | -------------------------------------------------- | ------- |
-| T01     | Grammar error in Technical Notes credential note  |         |
-| T02     | AC21 does not name the directing CLIs              |         |
+| Finding | Title                                            | Outcome |
+| ------- | ------------------------------------------------ | ------- |
+| T01     | Grammar error in Technical Notes credential note |         |
+| T02     | AC21 does not name the directing CLIs            |         |
 
 
 ### Trivial
 
 #### T01: Grammar error in Technical Notes credential note
 
-##### Where
+
+#### Where
 
 Technical Notes — lines 441–443 (`"neither CLI reads it, writes it, or removes it"`)
 
 
-##### Issue
+#### Issue
 
 "reads it, writes it, or removes it" uses "or" in a negative context where "nor" is grammatically correct.
 The intended meaning is "neither CLI reads it, writes it, nor removes it."
 
 
-##### Impact
+#### Impact
 
 Minimal — the meaning is clear despite the error, but the construction is non-standard and could read
 awkwardly in a formal document.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace "neither CLI reads it, writes it, or removes it" with "neither CLI reads it, writes it, nor
 removes it."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### T02: AC21 does not name the directing CLIs
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC21, lines 190–193
 
 
-##### Issue
+#### Issue
 
 AC21 states that agent instructions "direct readers to fetch secrets through the appropriate CLI" but
 does not name `dt` and `wdt` explicitly. AC25 supplies that detail, but AC21 in isolation leaves
@@ -82,19 +84,19 @@ does not name `dt` and `wdt` explicitly. AC25 supplies that detail, but AC21 in 
 the updated guidance.
 
 
-##### Impact
+#### Impact
 
 Minimal — AC25 fully specifies the CLI-by-scope split, so no implementation ambiguity exists. The gap
 is a clarity issue within AC21's own text, not a coverage gap.
 
 
-##### Suggestion
+#### Suggestion
 
 Append to AC21: "Personal-secret guidance names `dt secrets fetch`; work-secret guidance names
 `wdt secrets fetch`."
 
 
-##### Outcome
+#### Outcome
 
 
 ----

@@ -35,12 +35,13 @@ The review surfaced the following findings:
 
 #### S01: Settings dependency parity is an open unknown, not a confirmed AC
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC05 (line 59); Unknowns — "Settings dependency model parity" (line 179)
 
 
-##### Issue
+#### Issue
 
 AC05 states definitively that "The settings section behaves the same way as the tools section" with
 its own independent resolver. At the same time, the Unknowns section calls out "confirm that settings
@@ -52,14 +53,14 @@ If the unknown is genuinely open, AC05 should not exist yet. If it has been reso
 inclusion, the unknown should be removed or marked with its resolution.
 
 
-##### Impact
+#### Impact
 
 An implementer reading the AC will build settings support. An implementer reading the Unknowns section
 will wait for a decision. This contradiction makes the scope of the feature ambiguous and will cause
 confusion during implementation planning.
 
 
-##### Suggestion
+#### Suggestion
 
 Either:
 
@@ -69,19 +70,20 @@ Either:
    with a separate per-section resolver."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### S02: AC07 conflates runtime skip behavior with ordering — needs clarity
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC07 (line 74)
 
 
-##### Issue
+#### Issue
 
 AC07 states "skipping happens after ordering, not before." This sentence describes an implementation
 constraint (the sequencing of two internal phases) rather than an observable system behavior or outcome.
@@ -92,14 +94,14 @@ The intent is presumably that a skipped entry's dependents are still installed i
 (rather than the order shifting to fill the gap), but the AC does not say that.
 
 
-##### Impact
+#### Impact
 
 An implementer cannot write a test that directly observes "skipping happens after ordering." The AC as
 written is not testable in the sense required by the design plan definition. This will surface as an
 ambiguous or untestable test case during implementation planning.
 
 
-##### Suggestion
+#### Suggestion
 
 Rewrite AC07 to state the observable outcome:
 
@@ -108,19 +110,20 @@ Rewrite AC07 to state the observable outcome:
 > the resolved order, not before ordering is computed.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### S03: Failure gate scope is underspecified for settings
 
-##### Where
+
+#### Where
 
 Architecture — "Failure gate" (line 155); Acceptance Criteria — AC08, AC09, AC10 (lines 87–105)
 
 
-##### Issue
+#### Issue
 
 AC08, AC09, and AC10 each say the error "exits without running any installation script in the affected
 section." For the tools section this is unambiguous. For the settings section the phrase "installation
@@ -134,21 +137,21 @@ the human decides settings are out of scope, AC08–AC10 as written still refere
 ambiguously.
 
 
-##### Impact
+#### Impact
 
 The inconsistent terminology ("installation script" vs. "setting") makes it harder to verify the ACs
 against the settings path during implementation. A reviewer of the implementation plan could reasonably
 dispute whether a settings-section abort satisfies the AC wording.
 
 
-##### Suggestion
+#### Suggestion
 
 Reword AC08, AC09, and AC10 to replace "installation script in the affected section" with "entry in
 the affected section." For example, AC08 becomes: "…exits without processing any entry in the affected
 section." This is neutral across tools and settings and matches the architectural language.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
@@ -157,12 +160,13 @@ section." This is neutral across tools and settings and matches the architectura
 
 #### T01: AC02 uses passive construction hiding the actor
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC02 (line 33)
 
 
-##### Issue
+#### Issue
 
 "…a manifest that uses none of the new dependency-declaration mechanism produces exactly the same
 install behavior as before this feature: the same entries run, in an order consistent with the
@@ -173,31 +177,32 @@ passing. The test suite is not a system actor; it is a verification mechanism. S
 the AC mixes the requirement with its verification method.
 
 
-##### Impact
+#### Impact
 
 Minor. An implementer knows what is meant, but the AC is slightly impure by the definition's standard
 (an AC must describe a system behavior, not a test artifact).
 
 
-##### Suggestion
+#### Suggestion
 
 Remove the test-suite clause entirely. The AC is fully stated by "produces exactly the same install
 behavior as before this feature: the same entries run, in an order consistent with the file-as-written."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### T02: Architecture uses bold quasi-headings for multi-sentence content
 
-##### Where
+
+#### Where
 
 Architecture — "Dependency resolver" subsection (lines 132–139)
 
 
-##### Issue
+#### Issue
 
 The dependency resolver's three responsibilities are formatted as a bulleted list where each item uses a
 bold subject followed by multi-sentence content. The markdown style guide explicitly prohibits this
@@ -208,31 +213,32 @@ sentence of elaboration, qualifying them as multi-sentence items that should be 
 subsections.
 
 
-##### Impact
+#### Impact
 
 Trivial formatting violation. The content is readable but does not conform to the project style guide.
 
 
-##### Suggestion
+#### Suggestion
 
 Convert the three bulleted responsibilities to `####` subsections within the "Dependency resolver"
 `###` section, or — if the content of each item genuinely fits on one line after trimming — condense
 each item to a single short sentence.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### T03: Missing two blank lines before `### Manifest schema enrichment`
 
-##### Where
+
+#### Where
 
 Architecture — line 118
 
 
-##### Issue
+#### Issue
 
 The `## Architecture` heading's introductory paragraph ends on line 115 and is followed by a single
 blank line before `### Manifest schema enrichment` on line 118. The markdown style guide requires two
@@ -240,18 +246,18 @@ blank lines before a heading when the parent heading has content (which it does 
 paragraph).
 
 
-##### Impact
+#### Impact
 
 Trivial formatting violation.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a second blank line between the introductory paragraph and the `### Manifest schema enrichment`
 heading.
 
 
-##### Outcome
+#### Outcome
 
 
 ----

@@ -72,3 +72,6 @@ path to your caller on completion.
 
 Before writing, read and follow `~/.agents/instructions/markdown.md`. All heading spacing,
 list formatting, line length, and code fence rules apply to every plan artifact.
+
+Before submitting the artifact, run the `markdown_format` OpenCode tool with `mode: "format"`. Do not run `check`
+during normal agent work; formatting handles the Markdown style rules automatically.

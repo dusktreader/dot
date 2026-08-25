@@ -21,46 +21,47 @@ The review surfaced findings:
 
 ### Summary
 
-| Finding | Title                                                  | Outcome |
-| ------- | ------------------------------------------------------ | ------- |
-| C01     | Architecture section has a truncated sentence          | Completed the reporting pipeline output contract. |
-| C02     | Unknowns section is absent                             | Added the remaining answerable promotion unknown. |
-| S01     | "Eric Butler's available estimator" is undefined       | Identified the source files, repository, and required source revision capture. |
-| S02     | Model-tier names undefined in the document             | Replaced names with full provider model IDs. |
-| S03     | No failure-mode AC for unreadable or absent database   | Added explicit non-zero, read-only database-failure behavior. |
-| S04     | AC10 filter list is unspecified                        | Defined the approved time, directory, agent, and model filters. |
-| T01     | "material" hedges the re-review trigger in AC07        | Defined the threshold as an AC-altering or code-path-adding change. |
+| Finding | Title                                                | Outcome                                                                        |
+| ------- | ---------------------------------------------------- | ------------------------------------------------------------------------------ |
+| C01     | Architecture section has a truncated sentence        | Completed the reporting pipeline output contract.                              |
+| C02     | Unknowns section is absent                           | Added the remaining answerable promotion unknown.                              |
+| S01     | "Eric Butler's available estimator" is undefined     | Identified the source files, repository, and required source revision capture. |
+| S02     | Model-tier names undefined in the document           | Replaced names with full provider model IDs.                                   |
+| S03     | No failure-mode AC for unreadable or absent database | Added explicit non-zero, read-only database-failure behavior.                  |
+| S04     | AC10 filter list is unspecified                      | Defined the approved time, directory, agent, and model filters.                |
+| T01     | "material" hedges the re-review trigger in AC07      | Defined the threshold as an AC-altering or code-path-adding change.            |
 
 
 ### Critical
 
 #### C01: Architecture section has a truncated sentence
 
-##### Where
+
+#### Where
 
 Architecture — line 148
 
 
-##### Issue
+#### Issue
 
 The sentence "…groups results, and renders one consistent dataset to" ends mid-clause. The
 remainder of the sentence — describing where the dataset is rendered — is missing.
 
 
-##### Impact
+#### Impact
 
 The architecture description of the cost-reporting pipeline is incomplete. An implementer
 reading this section cannot determine the output contract of the reporting view, and the
 implementation plan will have to invent the missing detail rather than derive it.
 
 
-##### Suggestion
+#### Suggestion
 
 Complete the sentence. For example: "…groups results, and renders one consistent dataset to
 the selected output format."
 
 
-##### Outcome
+#### Outcome
 
 Completed the reporting pipeline output contract.
 
@@ -68,12 +69,13 @@ Completed the reporting pipeline output contract.
 
 #### C02: Unknowns section is absent
 
-##### Where
+
+#### Where
 
 Document structure — no Unknowns section present
 
 
-##### Issue
+#### Issue
 
 The design plan description requires an Unknowns section listing ambiguities that must be
 resolved before implementation can begin. This document omits it entirely. Several genuine
@@ -81,14 +83,14 @@ unknowns are embedded in Technical Notes (OpenCode DB schema, estimator availabi
 deployment behavior) rather than surfaced as explicit answerable questions.
 
 
-##### Impact
+#### Impact
 
 Reviewers and the orchestrator have no structured list of open questions to resolve before
 approving the plan. Unknowns buried in Technical Notes will not receive explicit resolution
 tracking and may silently carry over into the implementation plan.
 
 
-##### Suggestion
+#### Suggestion
 
 Add an Unknowns section before Technical Notes. At minimum, it should address:
 
@@ -98,7 +100,7 @@ Add an Unknowns section before Technical Notes. At minimum, it should address:
 - How does the linked home-directory deployment affect atomicity guarantees during promotion?
 
 
-##### Outcome
+#### Outcome
 
 Added the remaining answerable atomic-promotion question to the plan.
 
@@ -108,19 +110,20 @@ Added the remaining answerable atomic-promotion question to the plan.
 
 #### S01: "Eric Butler's available estimator" is undefined
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC12, line 115
 
 
-##### Issue
+#### Issue
 
 AC12 refers to "Eric Butler's available estimator" without identifying a package name,
 version, repository, or resolution procedure if it is unavailable. "Available" is an
 undefined qualifier.
 
 
-##### Impact
+#### Impact
 
 An implementer cannot select the correct estimator without out-of-band research. If there are
 multiple estimators by this author, or if the tool is updated between implementation and
@@ -128,25 +131,26 @@ review, there is no authoritative source to verify against. The AC is partially 
 written.
 
 
-##### Suggestion
+#### Suggestion
 
 Name the estimator precisely: package name or repository URL, minimum version, and the
 fallback behavior when it is not installed or cannot be loaded.
 
 
-##### Outcome
+#### Outcome
 
 Identified the precise upstream repository files and source-revision capture requirement.
 ----
 
 #### S02: Model-tier names are undefined in the document
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC09, lines 88–93
 
 
-##### Issue
+#### Issue
 
 AC09 uses "Luna", "Terra", "Sol", "Zen", "DeepSeek V4 Flash", and "Kimi K2.7 Code" as
 project-internal names without defining them in the document. "Zen" is used as a provider
@@ -154,7 +158,7 @@ category without explanation. A reader unfamiliar with the project's prior namin
 cannot evaluate whether this AC is correct or complete.
 
 
-##### Impact
+#### Impact
 
 The AC is opaque to any reviewer who has not absorbed the prior naming context. If names
 change, the AC cannot be verified without cross-referencing external documents. The
@@ -162,25 +166,26 @@ implementation plan will need to introduce these definitions somewhere; the desi
 right place.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a brief definitions list in Technical Notes or as an introductory paragraph in AC09 that
 maps each tier name to its GitHub Copilot or Zen provider model ID.
 
 
-##### Outcome
+#### Outcome
 
 Replaced informal model labels with their provider-qualified model IDs.
 ----
 
 #### S03: No failure-mode AC for unreadable or absent database
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC10–AC12
 
 
-##### Issue
+#### Issue
 
 AC11 mentions "unavailable" and "malformed local-data cases" in a single clause but does not
 isolate them as discrete testable failure modes. There is no AC for the case where the
@@ -189,14 +194,14 @@ Technical Notes acknowledge schema evolution, but the required user-facing behav
 unspecified.
 
 
-##### Impact
+#### Impact
 
 Implementers have no testable target for database-failure paths. The result could be a silent
 empty report, an unhandled exception, or a confusing error message — all are consistent with
 AC11 as written.
 
 
-##### Suggestion
+#### Suggestion
 
 Expand AC11 or add AC15 with a concrete behavioral requirement: "When the local OpenCode
 database is absent, locked, or unreadable, `dt opencode costs` exits with a non-zero status
@@ -204,39 +209,40 @@ and a message identifying the path and failure reason. It does not modify or cre
 database."
 
 
-##### Outcome
+#### Outcome
 
 Added a discrete, testable non-zero failure-mode requirement.
 ----
 
 #### S04: AC10 filter list is unspecified
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC10, line 100
 
 
-##### Issue
+#### Issue
 
 AC10 states the command "accepts useful report filters" without naming them. Filter
 selection directly affects the report schema, the implementation scope, and testability.
 "Useful" is a subjective qualifier, not an observable requirement.
 
 
-##### Impact
+#### Impact
 
 The implementation plan will have to invent the filter set without design-level guidance.
 Different implementers may choose incompatible filter sets, and no AC can verify filter
 correctness.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace "useful report filters" with the explicit set of supported filters, for example:
 `--since <date>`, `--model <name>`, `--session <id>`, and `--limit <n>`.
 
 
-##### Outcome
+#### Outcome
 
 Defined `--since`, `--until`, `--directory`, `--agent`, and `--model` as the initial filter set.
 ----
@@ -245,32 +251,33 @@ Defined `--since`, `--until`, `--directory`, `--agent`, and `--model` as the ini
 
 #### T01: "material" hedges the re-review trigger in AC07
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC07, line 73
 
 
-##### Issue
+#### Issue
 
 AC07 limits re-review to "a material behavior, interface, data, security, or test change"
 without defining what makes a change material. "Material" is a judgment word that different
 reviewers will apply inconsistently.
 
 
-##### Impact
+#### Impact
 
 Minimal in isolation, but the ambiguity could lead to unnecessary re-reviews or to reviewers
 skipping re-review when a change is significant but does not feel "material" to them.
 
 
-##### Suggestion
+#### Suggestion
 
 Either remove "material" (letting the listed change categories carry the full weight) or add
 a parenthetical threshold, e.g. "…a behavior, interface, data, security, or test change that
 alters an AC or adds a new code path".
 
 
-##### Outcome
+#### Outcome
 
 Defined materiality as a change that alters an acceptance criterion or adds a code path.
 

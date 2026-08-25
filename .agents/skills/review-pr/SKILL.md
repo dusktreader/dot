@@ -45,10 +45,10 @@ by matching `[A-Z]+-[0-9]+` against the parent feature branch name (e.g. `FUS-12
 contains `NO-TICKET`, or no ticket pattern is found, omit the `{JIRA-ID}` segment entirely — do not
 write the literal text `NO-TICKET` into the path. The artifact for this cycle is:
 
-| Artifact              | Description                                                       |
-| --------------------- | ----------------------------------------------------------------- |
-| `pr-review--{N}.md`   | Triage table, findings, decisions, and outcomes (N = zero-padded  |
-|                       | 2 digits: 01, 02, ...)                                            |
+| Artifact            | Description                                                      |
+| ------------------- | ---------------------------------------------------------------- |
+| `pr-review--{N}.md` | Triage table, findings, decisions, and outcomes (N = zero-padded |
+|                     | 2 digits: 01, 02, ...)                                           |
 
 
 ## Git workflow

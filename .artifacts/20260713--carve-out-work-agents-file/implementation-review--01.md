@@ -38,16 +38,17 @@ The review surfaced findings:
 
 #### C01: Migration guide uses wrong `settings bind` syntax
 
-##### Where
+
+#### Where
 
 Execution — Task 13 — Steps — lines 934–937
 
 
-##### Issue
+#### Issue
 
 Task 13 step 5 provides a sample `dt settings bind` command:
 
-```
+```text
 dt settings bind jira_base_url "https://fusion.jira.com"
 ```
 
@@ -62,13 +63,13 @@ cutover. Incorrect command examples will cause the operator to fail validation g
 risk deleting the legacy credential file prematurely.
 
 
-##### Impact
+#### Impact
 
 The migration step will fail on execution. If the operator does not notice the discrepancy
 and proceeds to the deletion step, credentials are lost with no fallback.
 
 
-##### Suggestion
+#### Suggestion
 
 Before Task 13 is executed, confirm the exact `dt settings bind` invocation by running
 `dt settings bind --help` and documenting the required option shape. Update the sample
@@ -80,7 +81,7 @@ guide uses the flat invocation only for `wdt settings bind`, and uses the nested
 for `dt settings bind`.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
@@ -89,12 +90,13 @@ for `dt settings bind`.
 
 #### S01: `wdt settings set` is a hallucinated Typerdrive command
 
-##### Where
+
+#### Where
 
 Execution — Task 04 — Acceptance Criteria — line 363; Task 05 — AC05 — line 435
 
 
-##### Issue
+#### Issue
 
 AC08 of Task 04 and AC05 of Task 05 direct operators to use `wdt settings set <field>
 <value>`. Typerdrive does not expose a `settings set` command. The auto-generated settings
@@ -104,33 +106,34 @@ AC08 reads: "`wdt settings set <field> <value>` updates a setting in the work se
 AC05 of Task 05 reads: "Configure it via: `wdt settings set <key> <value>`".
 
 
-##### Impact
+#### Impact
 
 Operators and agents following these ACs will find the command does not exist. Notices
 printed by `wdt configure` will direct users to a non-existent interface, making secret
 population impossible via the documented path.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace all references to `wdt settings set` with `wdt settings update --<field> <value>`
 (for updating a single field) or `wdt settings bind --<field> <value>` (for binding
 interactively). Verify the exact option shape after `WorkSettings` is defined.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### S02: `_seed_secrets()` assumes unreachable Typerdrive context
 
-##### Where
+
+#### Where
 
 Execution — Task 05 — Steps — line 445
 
 
-##### Issue
+#### Issue
 
 Task 05 step 1 instructs `WorkInstaller._seed_secrets()` to "load the current settings via
 typerdrive" and "save the updated settings". However, `WorkInstaller` is a plain Python
@@ -145,14 +148,14 @@ address how to initialize this context from within `WorkInstaller`, nor does it 
 call site in `cli/main.py` that initializes the context before constructing `WorkInstaller`.
 
 
-##### Impact
+#### Impact
 
 `_seed_secrets()` as described will raise `SettingsInitError` or similar at runtime when
 called from `WorkInstaller.install_dot()`, because no Typerdrive context exists. The
 configure command will fail and the entire seeding contract collapses.
 
 
-##### Suggestion
+#### Suggestion
 
 Either: (a) pass the initialized `SettingsManager` instance into `WorkInstaller` from the
 CLI layer (where context is available), or (b) call `set_typerdrive_config(...)` with the
@@ -162,19 +165,20 @@ Task 04 step 5 and documented in Task 05's Technical Notes. Add an AC to Task 05
 that seeding works when invoked from the `wdt configure` command (not just in isolation).
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### S03: Flat `WorkSettings` schema conflicts with nested `Settings` design
 
-##### Where
+
+#### Where
 
 Execution — Task 04 — Acceptance Criteria — line 352; Task 04 Steps — line 374
 
 
-##### Issue
+#### Issue
 
 Task 04 defines `WorkSettings` with flat fields: `jira_api_key`, `jira_base_url`,
 `jira_cloud_id`, `confluence_api_key`, `datadog_api_key`. The existing `Settings` in `dot`
@@ -192,7 +196,7 @@ a `secrets fetch` command (as implied by the design plan AC17), what fields does
 expose? The plan omits a `dt secrets` command entirely.
 
 
-##### Impact
+#### Impact
 
 The flat-vs-nested inconsistency will surface in two places: the `settings bind` syntax
 differs between CLIs (C01 above), and any documentation or agent guidance that treats both
@@ -200,7 +204,7 @@ CLIs symmetrically will be wrong. The absence of a `dt secrets fetch` task means
 plan AC17 is unimplemented.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a task (or extend Task 04) to implement `dt secrets fetch` in the `dot` repo, covering
 AC17. Explicitly document the chosen schema shape for `WorkSettings` and explain why it
@@ -208,19 +212,20 @@ diverges from `Settings` if it does. If the schemas are intentionally different,
 how `secrets fetch` key names map across the two CLIs.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### S04: Design plan AC22 has no covering task
 
-##### Where
+
+#### Where
 
 Design plan — AC22; Implementation plan — Execution section (all tasks)
 
 
-##### Issue
+#### Issue
 
 Design plan AC22 requires: "Documentation for the `secrets fetch` command in each CLI
 states plainly that the command prints a secret to stdout, that this is intentional for
@@ -232,14 +237,14 @@ docs but none require a `secrets fetch --help` text that acknowledges the stdout
 risk.
 
 
-##### Impact
+#### Impact
 
 AC22 of the approved design plan is unimplemented. The risk disclosure is intentionally
 part of the design and was called out as explicit in the Risks and decisions section. Its
 absence means the accepted design is not fully delivered.
 
 
-##### Suggestion
+#### Suggestion
 
 Add an AC to Task 04 (or a note in Task 10's documentation step): "The `secrets fetch`
 help text includes a plain statement that the command prints a secret value to stdout, that
@@ -247,19 +252,20 @@ this is intentional for scripting, and that callers must not log or echo the out
 Mirror the same AC in `work-dot`'s Task 04 equivalent.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### S05: Task 01 and Task 02 contain duplicate steps
 
-##### Where
+
+#### Where
 
 Execution — Task 01 — Steps — lines 193–195; Task 02 — Steps — lines 239, 254, 257
 
 
-##### Issue
+#### Issue
 
 Task 01 steps 4 and 5 both write to `work-dot/pyproject.toml`. Step 4 creates it with the
 entry point, dependencies, and project name. Step 5 then creates it again with lint and test
@@ -271,21 +277,21 @@ Task 02 step 2 creates `work-dot/src/work_tools/cli/main.py`, and step 4 also sa
 and the placeholder-import note in between.
 
 
-##### Impact
+#### Impact
 
 An implementer executing either task literally will either overwrite their own work or be
 confused about which step is authoritative. Step duplication in Task 01 risks producing an
 incomplete `pyproject.toml` (missing either entry point or tool config).
 
 
-##### Suggestion
+#### Suggestion
 
 In Task 01, merge steps 4 and 5 into a single step covering the full `pyproject.toml`
 content. In Task 02, remove the duplicate step 4 and replace it with "Run `uv sync` and
 verify `wdt --help` displays the expected output", which is what step 4 likely intended.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
@@ -294,12 +300,13 @@ verify `wdt --help` displays the expected output", which is what step 4 likely i
 
 #### T01: `Unknowns` section contradicts Task 04's own research step
 
-##### Where
+
+#### Where
 
 Unknowns — line 1079; Task 04 — Steps — line 388
 
 
-##### Issue
+#### Issue
 
 The `## Unknowns` section states: "None. All open questions from the design plan were
 resolved before this implementation plan was written." Yet Task 04 step 5 reads: "Research
@@ -311,63 +318,65 @@ unknown and belongs in the `## Unknowns` section. The contradiction obscures a r
 open question from plan reviewers.
 
 
-##### Suggestion
+#### Suggestion
 
 Either move the Typerdrive API research question into `## Unknowns` (with a note that it
 is resolved in-task) or rewrite Task 04 step 5 to indicate that the API surface was
 verified during planning and state the confirmed details inline in the Technical Notes.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### T02: `## Technical Notes` section is empty
 
-##### Where
+
+#### Where
 
 Technical Notes — line 1092
 
 
-##### Issue
+#### Issue
 
 The `## Technical Notes` heading at the end of the document has no content. Per the
 implementation plan description, this section holds "additional technical context for the
 implementation." An empty section is noise; it should either be populated or removed.
 
 
-##### Suggestion
+#### Suggestion
 
 Either add relevant cross-task technical notes (e.g., the Typerdrive config path
 conventions, the `extra_dotfiles` dedup contract, the exit code conventions already stated
 in the Technical Notes subsection) or remove the empty heading entirely.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
 #### T03: Shell rc code fence uses `bash` language hint
 
-##### Where
+
+#### Where
 
 Execution — Task 09 — Steps — line 692
 
 
-##### Issue
+#### Issue
 
 The fenced code block for `work-dot/.dot_work_rc` content uses ` ```bash `. The project
 markdown style guide requires `shell` for shell commands and scripts, not `bash`.
 
 
-##### Suggestion
+#### Suggestion
 
 Change ` ```bash ` to ` ```shell `.
 
 
-##### Outcome
+#### Outcome
 
 
 ----

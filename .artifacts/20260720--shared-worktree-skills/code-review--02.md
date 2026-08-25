@@ -18,7 +18,7 @@ Re-review of the shared worktree lifecycle fixes for C01, S01, and S02 from iter
 - `uv run pytest tests/test_validate_staged_agent_policies.py --no-cov`: 71 passed.
 - `uv run pytest tests/test_validate_staged_agent_policies.py`: 71 passed, but the command fails its configured
   coverage gate because no production-module coverage is collected (0.00% < 70%).
-- `node ~/.agents/tools/check-markdown-format.mjs ...`: failed. The migrated workflow skills still violate the
+- `~/.agents/tools/markdown-format.py check ...`: failed. The migrated workflow skills still violate the
   required Markdown format, including H1/frontmatter, heading-spacing, line-length, and unlabeled-fence errors.
 - `git diff --check`: passed.
 
@@ -48,9 +48,9 @@ Re-review of the shared worktree lifecycle fixes for C01, S01, and S02 from iter
 
 ### Summary
 
-| Finding | Title                                      | Outcome |
-|---------|--------------------------------------------|---------|
-| S02     | Required Markdown validation still fails   |         |
+| Finding | Title                                    | Outcome |
+| ------- | ---------------------------------------- | ------- |
+| S02     | Required Markdown validation still fails |         |
 
 
 ### Significant
@@ -79,7 +79,7 @@ but the required command covers the migrated workflow files as well, so the chan
 
 **Fix:**
 
-Make the six workflow skill documents compatible with `check-markdown-format.mjs`, or update the formatter contract
+Make the six workflow skill documents compatible with `markdown-format.py`, or update the formatter contract
 with an approved, tested exception for skill frontmatter. Re-run the exact task-plan command until it exits zero.
 
 

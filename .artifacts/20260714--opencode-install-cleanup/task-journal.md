@@ -17,7 +17,6 @@ S01, S02, and T01 were resolved in the follow-up pass.
 
 ## Tasks
 
-
 ### Task 01: Add focused installer tests
 
 #### Status
@@ -44,7 +43,8 @@ Added override-home coverage for the OpenCode dependency check and installation 
 
 #### Acceptance criteria validation
 
-##### Satisfied AC02: Focused tests verify the OpenCode npm tool resolves its location from installer home
+
+#### Satisfied AC02: Focused tests verify the OpenCode npm tool resolves its location from installer home
 
 `tests/test_configure.py::TestDotInstallerInstallTools` covers both check and install subprocess paths.
 
@@ -75,7 +75,8 @@ Changed the OpenCode npm tool to use `$HOME/.config/opencode` while retaining it
 
 #### Acceptance criteria validation
 
-##### Satisfied AC01: OpenCode npm commands use the target home
+
+#### Satisfied AC01: OpenCode npm commands use the target home
 
 The manifest now references `$HOME/.config/opencode` and no longer references the repository OpenCode path.
 
@@ -106,7 +107,8 @@ Passed the installer home as `HOME` to both tool checks and installation scripts
 
 #### Acceptance criteria validation
 
-##### Satisfied AC02: Override-home subprocess behavior is covered
+
+#### Satisfied AC02: Override-home subprocess behavior is covered
 
 Focused tests verify the environment passed to both `subprocess.run` and `subprocess.Popen`.
 
@@ -137,7 +139,8 @@ Added explicit ignore rules. Artifact removal and isolated installation validati
 
 #### Acceptance criteria validation
 
-##### Satisfied AC04: Local artifacts are ignored and absent
+
+#### Satisfied AC04: Local artifacts are ignored and absent
 
 `git check-ignore` matched both paths, and final `git status --short` reports neither artifact.
 
@@ -169,19 +172,20 @@ Existing unrelated OpenCode and agent changes have not been modified.
 
 #### Acceptance criteria validation
 
-##### Satisfied AC05: Isolated configure installs dependency artifacts under override home
+
+#### Satisfied AC05: Isolated configure installs dependency artifacts under override home
 
 `uv run dt configure --override-home <temporary home>` completed successfully. The package symlink,
 plugin directory, and lockfile were created under the temporary home, with no repository artifacts.
 
 
-##### Satisfied AC06: Existing working-tree changes remain present
+#### Satisfied AC06: Existing working-tree changes remain present
 
-Final status retains both plugins, agent updates, `.agents/tools/check-markdown-format.mjs`, and the
-associated documentation changes.
+Final status retains both plugins, agent updates, `.agents/tools/markdown-format.py`, and the associated
+documentation changes.
 
 
-##### Satisfied AC07: Python quality checks pass
+#### Satisfied AC07: Python quality checks pass
 
 `uv run pytest` passed with 169 tests. `uv run ruff check src tests` and `uv run ty check src` both
 passed with no errors.

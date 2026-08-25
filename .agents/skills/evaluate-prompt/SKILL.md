@@ -10,13 +10,13 @@ Mnemonic: cap it, lose it, explain it, architect it, reuse it.
 
 Score every dimension independently from 1 to 5. Do not average or round scores.
 
-| Letter | Dimension    | Check                                               |
-| ------ | ------------ | --------------------------------------------------- |
-| C      | Constrain    | Is length, format, count, and scope bounded?       |
-| L      | Lean         | Is filler, courtesy, hedging, and duplication removed? |
-| E      | Explicit     | Are role, task, and success criteria concrete?     |
-| A      | Architected  | Is the output structure or sequence specified?     |
-| R      | Reusable     | Is the prompt parameterized and worth saving or sharing? |
+| Letter | Dimension   | Check                                                    |
+| ------ | ----------- | -------------------------------------------------------- |
+| C      | Constrain   | Is length, format, count, and scope bounded?             |
+| L      | Lean        | Is filler, courtesy, hedging, and duplication removed?   |
+| E      | Explicit    | Are role, task, and success criteria concrete?           |
+| A      | Architected | Is the output structure or sequence specified?           |
+| R      | Reusable    | Is the prompt parameterized and worth saving or sharing? |
 
 Use this scale: 5 means fully applied with nothing to improve, 4 a minor gap, 3 a clear partial improvement, 2 barely
 present, and 1 absent or counterproductive.

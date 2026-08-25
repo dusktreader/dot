@@ -1,9 +1,11 @@
 # dusktreader's todo list for dot
 
+
 # general
 
 * use fd more
 * use rip-grep more
+
 
 # installer todos
 

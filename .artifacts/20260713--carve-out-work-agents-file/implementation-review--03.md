@@ -38,25 +38,24 @@ All findings are resolved. The plan is approved for execution with no remaining 
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                | Outcome |
-| ------- | ---------------------------------------------------- | ------- |
+| Finding | Title                                                                     | Outcome    |
+| ------- | ------------------------------------------------------------------------- | ---------- |
 | T01     | GitHub org name `Tucker-Beck_mcgraw` still contains an invalid underscore | ✓ Rejected |
 
 
 ### Trivial
 
-
 #### T01: GitHub org name `Tucker-Beck_mcgraw` still contains an invalid underscore
 
-##### Where
+
+#### Where
 
 Goal — line 15; Execution — Task 01 — introduction line 167, AC04 line 177, step 6 line 197.
 
 
-##### Issue
+#### Issue
 
 GitHub organization and user names permit hyphens but not underscores. The name
 `Tucker-Beck_mcgraw` is syntactically invalid and will be rejected by GitHub at account-creation
@@ -64,7 +63,7 @@ or remote-configuration time. The correct GitHub Cloud account name for the McGr
 account has not been confirmed in the plan.
 
 
-##### Impact
+#### Impact
 
 Task 01 AC04 and step 6 will fail if the remote is configured with an invalid URL. The URL
 also appears in the Goal section, where it serves as the canonical reference for the `work-dot`
@@ -72,7 +71,7 @@ repository location. Using an invalid name risks confusion during execution even
 account creation is deferred.
 
 
-##### Suggestion
+#### Suggestion
 
 Confirm the correct GitHub Cloud account name for the McGraw Hill work account and replace all
 occurrences of `Tucker-Beck_mcgraw` with the verified name. If the account does not yet exist,
@@ -80,7 +79,7 @@ note this as a prerequisite in Task 01 and add an AC for account creation before
 is configured.
 
 
-##### Outcome
+#### Outcome
 
 **Rejected.** The canonical private repository URL has been explicitly confirmed as
 `https://github.com/Tucker-Beck_mcgraw/work-dot`. The underscore in the account name is
@@ -88,7 +87,6 @@ intentional and correct. No further correction is required.
 
 
 ----
-
 
 ## Notes
 

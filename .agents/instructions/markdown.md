@@ -161,14 +161,22 @@ Wrap all prose lines at 120 characters. Code blocks and tables are exempt.
 - Raw HTML — never embed `<tags>` in Markdown files for any reason
 
 
-## Required validation
+## Required formatting
 
-Run the custom validator before presenting any authored or edited Markdown file for review, approval, or
-completion. It implements this guide's formatting preferences; do not substitute a third-party linter.
+Run the `markdown_format` OpenCode tool with `mode: "format"` after authoring or editing Markdown. If the tool is
+unavailable, invoke the formatter executable directly. It implements this guide's formatting preferences; do not
+substitute a third-party linter.
 
 ```shell
-node ~/.agents/tools/check-markdown-format.mjs <file-or-directory>
+~/.agents/tools/markdown-format.py format <file-or-directory>
 ```
 
-Fix every reported error before presenting the document. If a rule needs an intentional exception, ask the
-human for approval and document the exception in the relevant artifact or task output.
+Formatting is the normal agent workflow. Do not run the checker or spend time manually fixing formatting that the
+formatter handles. The `check` mode is available for explicit human or CI validation:
+
+```shell
+~/.agents/tools/markdown-format.py check <file-or-directory>
+```
+
+Use `check` only when a human or CI job explicitly requests validation. If a formatting rule needs an intentional
+exception, ask the human for approval and document the exception in the relevant artifact or task output.

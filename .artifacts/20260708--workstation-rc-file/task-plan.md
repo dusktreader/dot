@@ -1,6 +1,5 @@
 # Task plan: Add workstation-specific `~/.dotrc_local` support
 
-
 ## Goal
 
 Create `~/.dotrc_local` as a machine-local shell file that is automatically sourced at login.
@@ -29,6 +28,7 @@ Expected output:
 
 All tests pass with zero failures or errors.
 
+
 ### Run linter
 
 Command:
@@ -40,6 +40,7 @@ uv run ruff check src tests
 Expected output:
 
 No linting errors reported.
+
 
 ### Run type checker
 
@@ -65,18 +66,25 @@ No type errors reported.
 
 ## Steps
 
-1. Write a failing test `TestDotInstallerCreateDotrcLocal.test_create_dotrc_local__creates_file_when_absent` that calls `installer._create_dotrc_local()` on an installer whose home has no `.dotrc_local` and asserts the file exists afterward.
+1. Write a failing test `TestDotInstallerCreateDotrcLocal.test_create_dotrc_local__creates_file_when_absent` that calls
+   `installer._create_dotrc_local()` on an installer whose home has no `.dotrc_local` and asserts the file exists
+   afterward.
 2. Run `uv run pytest tests/test_configure.py` and confirm the new test fails (method does not exist yet).
 3. Add `_create_dotrc_local(self)` to `DotInstaller` in `src/dot_tools/configure.py`. The method should:
    - Return early (log debug, skip) if `self.home / ".dotrc_local"` already exists.
-   - Otherwise create `~/.dotrc_local` with a minimal comment header (two lines: a `# ~/.dotrc_local` title comment and a blank-line-separated note that the file is machine-local and not tracked in the repository).
+   - Otherwise create `~/.dotrc_local` with a minimal comment header (two lines: a `# ~/.dotrc_local` title comment and
+     a blank-line-separated note that the file is machine-local and not tracked in the repository).
 4. Call `self._create_dotrc_local()` from `install_dot()`, placed immediately after `self._update_dotfiles()`.
 5. Run `uv run pytest tests/test_configure.py` and confirm the new test passes.
-6. Write a second failing test `test_create_dotrc_local__skips_when_file_exists` that pre-creates `~/.dotrc_local` with known content, calls `_create_dotrc_local()`, and asserts the content is unchanged.
+6. Write a second failing test `test_create_dotrc_local__skips_when_file_exists` that pre-creates `~/.dotrc_local` with
+   known content, calls `_create_dotrc_local()`, and asserts the content is unchanged.
 7. Run the test and confirm it passes (the early-return guard covers it).
 8. Update `etc/install.yaml`: add `~/.dotrc_local` as the last entry in `dotfile_paths`.
-9. Update `_update_dotfiles` in `configure.py` to resolve `dotfile_path` using `Path(path).expanduser()` instead of `self.root / path`. This handles `~/`-prefixed entries correctly via Python's built-in `~` expansion.
-10. Write a failing test `TestDotInstallerUpdateDotfiles.test_update_dotfiles__expands_tilde_paths_against_home` that puts `~/.dotrc_local` in `dotfile_paths`, calls `_update_dotfiles()`, and asserts `source <home>/.dotrc_local` appears in `~/.extra_dotfiles`.
+9. Update `_update_dotfiles` in `configure.py` to resolve `dotfile_path` using `Path(path).expanduser()` instead of
+   `self.root / path`. This handles `~/`-prefixed entries correctly via Python's built-in `~` expansion.
+10. Write a failing test `TestDotInstallerUpdateDotfiles.test_update_dotfiles__expands_tilde_paths_against_home` that
+    puts `~/.dotrc_local` in `dotfile_paths`, calls `_update_dotfiles()`, and asserts `source <home>/.dotrc_local`
+    appears in `~/.extra_dotfiles`.
 11. Run the test and confirm it passes.
 12. Run `uv run pytest` (full suite), `uv run ruff check src tests`, and `uv run ty check`; confirm all pass.
 

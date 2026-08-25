@@ -26,7 +26,7 @@ Validation completed:
 
 - `uv run pytest tests/test_validate_staged_agent_policies.py --no-cov`: 71 passed.
 - `uv run ruff check tools/validate_staged_agent_policies.py tests/test_validate_staged_agent_policies.py`: passed.
-- `node ~/.agents/tools/check-markdown-format.mjs .agents/skills/run-feature/SKILL.md
+- `~/.agents/tools/markdown-format.py check .agents/skills/run-feature/SKILL.md
    .agents/skills/run-task/SKILL.md .agents/skills/run-bug-fix/SKILL.md .agents/skills/run-fix/SKILL.md
    .agents/skills/run-hotfix/SKILL.md .agents/skills/review-pr/SKILL.md`: passed.
 - `git diff --check`: passed.

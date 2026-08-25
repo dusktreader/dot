@@ -28,11 +28,11 @@ The review surfaced findings:
 
 ### Summary
 
-| Finding | Title                                                           | Outcome |
-| ------- | --------------------------------------------------------------- | ------- |
-| S01     | Squash-only integration not stated; AC17 staleness check is gap-prone | Accepted: feature and task integration is exclusively a squash merge into the ready-to-PR parent branch. |
-| S02     | Agent worktree teardown lifecycle is unspecified                | Accepted: successful squash removes the worktree while retaining its local audit branch; declined and abandoned runs retain both. |
-| T01     | AC16 fires before worktree exists on early-abort gates          | Accepted: only gates after worktree creation report its path and branch. |
+| Finding | Title                                                                 | Outcome                                                                                                                           |
+| ------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| S01     | Squash-only integration not stated; AC17 staleness check is gap-prone | Accepted: feature and task integration is exclusively a squash merge into the ready-to-PR parent branch.                          |
+| S02     | Agent worktree teardown lifecycle is unspecified                      | Accepted: successful squash removes the worktree while retaining its local audit branch; declined and abandoned runs retain both. |
+| T01     | AC16 fires before worktree exists on early-abort gates                | Accepted: only gates after worktree creation report its path and branch.                                                          |
 
 
 ### Significant

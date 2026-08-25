@@ -7,16 +7,15 @@ resolution.
 
 ## Template Variables
 
-| Variable        | Description                                                              |
-| --------------- | ------------------------------------------------------------------------ |
-| `pr_title`      | Title of the pull request being reviewed                                 |
-| `pr_url`        | URL of the pull request                                                  |
-| `n`             | Zero-padded cycle number (`01` for first review, `02`+ for re-reviews)   |
-| `parent_branch` | The parent feature branch the PR was created from                        |
+| Variable        | Description                                                            |
+| --------------- | ---------------------------------------------------------------------- |
+| `pr_title`      | Title of the pull request being reviewed                               |
+| `pr_url`        | URL of the pull request                                                |
+| `n`             | Zero-padded cycle number (`01` for first review, `02`+ for re-reviews) |
+| `parent_branch` | The parent feature branch the PR was created from                      |
 
 
 ## Sections
-
 
 ### Header Fields
 
@@ -61,10 +60,12 @@ Each comment contains:
 - **Severity**: the severity level
 - **Disposition**: the disposition
 
+
 #### Issue
 
 A quote or faithful paraphrase of the review comment. Specific about what the reviewer
 identified.
+
 
 #### Decision
 
@@ -73,10 +74,12 @@ What was decided and by whom:
 - For discuss: the human's decision, recorded verbatim.
 - For won't-fix: the rationale for not fixing.
 
+
 #### Fix
 
 Description of the change made, with `file:line` references. For won't-fix: explanation
 of why no change was made.
+
 
 #### Outcome
 

@@ -48,7 +48,7 @@ All tests pass, Ruff reports no errors, and the type checker reports no errors f
 Command:
 
 ```shell
-node ~/.agents/tools/check-markdown-format.mjs .agents .config/opencode/agents .artifacts/20260714--opencode-install-cleanup/task-plan.md
+~/.agents/tools/markdown-format.py check .agents .config/opencode/agents .artifacts/20260714--opencode-install-cleanup/task-plan.md
 ```
 
 Expected output:
@@ -107,7 +107,7 @@ The Markdown validator exits successfully with no formatting errors.
   `<temp-home>/.config/opencode/package.json` to the repository file and installs
   `node_modules/@opencode-ai/plugin` plus any generated lockfile under `<temp-home>/.config/opencode`, not in the
   repository.
-- AC06: The working-tree changes for OpenCode plugins and agents, `.agents/tools/check-markdown-format.mjs`, and the
+- AC06: The working-tree changes for OpenCode plugins and agents, `.agents/tools/markdown-format.py`, and the
   associated Markdown documentation remain present after the cleanup.
-- AC07: `uv run pytest`, `uv run ruff check src tests`, `uv run ty check src`, and the custom Markdown validator all
+- AC07: `uv run pytest`, `uv run ruff check src tests`, `uv run ty check src`, and the Markdown formatter check all
   exit 0.

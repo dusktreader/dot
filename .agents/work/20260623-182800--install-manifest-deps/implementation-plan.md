@@ -81,7 +81,6 @@ skipped, and the resolved order is deterministic.
 
 ## Execution
 
-
 ### 01: Update the ToolSpecs model to accept dependencies
 
 Add an optional `depends_on` field to `ToolSpecs` to declare which other tools a tool requires.
@@ -272,6 +271,7 @@ on asdf-go).
   macOS it is effectively a no-op in terms of functionality but does not cause any harm.
 - Ensure the YAML indentation is consistent with the rest of the file.
 
+
 ### 05: Write comprehensive tests for end-to-end scenarios
 
 Create tests that verify the full feature end-to-end: from loading a manifest with dependencies
@@ -307,6 +307,7 @@ through resolving order to simulating tool installation.
 - The test manifest fixtures can use the helper functions already in `test_configure.py`
   (`make_dot_root()`, `make_installer()`).
 - Tests should be clear and concise; each should test one scenario.
+
 
 ### 06: Verify backward compatibility and no regressions
 
@@ -352,6 +353,7 @@ backward compatible and does not break existing behavior.
 
 - None at this time. The design plan is comprehensive and resolves all architectural questions.
 
+
 ## Technical Notes
 
 ### Dependency direction in TopologicalSorter
@@ -359,6 +361,7 @@ backward compatible and does not break existing behavior.
 When using `graphlib.TopologicalSorter`, the semantics are:
 - `sorter.add(node, *predecessors)` means "node comes after predecessors".
 - If tool B depends on tool A, we do `sorter.add(B_name, A_name)` so B comes after A.
+
 
 ### Error messages
 
@@ -368,6 +371,7 @@ Error messages must be user-facing and clearly actionable:
   `declarations."`
 - Self-dependency: `"Tool 'xyz' depends on itself. Remove this self-dependency from the manifest."`
 
+
 ### Testing strategy
 
 Tests follow the existing patterns in `tests/test_configure.py`:
@@ -375,6 +379,7 @@ Tests follow the existing patterns in `tests/test_configure.py`:
 - Use function tests for `resolve_tool_order()` with various graphs.
 - Use integration tests for full-flow scenarios with mocked subprocess.
 - Use the helper functions `make_dot_root()` and `make_installer()` for setup.
+
 
 ### Imports needed
 

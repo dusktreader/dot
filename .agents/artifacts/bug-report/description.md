@@ -7,13 +7,12 @@ begins.
 
 ## Template Variables
 
-| Variable  | Description                                              |
-| --------- | -------------------------------------------------------- |
-| `title`   | Short descriptive title for the bug                      |
+| Variable | Description                         |
+| -------- | ----------------------------------- |
+| `title`  | Short descriptive title for the bug |
 
 
 ## Sections
-
 
 ### Description
 

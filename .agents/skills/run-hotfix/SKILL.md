@@ -41,12 +41,12 @@ so `{JIRA-ID}` is known, then create `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project
 branch has no ticket (no match, or it contains `NO-TICKET`), omit the `{JIRA-ID}` segment entirely — do
 not write the literal text `NO-TICKET` into the path. All artifacts for this project are stored there.
 
-| Artifact                    | Description                                         |
-| --------------------------- | --------------------------------------------------- |
-| `bug-report.md`             | Brief investigation findings and root cause         |
-| `implementation-plan.md`    | Minimal fix plan authored by the principal          |
-| `implementation-journal.md` | Execution journal                                   |
-| `code-review--01.md`        | Single lightweight review pass                      |
+| Artifact                    | Description                                 |
+| --------------------------- | ------------------------------------------- |
+| `bug-report.md`             | Brief investigation findings and root cause |
+| `implementation-plan.md`    | Minimal fix plan authored by the principal  |
+| `implementation-journal.md` | Execution journal                           |
+| `code-review--01.md`        | Single lightweight review pass              |
 
 
 ## Isolated worktree lifecycle

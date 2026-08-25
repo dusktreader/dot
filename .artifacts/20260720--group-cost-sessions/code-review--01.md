@@ -58,9 +58,9 @@ and staged-policy validation.
 
 ### Summary
 
-| Finding | Title                                      | Outcome |
-|---------|--------------------------------------------|---------|
-| C01     | Validator does not reject a pre-gate stop  |         |
+| Finding | Title                                     | Outcome |
+| ------- | ----------------------------------------- | ------- |
+| C01     | Validator does not reject a pre-gate stop |         |
 
 
 ### Critical

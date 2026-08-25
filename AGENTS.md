@@ -10,7 +10,7 @@ Read `~/.agents/README.md` for the full directory index.
 
 ## Directory layout
 
-| Path                    | Purpose                                               |
-| ----------------------- | ----------------------------------------------------- |
-| `.dot_agents/dot.md`    | Repo-specific context: layout, `dt`, `dt configure`   |
-| `.agents/`              | System-wide agent files (symlinked to `~/.agents/`)   |
+| Path                 | Purpose                                             |
+| -------------------- | --------------------------------------------------- |
+| `.dot_agents/dot.md` | Repo-specific context: layout, `dt`, `dt configure` |
+| `.agents/`           | System-wide agent files (symlinked to `~/.agents/`) |

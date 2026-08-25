@@ -7,14 +7,13 @@ is purely a code quality assessment.
 
 ## Template Variables
 
-| Variable  | Description                                                              |
-| --------- | ------------------------------------------------------------------------ |
-| `title`   | Short descriptive title for the review (e.g. the PR title or branch name)|
-| `n`       | Zero-padded iteration number (`01` for first review, `02`+ for re-reviews) |
+| Variable | Description                                                                |
+| -------- | -------------------------------------------------------------------------- |
+| `title`  | Short descriptive title for the review (e.g. the PR title or branch name)  |
+| `n`      | Zero-padded iteration number (`01` for first review, `02`+ for re-reviews) |
 
 
 ## Sections
-
 
 ### Source
 

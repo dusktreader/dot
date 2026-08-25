@@ -21,6 +21,6 @@ Focused checks passed:
 ```shell
 nvim --headless -u NONE --cmd 'set rtp+=.config/nvim' -c 'luafile .config/nvim/tests/diff_context_test.lua' -c 'luafile .config/nvim/tests/worktree_test.lua' -c 'qa!'
 luac -p .config/nvim/lua/user/worktree.lua .config/nvim/tests/worktree_test.lua
-node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260803--worktree-diff-reload/hack-journal.md
+~/.agents/tools/markdown-format.py check .artifacts/20260803--worktree-diff-reload/hack-journal.md
 git diff --check
 ```

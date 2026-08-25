@@ -43,11 +43,11 @@ GPT-5.6 Luna is the default for all work, including planning, execution, investi
 GPT-5.6 Sol is the only premium escalation, and it requires explicit human permission before dispatch.
 There are no Opus variants. Never use OpenCode Zen for work.
 
-| Selection               | Variant suffix  | Model                            | Guidance                                      |
-| ----------------------- | --------------- | -------------------------------- | --------------------------------------------- |
-| Work default            | `--work-luna`   | `github-copilot/gpt-5.6-luna`    | Planning, execution, investigation            |
-| Work independent review | `--work-luna`   | `github-copilot/gpt-5.6-luna`    | All plan and code reviews                  |
-| Work premium escalation | `--work-sol`    | `github-copilot/gpt-5.6-sol`     | Non-review work after human permission        |
+| Selection               | Variant suffix | Model                         | Guidance                               |
+| ----------------------- | -------------- | ----------------------------- | -------------------------------------- |
+| Work default            | `--work-luna`  | `github-copilot/gpt-5.6-luna` | Planning, execution, investigation     |
+| Work independent review | `--work-luna`  | `github-copilot/gpt-5.6-luna` | All plan and code reviews              |
+| Work premium escalation | `--work-sol`   | `github-copilot/gpt-5.6-sol`  | Non-review work after human permission |
 
 Use the `--work-luna` variant for execution and review unless the human explicitly approves escalation to `--work-sol`
 for non-review work. Never dispatch a personal variant for work. Never dispatch an unlisted work variant.
@@ -59,11 +59,11 @@ GPT-5.6 Luna is the default for all personal work, including planning, execution
 GPT-5.6 Sol is the only premium escalation, and it requires explicit human permission before dispatch.
 There are no Opus variants. Never use OpenCode Zen free models for personal work.
 
-| Selection                  | Variant suffix      | Model                      | Guidance                                      |
-| -------------------------- | ------------------- | -------------------------- | --------------------------------------------- |
-| Personal default           | `--personal-luna`   | `opencode/gpt-5.6-luna`    | Planning, execution, investigation            |
-| Personal independent review | `--personal-luna`   | `opencode/gpt-5.6-luna`    | All plan and code reviews                     |
-| Personal premium escalation | `--personal-sol`    | `opencode/gpt-5.6-sol`     | Non-review work after human permission        |
+| Selection                   | Variant suffix    | Model                   | Guidance                               |
+| --------------------------- | ----------------- | ----------------------- | -------------------------------------- |
+| Personal default            | `--personal-luna` | `opencode/gpt-5.6-luna` | Planning, execution, investigation     |
+| Personal independent review | `--personal-luna` | `opencode/gpt-5.6-luna` | All plan and code reviews              |
+| Personal premium escalation | `--personal-sol`  | `opencode/gpt-5.6-sol`  | Non-review work after human permission |
 
 Use the `--personal-luna` variant for execution and review unless the human explicitly approves escalation to
 `--personal-sol` for non-review work. Never dispatch a work variant for personal work. Never dispatch an unlisted

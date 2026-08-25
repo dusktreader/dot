@@ -27,26 +27,25 @@ tasks. No prior findings require re-examination.
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                              | Outcome |
-| ------- | ------------------------------------------------------------------ | ------- |
-| S01     | Task 08 step 10 directs an unauthorized push to the public `dot` remote | |
-| T01     | Task 15 AC05 implies push without qualifying which repositories    | |
+| Finding | Title                                                                   | Outcome |
+| ------- | ----------------------------------------------------------------------- | ------- |
+| S01     | Task 08 step 10 directs an unauthorized push to the public `dot` remote |         |
+| T01     | Task 15 AC05 implies push without qualifying which repositories         |         |
 
 
 ### Significant
 
-
 #### S01: Task 08 step 10 directs an unauthorized push to the public `dot` remote
 
-##### Where
+
+#### Where
 
 Execution — Task 08 — Steps — line 768
 
 
-##### Issue
+#### Issue
 
 Task 08 step 10 reads "Push to the public `dot` repository." This is a direct instruction to push
 to a remote, with no qualifier such as "when the user approves" or "if the user explicitly requests
@@ -61,7 +60,7 @@ pushing without explicit user request. The step as written would cause a reviewi
 any implementation that skipped it, and an executing agent to push prematurely.
 
 
-##### Impact
+#### Impact
 
 An executor following the plan verbatim pushes work-specific-content removal changes to the public
 `dot` remote without waiting for user approval. This is a one-way operation: once pushed, the
@@ -69,7 +68,7 @@ removal is publicly visible and cannot be undone without a force-push or a rever
 the principle established in Task 01 that the user controls merge and push timing.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace step 10 with:
 
@@ -80,23 +79,22 @@ Additionally, add an AC to Task 08 confirming that no push occurs during this ta
 Task 01 AC11, which constrains the remote to local-only configuration.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 ### Trivial
-
 
 #### T01: Task 15 AC05 implies push without qualifying which repositories
 
-##### Where
+
+#### Where
 
 Execution — Task 15 — Acceptance Criteria — AC05 — line 1164
 
 
-##### Issue
+#### Issue
 
 AC05 reads "No uncommitted changes remain; all work is committed and pushed to the correct
 repositories." The phrase "pushed to the correct repositories" is stated as a completion
@@ -106,7 +104,7 @@ Task 15, without making clear that the user must authorize any push to `dot` (pu
 should distinguish between committed (required) and pushed (user-authorized).
 
 
-##### Impact
+#### Impact
 
 Low: Task 15 is the final end-to-end validation task, and a push at that point is likely
 intentional. However, leaving the AC ambiguous creates a gap between the no-push discipline
@@ -114,7 +112,7 @@ established in Task 01 and the completion criteria in Task 15. An executor or re
 interpret this as permission to push without checking.
 
 
-##### Suggestion
+#### Suggestion
 
 Revise AC05 to:
 
@@ -123,11 +121,10 @@ Revise AC05 to:
 > them.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ## Notes
 

@@ -31,26 +31,25 @@ from iteration 04 are fully resolved. Two new findings surfaced.
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                                         | Outcome |
-| ------- | ----------------------------------------------------------------------------- | ------- |
-| S01     | Task 05 ACs do not constrain `creds fetch` key lookup to the credentials sub-model | |
-| T01     | Task 08 AC07 cross-references wrong task number                               | |
+| Finding | Title                                                                              | Outcome |
+| ------- | ---------------------------------------------------------------------------------- | ------- |
+| S01     | Task 05 ACs do not constrain `creds fetch` key lookup to the credentials sub-model |         |
+| T01     | Task 08 AC07 cross-references wrong task number                                    |         |
 
 
 ### Significant
 
-
 #### S01: Task 05 ACs do not constrain `creds fetch` key lookup to the credentials sub-model
 
-##### Where
+
+#### Where
 
 Execution — Task 05 — Acceptance Criteria — AC02, AC03 — approximately lines 560–562
 
 
-##### Issue
+#### Issue
 
 Task 05 AC02 says `dt creds fetch <key>` "prints the named secret value to stdout" and AC03 says
 it exits non-zero "if the key does not exist in `Settings`." Both ACs name `Settings` as the target
@@ -65,7 +64,7 @@ inside a nested `credentials` sub-model and that `creds fetch` addresses that su
 top-level settings tree.
 
 
-##### Impact
+#### Impact
 
 An implementor following these ACs literally could satisfy every criterion by resolving `key` as
 `getattr(settings, key)` across all of `Settings`, exposing non-credential settings through the
@@ -74,7 +73,7 @@ violating design plan AC17's structural requirement. The discrepancy would only 
 the execution review, after the code is already written.
 
 
-##### Suggestion
+#### Suggestion
 
 Revise AC02 and AC03 to name the nested credentials sub-model explicitly:
 
@@ -94,23 +93,22 @@ The symmetric Task 04 ACs (AC03, AC04) use "the named field within `WorkSettings
 align Task 05 to the same language.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 ### Trivial
-
 
 #### T01: Task 08 AC07 cross-references wrong task number
 
-##### Where
+
+#### Where
 
 Execution — Task 08 — Acceptance Criteria — AC07 — line 806
 
 
-##### Issue
+#### Issue
 
 AC07 reads: "…except for the conditional include that points to the work overlay file, which is
 added in task 08." The conditional include for the work overlay is added in Task 09
@@ -119,7 +117,7 @@ removal pass. Directing a reader to "task 08" for the conditional include is a m
 would cause confusion during execution review.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace "task 08" with "Task 09":
 
@@ -128,11 +126,10 @@ Replace "task 08" with "Task 09":
 > file, which is added in Task 09).
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ## Notes
 

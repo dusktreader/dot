@@ -30,27 +30,26 @@ violates design plan AC26). One trivial markdown finding noted.
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                                        | Outcome |
-| ------- | ---------------------------------------------------------------------------- | ------- |
-| S01     | Task 14 directs agents to configure credentials, violating design plan AC26  |         |
-| T01     | Technical Notes bold quasi-headings are multi-sentence, require `####`       |         |
+| Finding | Title                                                                       | Outcome |
+| ------- | --------------------------------------------------------------------------- | ------- |
+| S01     | Task 14 directs agents to configure credentials, violating design plan AC26 |         |
+| T01     | Technical Notes bold quasi-headings are multi-sentence, require `####`      |         |
 
 
 ### Significant
 
-
 #### S01: Task 14 directs agents to configure credentials, violating design plan AC26
 
-##### Where
+
+#### Where
 
 Execution — Task 14 — Acceptance Criteria — AC03, AC05 — approximately lines 1318–1324;
 Task 14 — Steps — steps 3 and 4 — approximately lines 1339–1351
 
 
-##### Issue
+#### Issue
 
 Design plan AC26 is explicit: agent guidance covers credential *retrieval* only (`creds fetch`);
 it does not, by default, instruct agents to configure or set credentials via `creds set`,
@@ -83,7 +82,7 @@ No justification is given in Task 14 for the set guidance; it is added purely to
 set` surface to agents, which the design plan explicitly prohibits.
 
 
-##### Impact
+#### Impact
 
 An implementor following Task 14 as written adds configuration instructions to agent guidance files,
 producing agent-facing text that tells agents how to call `creds set` and `settings bind`. Agents
@@ -94,7 +93,7 @@ accepted the `creds fetch` stdout risk explicitly but treated `creds set` as an 
 for exactly this reason.
 
 
-##### Suggestion
+#### Suggestion
 
 Revise AC03 to cover retrieval only:
 
@@ -122,24 +121,23 @@ path, that is appropriate and unaffected by this constraint. The migration guide
 covers this for operators.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 ### Trivial
-
 
 #### T01: Technical Notes bold quasi-headings are multi-sentence, require `####`
 
-##### Where
+
+#### Where
 
 Execution — Task 04 Technical Notes — approximately lines 576–602; Task 06 Technical Notes —
 approximately lines 780–800; similar occurrences in Tasks 05 and 13.
 
 
-##### Issue
+#### Issue
 
 Multiple Technical Notes sections use the pattern `**Bold label (ACxx)**:` as a heading for a
 multi-sentence paragraph, for example `**Nested credentials sub-model (AC02)**:` followed by
@@ -149,7 +147,7 @@ is acceptable only when the full item fits on one line (≤ 120 characters inclu
 subsection.
 
 
-##### Suggestion
+#### Suggestion
 
 Convert each multi-sentence bold quasi-heading block in Technical Notes to a `####` subsection.
 For example:
@@ -163,11 +161,10 @@ The design plan AC17 requires credentials to nest under a dedicated sub-model �
 This applies to every Technical Notes bold-label entry that spans more than one sentence.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ## Notes
 

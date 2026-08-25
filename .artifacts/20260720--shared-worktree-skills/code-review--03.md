@@ -20,7 +20,7 @@ Final re-review of the shared-worktree lifecycle migration after the iteration 0
 ## Verification evidence
 
 - `uv run pytest tests/test_validate_staged_agent_policies.py --no-cov`: 71 passed.
-- `node ~/.agents/tools/check-markdown-format.mjs .agents/skills/run-feature/SKILL.md
+- `~/.agents/tools/markdown-format.py check .agents/skills/run-feature/SKILL.md
   .agents/skills/run-task/SKILL.md .agents/skills/run-bug-fix/SKILL.md .agents/skills/run-fix/SKILL.md
   .agents/skills/run-hotfix/SKILL.md .agents/skills/review-pr/SKILL.md`: passed for all six files.
 - `git diff --check`: passed.

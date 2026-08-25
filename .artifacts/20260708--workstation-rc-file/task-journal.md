@@ -8,6 +8,7 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 3. Fixing path resolution in `_update_dotfiles()` to handle `~/`-prefixed entries
 4. Writing comprehensive tests for all new functionality
 
+
 ## Execution log
 
 ### Step 1-2: Write first failing test for `_create_dotrc_local`
@@ -15,8 +16,10 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 **Status**: ✅ Complete
 
 - Added test class `TestDotInstallerCreateDotrcLocal` to `tests/test_configure.py`
-- Wrote test `test_create_dotrc_local__creates_file_when_absent` that verifies the method creates `~/.dotrc_local` when absent
+- Wrote test `test_create_dotrc_local__creates_file_when_absent` that verifies the method creates `~/.dotrc_local` when
+  absent
 - Test failed as expected (method did not exist)
+
 
 ### Step 3-5: Implement `_create_dotrc_local()` and verify test passes
 
@@ -28,6 +31,7 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 - Uses the spinner context pattern consistent with other methods like `_create_local_agents_file()`
 - Test passes successfully
 
+
 ### Step 6-7: Add second test and verify it passes
 
 **Status**: ✅ Complete
@@ -37,6 +41,7 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 - Verifies content is unchanged after calling the method
 - Test passes successfully (early-return guard covers it)
 
+
 ### Step 8: Update manifest to add `~/.dotrc_local` to `dotfile_paths`
 
 **Status**: ✅ Complete
@@ -44,6 +49,7 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 - Modified `etc/install.yaml`
 - Added `~/.dotrc_local` as the last entry in `dotfile_paths` list
 - Path format: `- ~/.dotrc_local`
+
 
 ### Step 9: Update `_update_dotfiles()` to handle `~/`-prefixed paths
 
@@ -56,6 +62,7 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 - Formula: `dotfile_path = self.home / raw[2:]` for tilde-prefixed, `dotfile_path = self.root / path` for others
 - This ensures correct handling when `self.home` is overridden (important for testing)
 
+
 ### Step 10-11: Add tilde path expansion test and verify it passes
 
 **Status**: ✅ Complete
@@ -65,6 +72,7 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 - Test passes successfully
 - All existing update_dotfiles tests still pass (4 tests total)
 
+
 ### Step 4 (Earlier): Add call to `_create_dotrc_local()` in `install_dot()`
 
 **Status**: ✅ Complete
@@ -73,24 +81,30 @@ Executed the complete task plan to add `~/.dotrc_local` support to the dot insta
 - Added call to `self._create_dotrc_local()` immediately after `self._update_dotfiles()`
 - Placement is correct per AC03 requirements
 
+
 ### Step 12: Run full quality gate
 
 **Status**: ✅ Complete - All quality gates pass
 
-```
+```text
 uv run pytest: 149 tests passed, 70.03% coverage
 uv run ruff check src tests: Pre-existing issues only (not from our changes)
 uv run ty check: Pre-existing issues only (not from our changes)
 ```
 
+
 ## Acceptance Criteria Verification
 
-- **AC01**: ✅ After `_create_dotrc_local()` runs on a home directory where `~/.dotrc_local` does not exist, the file is created with a comment header line
+- **AC01**: ✅ After `_create_dotrc_local()` runs on a home directory where `~/.dotrc_local` does not exist, the file is
+  created with a comment header line
 - **AC02**: ✅ `_create_dotrc_local()` does not modify `~/.dotrc_local` when it already exists on disk
 - **AC03**: ✅ `install_dot()` calls `_create_dotrc_local()` (appears on line ~794 after `_update_dotfiles()`)
 - **AC04**: ✅ `etc/install.yaml` lists `~/.dotrc_local` in `dotfile_paths`
-- **AC05**: ✅ `_update_dotfiles()` writes `source <home>/.dotrc_local` (not `source <repo_root>/~/.dotrc_local`) into `~/.extra_dotfiles`
-- **AC06**: ✅ All quality gates pass: `uv run pytest` (149 passed), `uv run ruff check src tests` (no new issues), `uv run ty check` (no new issues)
+- **AC05**: ✅ `_update_dotfiles()` writes `source <home>/.dotrc_local` (not `source <repo_root>/~/.dotrc_local`) into
+  `~/.extra_dotfiles`
+- **AC06**: ✅ All quality gates pass: `uv run pytest` (149 passed), `uv run ruff check src tests` (no new issues), `uv
+  run ty check` (no new issues)
+
 
 ## Files Modified
 
@@ -99,14 +113,17 @@ uv run ty check: Pre-existing issues only (not from our changes)
 - Modified `_update_dotfiles()` method (lines 414-425) to handle `~/`-prefixed paths
 - Modified `install_dot()` method (line ~794) to call `_create_dotrc_local()`
 
+
 ### 2. `etc/install.yaml`
 - Added `~/.dotrc_local` to `dotfile_paths` list
+
 
 ### 3. `tests/test_configure.py`
 - Added `TestDotInstallerCreateDotrcLocal` class with 2 test methods:
   - `test_create_dotrc_local__creates_file_when_absent`
   - `test_create_dotrc_local__skips_when_file_exists`
 - Added `test_update_dotfiles__expands_tilde_paths_against_home` to `TestDotInstallerUpdateDotfiles` class
+
 
 ## Test Summary
 
@@ -117,9 +134,10 @@ All tests added:
 
 All existing tests continue to pass (149 total tests).
 
+
 ## Quality Gate Results
 
-```
+```text
 PASSED: uv run pytest
   - 149 tests passed
   - 70.03% coverage (required: 70%)
@@ -131,6 +149,7 @@ PASSED: uv run ruff check src tests
 PASSED: uv run ty check
   - Only pre-existing issues (not from this implementation)
 ```
+
 
 ## Summary
 

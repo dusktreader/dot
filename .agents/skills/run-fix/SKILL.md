@@ -53,12 +53,12 @@ Do NOT use this skill to:
 
 All artifacts are written to the existing project directory alongside the original artifacts.
 
-| Artifact                                        | Description                                                                               |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `implementation-plan--fix-{N}.md`               | Scoped fix plan (N = zero-padded 2 digits: 01, 02, ...)                                   |
-| `implementation-review--fix-{N}--{M}.md`        | Fix plan review (N = fix number, M = zero-padded iteration: 01, 02, ...)                  |
-| `implementation-journal--fix-{N}.md`            | Execution journal for the fix                                                             |
-| `execution-review--fix-{N}--whole-plan--{M}.md` | Execution review (N = fix number, M = zero-padded iteration: 01, 02, ...)                 |
+| Artifact                                        | Description                                                               |
+| ----------------------------------------------- | ------------------------------------------------------------------------- |
+| `implementation-plan--fix-{N}.md`               | Scoped fix plan (N = zero-padded 2 digits: 01, 02, ...)                   |
+| `implementation-review--fix-{N}--{M}.md`        | Fix plan review (N = fix number, M = zero-padded iteration: 01, 02, ...)  |
+| `implementation-journal--fix-{N}.md`            | Execution journal for the fix                                             |
+| `execution-review--fix-{N}--whole-plan--{M}.md` | Execution review (N = fix number, M = zero-padded iteration: 01, 02, ...) |
 
 Use the next available N by checking what fix artifacts already exist in the project directory.
 

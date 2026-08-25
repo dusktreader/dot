@@ -60,11 +60,11 @@ Run process step 0 first so `{JIRA-ID}` is known, then create
 
 All artifacts for this task are stored there.
 
-| Artifact                 | Description                                    |
-| ------------------------ | ---------------------------------------------- |
-| `task-plan.md`           | Minimal plan authored by the principal         |
-| `task-journal.md`        | Execution journal                              |
-| `code-review--01.md`     | Single lightweight review pass                 |
+| Artifact             | Description                            |
+| -------------------- | -------------------------------------- |
+| `task-plan.md`       | Minimal plan authored by the principal |
+| `task-journal.md`    | Execution journal                      |
+| `code-review--01.md` | Single lightweight review pass         |
 
 
 ## Git workflow

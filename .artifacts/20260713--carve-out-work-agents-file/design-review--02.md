@@ -53,12 +53,13 @@ The review surfaced the following findings:
 
 #### S01: AC17a uses a non-standard identifier
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC17a heading, line 159
 
 
-##### Issue
+#### Issue
 
 The acceptance criteria numbering scheme uses the pattern `AC##` (zero-padded two-digit integer).
 The new criterion introduced in iteration 02 is labelled `AC17a` rather than `AC18`, which breaks
@@ -67,21 +68,21 @@ document leaves them at their existing numbers alongside a lettered outlier, mak
 `AC17`, `AC17a`, `AC18` — not a valid sequential list.
 
 
-##### Impact
+#### Impact
 
 The non-standard identifier makes the criterion harder to reference unambiguously in an
 implementation plan, in test names, and in review comments. Any tooling that validates or
 cross-references AC identifiers by pattern will miss this entry.
 
 
-##### Suggestion
+#### Suggestion
 
 Renumber `AC17a` as `AC18` and shift the subsequent criteria (`AC18`–`AC21`) to `AC19`–`AC22`.
 Update all internal cross-references (the architecture section does not reference AC numbers
 directly, so the impact should be limited to the AC section itself).
 
 
-##### Outcome
+#### Outcome
 
 Resolved. `AC17a` renumbered to `AC18`; the previous `AC18`–`AC21` shifted to `AC19`–`AC22`. The
 cross-reference in the new `AC18` body still points to `AC17` (unchanged), and no other section of
@@ -94,12 +95,13 @@ the design plan references the shifted AC numbers.
 
 #### T01: AC19 seeds-then-notices phrasing is slightly confusing
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC19, lines 176–181
 
 
-##### Issue
+#### Issue
 
 AC19 states that `wdt configure` "seeds any missing work secret entries with empty placeholder
 values" and then "For each missing or empty secret, it prints a notice to stderr." On first run,
@@ -108,13 +110,13 @@ notices each of them because they are now empty. The two clauses are logically c
 reader must reason through the sequence to confirm they do not contradict each other.
 
 
-##### Impact
+#### Impact
 
 Minimal — the behavior is unambiguous to a careful reader. A casual reader may wonder whether the
 notice fires before or after seeding and whether the freshly-seeded placeholder counts as "empty."
 
 
-##### Suggestion
+#### Suggestion
 
 Tighten the phrasing to make the sequence explicit. For example: "On first run, it creates an entry
 for every expected work secret, initialized to an empty value, and prints a notice to stderr for
@@ -122,7 +124,7 @@ each one naming the secret and directing the operator to populate it via the `wd
 interface."
 
 
-##### Outcome
+#### Outcome
 
 Resolved. `AC20` (formerly `AC19`) now describes the sequence explicitly: `wdt configure` first
 seeds missing entries with empty placeholders, then walks the resulting entries and emits a
@@ -134,12 +136,13 @@ has to reconcile the seeding and notice clauses.
 
 #### T02: Testing strategy stub-`wdt` behavior left underspecified
 
-##### Where
+
+#### Where
 
 Architecture — Testing and validation strategy, lines 318–319
 
 
-##### Issue
+#### Issue
 
 The integration test description mentions exercising `dt configure` "with a stub `wdt` on PATH"
 but does not state what the stub does — whether it returns zero (success path), non-zero (failure
@@ -147,20 +150,20 @@ path), or both. Without this detail, the test description does not fully capture
 defined in AC04.
 
 
-##### Impact
+#### Impact
 
 Minimal — a competent implementer will write both branches regardless. The gap is in the design
 document's completeness, not in any behavioral contract.
 
 
-##### Suggestion
+#### Suggestion
 
 Expand the stub description to: "with a stub `wdt` on PATH that exits zero (expected: `dt
 configure` succeeds and reports work-step success) and with a stub that exits non-zero (expected:
 `dt configure` reprints labeled output and exits non-zero)."
 
 
-##### Outcome
+#### Outcome
 
 Resolved. The Testing and validation strategy section now describes three integration modes:
 `wdt` absent from PATH, a stub `wdt` that exits zero (expected: `dt configure` reports work-step

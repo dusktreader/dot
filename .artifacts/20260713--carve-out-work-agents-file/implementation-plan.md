@@ -1,6 +1,5 @@
 # Implementation Plan: Carve work-specific configuration into private work-dot repository
 
-
 ## Goal
 
 This plan implements the two-repository split described in the design plan, moving all McGraw Hill-specific
@@ -73,6 +72,7 @@ Expected Output:
 All tests pass, including new tests for wdt detection, credentials fetch, and configuration integration.
 Coverage meets or exceeds the configured floor (70%).
 
+
 ### Run work-dot tests
 
 Command:
@@ -84,6 +84,7 @@ cd /Users/tucker.beck/src/mhe/work-dot && uv run pytest
 Expected Output:
 
 All tests pass. Coverage meets or exceeds configured floor for new work-specific code.
+
 
 ### Run quality gate (dot)
 
@@ -97,6 +98,7 @@ Expected Output:
 
 Zero lint errors, zero type check errors.
 
+
 ### Run quality gate (work-dot)
 
 Command:
@@ -108,6 +110,7 @@ cd /Users/tucker.beck/src/mhe/work-dot && uv run ruff check src tests && uv run 
 Expected Output:
 
 Zero lint errors, zero type check errors.
+
 
 ### Validate dt configure with wdt absent
 
@@ -121,6 +124,7 @@ Expected Output:
 
 All steps complete successfully. No warnings, errors, or references to work layer in output.
 Work configuration is silent/absent.
+
 
 ### Validate dt configure with wdt present
 
@@ -136,6 +140,7 @@ Expected Output:
 All dot steps complete. Final step invokes wdt and reports success of work configuration step.
 Exit code is zero.
 
+
 ### Validate wdt configure standalone
 
 Command:
@@ -149,6 +154,7 @@ Expected Output:
 All work steps complete. Secrets are seeded with placeholders and notices printed to stderr for each
 empty secret. Exit code is zero even with empty secrets.
 
+
 ### Validate creds fetch (dt)
 
 Command:
@@ -160,6 +166,7 @@ dt creds fetch jira_base_url
 Expected Output:
 
 Raw secret value printed to stdout with no surrounding formatting. Missing keys exit non-zero.
+
 
 ### Validate creds fetch (wdt)
 
@@ -195,7 +202,6 @@ exactly.
 
 
 ## Execution
-
 
 ### 01: Initialize work-dot repository and establish feature branch
 
@@ -257,7 +263,7 @@ the `Tucker-Beck_mcgraw` account at `https://github.com/Tucker-Beck_mcgraw/work-
     git config remote.origin.url https://github.com/Tucker-Beck_mcgraw/work-dot
     ```
 12. Commit all scaffolding on feature branch with a clear message such as:
-    ```
+    ```text
     feat: bootstrap work-dot with project structure and dependencies
 
     - Add pyproject.toml with wdt CLI entry point
@@ -591,7 +597,8 @@ write credential values to/from the nested credentials sub-model.
 
 #### Technical Notes
 
-##### Nested credentials sub-model (AC02)
+
+#### Nested credentials sub-model (AC02)
 
 The design plan AC17 requires credentials to nest under a dedicated sub-model in the primary settings
 schema. This Task 04 research must verify that Typerdrive supports binding to and reading from nested
@@ -600,7 +607,7 @@ Pydantic models and must determine the exact syntax for `dt settings bind --cred
 Notes so Tasks 05, 06, and 13 use the correct syntax.
 
 
-##### Typerdrive API research (Step 1)
+#### Typerdrive API research (Step 1)
 
 Determine and document:
 
@@ -616,7 +623,7 @@ and Task 13 (migration guide) all reference verified facts, not assumptions. Thi
 the migration path and credential binding syntax depend on Typerdrive's actual nested model support.
 
 
-##### Creds fetch implementation (Step 5)
+#### Creds fetch implementation (Step 5)
 
 Access to settings requires Typerdrive context initialization. Task 04 determines the correct pattern
 from APIs; Task 05 and Task 06 reference this pattern. For CLI commands (like `creds fetch`), context
@@ -624,12 +631,13 @@ is typically initialized by the framework when the CLI runs. For programmatic ac
 (like seeding in Task 06), an explicit initialization pattern must be determined and documented.
 
 
-##### Placeholder values
+#### Placeholder values
 
 Use pattern `f"PLACEHOLDER_{field_name.upper()}"` for consistency and ease of detection during seeding
 and validation.
 
-##### Bare invocation behavior (AC29 from design plan)
+
+#### Bare invocation behavior (AC29 from design plan)
 
 The `creds` sub-command group is a pure wrapper: running `wdt creds` (bare invocation, no subcommand)
 must exit zero, display help output identical to `wdt creds --help`, and perform no default action on
@@ -839,7 +847,8 @@ placeholder entries for all required credential keys during the `wdt configure` 
 
 #### Technical Notes
 
-##### Nested credentials access (critical)
+
+#### Nested credentials access (critical)
 
 Task 04 research determines the exact APIs for:
 
@@ -851,17 +860,20 @@ Task 04 research determines the exact APIs for:
 Document these findings in Task 04's Technical Notes. This Task 06 implementation must use only
 verified, nested-model-aware APIs; it does not access top-level settings fields.
 
-##### Seeding timing
+
+#### Seeding timing
 
 Credential seeding happens at the end of `install_dot()` after all file/directory operations complete,
 ensuring the environment is ready for `WorkSettings` to be initialized and updated.
 
-##### Placeholder values
+
+#### Placeholder values
 
 Use pattern `f"PLACEHOLDER_{field_name.upper()}"` for consistency and ease of detection in validation
 and notices.
 
-##### Notice format
+
+#### Notice format
 
 Notices guide the operator to use the correct `wdt settings bind` syntax for nested credentials (e.g.,
 `wdt settings bind --credentials.jira_api_key <value>`), using the exact syntax verified in Task 04.
@@ -872,6 +884,7 @@ Notices guide the operator to use the correct `wdt settings bind` syntax for nes
 
 Modify the `dt configure` command in `dot/src/dot_tools/cli/main.py` to detect `wdt` on PATH,
 invoke `wdt configure` as a final step with correct argument passing, and handle output and exit codes.
+
 
 #### Acceptance Criteria
 
@@ -999,7 +1012,7 @@ is a cleanup pass to strip `dot` to employer-neutral content only.
 8. Add a task to the .dot_agents/dot.md or AGENTS.md documenting that work configuration is now
    separate and installed via `wdt` if needed.
 9. Commit all changes with message:
-   ```
+   ```text
    refactor(dot): remove McGraw Hill-specific configuration
 
    - Removed work Jira identity and tenant references
@@ -1037,7 +1050,7 @@ Git-config overlay file owned by `work-dot`. The overlay file itself is created 
 - AC01: `dot/.gitconfig` (or whichever file is sourced by the main Git config) contains a conditional
   include directive for the work source root.
 - AC02: The conditional include is structured as:
-  ```
+  ```text
   [includeIf "gitdir:~/src/mhe/"]
     path = ~/.gitconfig.work
   ```
@@ -1054,7 +1067,7 @@ Git-config overlay file owned by `work-dot`. The overlay file itself is created 
 1. Open `dot/.gitconfig` (or `.gitconfig.dusktreader`).
 2. Add the conditional include block at the end or in a logical location (e.g., after personal-only
    includes):
-   ```
+   ```text
    [includeIf "gitdir:~/src/mhe/"]
      path = ~/.gitconfig.work
    ```
@@ -1110,7 +1123,7 @@ files define the work environment (paths, aliases, exports) and work-specific Gi
      alias cdwork="cd ${MHE_ROOT}"
      ```
 2. Create `work-dot/.gitconfig.work` with:
-    ```
+    ```text
     [user]
       email = tucker.beck@mcgraw-hill.com
       name = Tucker Beck
@@ -1196,7 +1209,6 @@ guidance. This file is symlinked into `~/.agents/instructions/` by `wdt configur
 
 ----
 
-
 ### 12: Create comprehensive unit and integration tests for both CLIs
 
 Write thorough test coverage for new functionality: wdt detection, credential seeding, credentials fetch,
@@ -1258,7 +1270,8 @@ and configure integration across both CLIs.
 4. Mock `shutil.which()` in `dt` tests to simulate `wdt` presence/absence on PATH.
 5. Mock `subprocess.run()` in `dt` tests to simulate `wdt` success/failure.
 6. Use temporary Typerdrive config directories in `wdt` tests to avoid touching real settings.
-7. Run `uv run pytest --cov` and verify coverage meets or exceeds the configured floor (70% configured in `pyproject.toml`).
+7. Run `uv run pytest --cov` and verify coverage meets or exceeds the configured floor (70% configured in
+   `pyproject.toml`).
 8. Document any new test fixtures in comments or docstrings.
 
 
@@ -1359,14 +1372,16 @@ dot Settings/JiraInfo structure to the new nested credentials model.
 
 #### Technical Notes
 
-##### Nested credentials binding (critical)
+
+#### Nested credentials binding (critical)
 
 The migration guide must use only the verified nested-model binding syntax from Task 04 (e.g.,
 `dt settings bind --credentials.jira_api_key <value>` or Task 04's confirmed alternative). Incorrect
 syntax will cause binding to fail and risk credential loss if the operator proceeds to deletion anyway.
 This is a high-stakes, one-shot credential cutover.
 
-##### Settings/JiraInfo transition
+
+#### Settings/JiraInfo transition
 
 If the current `Settings` model in `dot` contains inline secrets (like fields within `JiraInfo`), the
 migration guide must cover transitioning those fields to the new nested credentials sub-model. This
@@ -1376,17 +1391,20 @@ includes:
 2. Testing the transition on a staging home directory before production.
 3. Confirming `dt creds fetch` resolves fields from the nested model after migration.
 
-##### Nested model schema from Task 04
+
+#### Nested model schema from Task 04
 
 The `Settings` and `WorkSettings` models (defined in Task 04) must both use nested credentials
 sub-models. The exact field names, class names, and binding paths are determined in Task 04. Use only
 verified syntax and schema from Task 04 Technical Notes.
 
-##### Rollback is essential
+
+#### Rollback is essential
 
 If validation fails, the legacy file remains on disk as a fallback, so the operator is not locked out.
 
-##### Manual testing required
+
+#### Manual testing required
 
 The guide must be tested by the implementor to ensure every command (including nested binding syntax)
 works end-to-end before deployment.

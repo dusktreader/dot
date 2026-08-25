@@ -7,9 +7,9 @@ synthesized by an architect.
 
 ## Template Variables
 
-| Variable  | Description                                              |
-| --------- | -------------------------------------------------------- |
-| `title`   | Short descriptive title for the audit scope              |
+| Variable | Description                                 |
+| -------- | ------------------------------------------- |
+| `title`  | Short descriptive title for the audit scope |
 
 
 ## Sections

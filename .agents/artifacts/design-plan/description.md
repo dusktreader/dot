@@ -7,13 +7,12 @@ do not belong here. Those belong in the implementation plan.
 
 ## Template Variables
 
-| Variable  | Description                                  |
-| --------- | -------------------------------------------- |
-| `title`   | Short descriptive title for the design plan  |
+| Variable | Description                                 |
+| -------- | ------------------------------------------- |
+| `title`  | Short descriptive title for the design plan |
 
 
 ## Sections
-
 
 ### Goal
 

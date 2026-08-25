@@ -4,6 +4,7 @@ This guide provides a comprehensive validation checklist to ensure the two-repos
 credential migration, and complete isolation between dot (personal) and work-dot (work) layers
 is working correctly.
 
+
 ## Pre-Validation Setup
 
 Before running validation, ensure both repositories are bootstrapped:
@@ -17,6 +18,7 @@ cd ~/src/mhe/work-dot
 wdt --version
 wdt configure  # First-time setup
 ```
+
 
 ## Validation Checklist
 
@@ -50,6 +52,7 @@ ls -la ~/.config/typerdrive/dot_settings.json
 ls -la ~/.config/typerdrive/work_settings.json
 ```
 
+
 ### 2. Git Configuration Isolation ✓
 
 **Objective**: Verify that git config switches correctly based on repository location.
@@ -82,6 +85,7 @@ grep -A2 "includeIf.*mhe" ~/.gitconfig
 #     path = ~/.gitconfig.work
 ```
 
+
 ### 3. CLI Tool Isolation ✓
 
 **Objective**: Verify that dt and wdt CLIs are independent and use correct settings.
@@ -102,6 +106,7 @@ dt creds fetch jira_api_key
 wdt creds fetch jira_api_key
 # Expected: Returns work Jira key (different value or both set/both unset independently)
 ```
+
 
 ### 4. Bootstrap Installation ✓
 
@@ -126,6 +131,7 @@ cat ~/.workrc | head -5
 # Expected: Shows work environment exports and aliases
 ```
 
+
 ### 5. Output Prefixing ✓
 
 **Objective**: Verify that wdt output in dt configure is properly prefixed with [work].
@@ -137,6 +143,7 @@ cat ~/.workrc | head -5
 # Look for [work] prefix in any work-dot output
 # Expected: If wdt is invoked during dt configure, output should have [work] prefix
 ```
+
 
 ### 6. Credential Seeding ✓
 
@@ -151,6 +158,7 @@ wdt configure 2>&1 | grep -i "placeholder\|secret"
 wdt creds fetch jira_api_key
 # Expected: May return PLACEHOLDER_JIRA_API_KEY or the actual set value
 ```
+
 
 ### 7. Settings Schema ✓
 
@@ -174,6 +182,7 @@ print(f'Work credentials fields: {list(s.credentials.model_fields.keys())}')
 "
 ```
 
+
 ### 8. No Credential Leaks ✓
 
 **Objective**: Ensure credentials never appear in logs, error messages, or committed files.
@@ -193,6 +202,7 @@ grep "typerdrive\|settings.json" .gitignore
 # Expected: Should have entries to ignore credential files
 ```
 
+
 ### 9. Error Handling ✓
 
 **Objective**: Verify that error messages are helpful and don't leak information.
@@ -210,6 +220,7 @@ wdt creds fetch nonexistent_key 2>&1
 dt creds set "invalid key with spaces" 2>&1
 # Expected: Error explaining valid key formats
 ```
+
 
 ### 10. Documentation ✓
 
@@ -229,11 +240,12 @@ grep -c "dt creds\|wdt creds" .dot_agents/CREDENTIAL_MIGRATION.md
 # Expected: > 0 (multiple references)
 ```
 
+
 ## Validation Results
 
 Run this script to perform all validation checks:
 
-```bash
+```shell
 #!/bin/bash
 set -e
 
@@ -259,6 +271,7 @@ echo ""
 echo "=== All validations passed! ==="
 ```
 
+
 ## Troubleshooting
 
 ### Credential Files Not Found
@@ -271,6 +284,7 @@ echo "=== All validations passed! ==="
 # If missing, they'll be created on first dt/wdt creds set command
 ```
 
+
 ### Git Config Not Switching
 
 ```shell
@@ -282,6 +296,7 @@ test -f ~/.gitconfig.dusktreader && echo "Personal config exists"
 test -f ~/.gitconfig.work && echo "Work config exists"
 ```
 
+
 ### Settings Import Errors
 
 ```shell
@@ -289,6 +304,7 @@ test -f ~/.gitconfig.work && echo "Work config exists"
 cd ~/src/dusktreader/dot && python3 -c "from dot_tools.settings import Settings; print('OK')"
 cd ~/src/mhe/work-dot && python3 -c "from work_tools.settings import WorkSettings; print('OK')"
 ```
+
 
 ## Post-Validation
 

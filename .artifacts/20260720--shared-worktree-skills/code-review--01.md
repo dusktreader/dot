@@ -17,7 +17,7 @@ Review of the shared worktree lifecycle implementation against its task plan.
 
 - `uv run pytest tests/test_validate_staged_agent_policies.py --no-cov`: 65 passed.
 - `uv run pytest tests/test_validate_staged_agent_policies.py`: 65 passed, command failed coverage gate (0.00% < 70%).
-- `node ~/.agents/tools/check-markdown-format.mjs ...`: failed. New shared skills fail H1/frontmatter and
+- `~/.agents/tools/markdown-format.py check ...`: failed. New shared skills fail H1/frontmatter and
   heading-spacing rules.
 - `git diff --check`: passed.
 
@@ -33,11 +33,11 @@ Review of the shared worktree lifecycle implementation against its task plan.
 
 ### Summary
 
-| Finding | Title | Outcome |
-|---------|-------|---------|
-| C01 | Normal-branch cleanup has no audit branch | |
-| S01 | Validator does not reject all duplicate plumbing | |
-| S02 | Required Markdown validation fails | |
+| Finding | Title                                            | Outcome |
+| ------- | ------------------------------------------------ | ------- |
+| C01     | Normal-branch cleanup has no audit branch        |         |
+| S01     | Validator does not reject all duplicate plumbing |         |
+| S02     | Required Markdown validation fails               |         |
 
 
 ### C01: Normal-branch cleanup has no audit branch

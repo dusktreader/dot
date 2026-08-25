@@ -7,8 +7,8 @@ Read `~/.agents/README.md` for system-wide instructions and directory layout.
 
 Read the relevant instruction file before starting any task that matches the trigger below.
 
-| File                              | Read when                                          |
-|-----------------------------------|----------------------------------------------------|
+| File                                   | Read when                                     |
+| -------------------------------------- | --------------------------------------------- |
 | `~/.agents/instructions/editing.md`    | Editing any file                              |
 | `~/.agents/instructions/git-safety.md` | Performing any git operation                  |
 | `~/.agents/instructions/git.md`        | Writing a commit message                      |
@@ -16,3 +16,9 @@ Read the relevant instruction file before starting any task that matches the tri
 | `~/.agents/instructions/local.md`      | Needing machine-specific context              |
 | `~/.agents/instructions/markdown.md`   | Writing or editing any markdown file          |
 | `~/.agents/instructions/python.md`     | Writing or editing Python code or docstrings  |
+
+
+## Markdown formatting
+
+Use the `markdown_format` tool for Markdown files with `mode: "format"` after authoring or editing them. Do not run
+`check` during normal agent work; reserve it for explicit human or CI validation.

@@ -1,6 +1,5 @@
 # Execution Review: Tune agent workflows and report OpenCode costs
 
-
 ## Source Artifacts
 
 - **Implementation journal**: `.artifacts/20260715--tune-agent-workflows/implementation-journal.md`
@@ -21,7 +20,7 @@
 
 ## Verification Evidence
 
-```
+```text
 Linter:   uv run ruff check src tests tools       → All checks passed
 Tests:    uv run pytest                            → 190 passed, 2 warnings (was 182 before changes)
 Coverage: uv run pytest                            → 77.69% (threshold 70% met)
@@ -78,23 +77,23 @@ Live:     git diff -- .agents                      → (empty — no live policy
 All ACs from iteration 01 carry forward unchanged. New tests added for S01 and S02 do not
 alter existing ACs. Selected spot-checks for changed files:
 
-| AC      | Status | Evidence                                                                                      |
-| ------- | ------ | --------------------------------------------------------------------------------------------- |
-| 04/AC07 | ✓      | `test_costs_applies_each_filter_at_the_cli_boundary` (was ⚠ in iteration 01)                |
-| 06/AC03 | ✓      | `_ZEN_DISPATCH` path-scoped regex + `_PRINCIPAL_OWNERSHIP` structured regex (was ⚠)         |
-| All others | ✓   | Unchanged from iteration 01 — no regressions detected                                        |
+| AC         | Status | Evidence                                                                            |
+| ---------- | ------ | ----------------------------------------------------------------------------------- |
+| 04/AC07    | ✓      | `test_costs_applies_each_filter_at_the_cli_boundary` (was ⚠ in iteration 01)        |
+| 06/AC03    | ✓      | `_ZEN_DISPATCH` path-scoped regex + `_PRINCIPAL_OWNERSHIP` structured regex (was ⚠) |
+| All others | ✓      | Unchanged from iteration 01 — no regressions detected                               |
 
 
 ## Scope Verification
 
 Changes since iteration 01 touch only files already in scope:
 
-| File                                           | Change                                    | Justified By         | Status |
-| ---------------------------------------------- | ----------------------------------------- | -------------------- | ------ |
-| `tests/test_cli_opencode_costs.py`             | Added parameterized filter test (S01 fix) | Task 04 AC07 / S01   | ✓      |
-| `tools/validate_staged_agent_policies.py`      | Regex-based dispatch + ownership checks   | Task 06 AC03 / S02   | ✓      |
-| `tests/test_validate_staged_agent_policies.py` | New (4 tests for validator contract)      | Task 06 AC03 / S02   | ✓      |
-| `src/dot_tools/opencode_costs.py`              | `_estimate` dedup (S03) + guard → raise (T02) | Tasks 01–03 / S03, T02 | ✓  |
+| File                                           | Change                                        | Justified By           | Status |
+| ---------------------------------------------- | --------------------------------------------- | ---------------------- | ------ |
+| `tests/test_cli_opencode_costs.py`             | Added parameterized filter test (S01 fix)     | Task 04 AC07 / S01     | ✓      |
+| `tools/validate_staged_agent_policies.py`      | Regex-based dispatch + ownership checks       | Task 06 AC03 / S02     | ✓      |
+| `tests/test_validate_staged_agent_policies.py` | New (4 tests for validator contract)          | Task 06 AC03 / S02     | ✓      |
+| `src/dot_tools/opencode_costs.py`              | `_estimate` dedup (S03) + guard → raise (T02) | Tasks 01–03 / S03, T02 | ✓      |
 
 
 ## Findings
@@ -111,7 +110,8 @@ Changes since iteration 01 touch only files already in scope:
 
 #### T03: `--since` filter test asserts the non-obvious session
 
-##### Where
+
+#### Where
 
 `tests/test_cli_opencode_costs.py:64`
 
@@ -120,7 +120,7 @@ expected = "excluded" if option == "--since" else "matching"
 ```
 
 
-##### Issue
+#### Issue
 
 The `--since 2025-10-10` case correctly excludes `"matching"` (timestamp `1760000000000` ≈
 2025-10-09 UTC, which is one day _before_ `2025-10-10`) and retains `"excluded"` (timestamp
@@ -129,13 +129,13 @@ the _retained_ session for this case while the session named `"matching"` is the
 one. This naming inversion will confuse the next reader who modifies the test.
 
 
-##### Fix
+#### Fix
 
 Rename the sessions to `"earlier"` and `"later"` (or `"session_a"` / `"session_b"`), and
 document the expected result for each option in a comment. No behavioral change required.
 
 
-##### Outcome
+#### Outcome
 
 
 ----

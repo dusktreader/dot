@@ -1,6 +1,5 @@
 # Design Plan: Install manifest dependency ordering
 
-
 ## Goal
 
 Allow each tool in the install manifest to declare which other tools it depends on, and have
@@ -19,9 +18,7 @@ additive feature.
 
 ## Acceptance Criteria
 
-
 ### Manifest schema
-
 
 #### AC01: Tool entries may declare dependencies on other tools
 
@@ -44,9 +41,7 @@ depends on asdf-go, so the three entries form a chain that the installer must re
 
 ----
 
-
 ### Install ordering
-
 
 #### AC04: Tools install in an order consistent with their declared dependencies
 
@@ -64,9 +59,7 @@ execution remains unchanged regardless of how many tools are skipped.
 
 ----
 
-
 ### Error handling
-
 
 #### AC06: A dependency cycle aborts the run before anything is installed
 
@@ -89,7 +82,6 @@ of cycle error as in AC06. This case is called out explicitly because it is the 
 possible cycle and the most common authoring mistake.
 
 ----
-
 
 ## Architecture
 
@@ -155,9 +147,7 @@ caused by a malformed manifest.
 
 ----
 
-
 ## Technical Notes
-
 
 ### Settings are out of scope for this iteration
 

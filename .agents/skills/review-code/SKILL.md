@@ -55,7 +55,6 @@ rendered file must contain no placeholder text when submitted. Supply the path t
 
 ## Process
 
-
 ### 0. Setup
 
 No setup required. Proceed directly to reading the files.
@@ -91,20 +90,20 @@ If a prior review artifact is provided, walk through every finding. For each, ma
 
 Apply all loaded skills. Also enforce these quality gates regardless of which skills are loaded:
 
-| Standard                                                           | Severity    |
-| ------------------------------------------------------------------ | ----------- |
-| Error handling on all external calls (network, fs, db, process)    | Critical    |
-| No type-safety violations without a justification comment          | Critical    |
-| No swallowed exceptions or ignored return values                   | Critical    |
-| New public functions have tests                                    | Critical    |
-| Tests verify behavior, not mock interactions                       | Critical    |
-| No test-only hooks or helpers in production files                  | Critical    |
-| No input validation gaps or injection vectors                      | Critical    |
-| Null/undefined inputs handled where applicable                     | Significant |
-| Edge cases (empty, boundary, max) covered                          | Significant |
-| New code paths covered by tests (when coverage tool available)     | Significant |
-| Logic not placed in wiring/bootstrap files without justification   | Significant |
-| No unused imports, functions, or branches                          | Trivial     |
+| Standard                                                         | Severity    |
+| ---------------------------------------------------------------- | ----------- |
+| Error handling on all external calls (network, fs, db, process)  | Critical    |
+| No type-safety violations without a justification comment        | Critical    |
+| No swallowed exceptions or ignored return values                 | Critical    |
+| New public functions have tests                                  | Critical    |
+| Tests verify behavior, not mock interactions                     | Critical    |
+| No test-only hooks or helpers in production files                | Critical    |
+| No input validation gaps or injection vectors                    | Critical    |
+| Null/undefined inputs handled where applicable                   | Significant |
+| Edge cases (empty, boundary, max) covered                        | Significant |
+| New code paths covered by tests (when coverage tool available)   | Significant |
+| Logic not placed in wiring/bootstrap files without justification | Significant |
+| No unused imports, functions, or branches                        | Trivial     |
 
 
 ### 5. Write the review artifact

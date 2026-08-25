@@ -21,27 +21,28 @@ The review surfaced findings:
 
 ### Summary
 
-| Finding | Title                                                              | Outcome |
-| ------- | ------------------------------------------------------------------ | ------- |
+| Finding | Title                                                              | Outcome                                                   |
+| ------- | ------------------------------------------------------------------ | --------------------------------------------------------- |
 | S01     | Task 06 ACs are not directly testable without a validator contract | Defined the validator entry point, arguments, and checks. |
-| S02     | Unknowns do not include the `opencode.db` path-discovery rule      | Resolved the default path and excluded a new CLI option. |
-| S03     | Task 05 has no focused test command or validation step in commands  | Added the canonical staged-policy validator command. |
-| T01     | Project Commands uses `bash` language hint instead of `shell`      | No action required; the finding was a false alarm. |
-| T02     | Task 04 Technical Notes uses bold quasi-heading for single note    | Left acceptable prose unchanged. |
-| T03     | Task 05 AC03 references design plan ACs by label without quoting   | Added the referenced acceptance-criterion titles. |
-| T04     | `opencode_costs.py` module path inconsistency in Technical Notes   | Documented the verified flat-domain-module convention. |
+| S02     | Unknowns do not include the `opencode.db` path-discovery rule      | Resolved the default path and excluded a new CLI option.  |
+| S03     | Task 05 has no focused test command or validation step in commands | Added the canonical staged-policy validator command.      |
+| T01     | Project Commands uses `bash` language hint instead of `shell`      | No action required; the finding was a false alarm.        |
+| T02     | Task 04 Technical Notes uses bold quasi-heading for single note    | Left acceptable prose unchanged.                          |
+| T03     | Task 05 AC03 references design plan ACs by label without quoting   | Added the referenced acceptance-criterion titles.         |
+| T04     | `opencode_costs.py` module path inconsistency in Technical Notes   | Documented the verified flat-domain-module convention.    |
 
 
 ### Significant
 
 #### S01: Task 06 ACs are not directly testable without a validator contract
 
-##### Where
+
+#### Where
 
 Execution — Task 06 — Acceptance Criteria — lines 397–405
 
 
-##### Issue
+#### Issue
 
 AC01–AC04 each describe something the validator must detect, but the plan never specifies
 where the validator lives, what command invokes it, or what its output contract is. AC03 says
@@ -52,13 +53,13 @@ constitute prohibited text. A tester cannot write a failing fixture test without
 contract.
 
 
-##### Impact
+#### Impact
 
 Task 06 tests will either be vacuous string searches or will require the executor to
 re-derive the contract, producing a validator that may not match the design intent.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a Technical Notes subsection to Task 06 that names the validator entry point, its
 arguments, and the exact patterns or heuristics used for Zen-model detection and live-edit
@@ -66,7 +67,7 @@ detection. Alternatively, move the contract definition into an earlier task and 
 here.
 
 
-##### Outcome
+#### Outcome
 
 Defined the validator entry point, arguments, and checks.
 
@@ -74,12 +75,13 @@ Defined the validator entry point, arguments, and checks.
 
 #### S02: Unknowns do not include the `opencode.db` path-discovery rule
 
-##### Where
+
+#### Where
 
 Unknowns — lines 480–487
 
 
-##### Issue
+#### Issue
 
 Task 01 step 3 says "Decide and document the database discovery order, using an explicit CLI
 option only if the design or existing conventions require it." This is an open design
@@ -89,19 +91,19 @@ revision and schema fields but omits the discovery mechanism, which affects the 
 and tests.
 
 
-##### Impact
+#### Impact
 
 The executor may ship a discovery rule that conflicts with AC10 or requires schema changes to
 the CLI tests, forcing a correction pass.
 
 
-##### Suggestion
+#### Suggestion
 
 Add an Unknown: "Confirm the default database path and whether `--database` is a supported
 option. Resolve from schema inspection and design plan AC10 before Task 02."
 
 
-##### Outcome
+#### Outcome
 
 Resolved the default database path and excluded a new CLI option.
 
@@ -109,12 +111,13 @@ Resolved the default database path and excluded a new CLI option.
 
 #### S03: Task 05 has no focused test command or validation step in commands
 
-##### Where
+
+#### Where
 
 Project Commands — lines 25–145; Execution — Task 05 — Steps — lines 361–379
 
 
-##### Issue
+#### Issue
 
 The Project Commands section includes `### Verify the staged policy tree` but that command
 only confirms the directory exists and compares the diff. Task 05 step 9 says "Run the staged
@@ -125,20 +128,20 @@ at the Project Commands level, so the executor has no canonical invocation to ci
 journal.
 
 
-##### Impact
+#### Impact
 
 The executor will have to improvise the validation invocation or skip it, and the reviewer
 cannot reproduce the result from the documented commands alone.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a `### Run staged policy validator` subsection under Project Commands with the expected
 invocation once the validator is implemented in Task 06. It can note the dependency on Task 06
 completion. Alternatively, include the invocation in Task 05's Technical Notes.
 
 
-##### Outcome
+#### Outcome
 
 Added the canonical staged-policy validator command.
 
@@ -148,12 +151,13 @@ Added the canonical staged-policy validator command.
 
 #### T01: Project Commands uses `bash` language hint instead of `shell`
 
-##### Where
+
+#### Where
 
 Project Commands — multiple fenced code blocks (e.g., line 36, 50, 63)
 
 
-##### Issue
+#### Issue
 
 The markdown style guide requires `shell` as the language hint for shell commands, not `bash`
 or `sh`. All code blocks under Project Commands use ` ```shell ` — reviewing the raw text
@@ -164,12 +168,12 @@ consistency.
 On inspection all code blocks do use ` ```shell `. This finding is superseded — no violation.
 
 
-##### Suggestion
+#### Suggestion
 
 No action required.
 
 
-##### Outcome
+#### Outcome
 
 No action required; the finding was a false alarm.
 
@@ -177,12 +181,13 @@ No action required; the finding was a false alarm.
 
 #### T02: Task 04 Technical Notes uses bold subject for a two-sentence paragraph
 
-##### Where
+
+#### Where
 
 Execution — Task 04 — Technical Notes — lines 330–332
 
 
-##### Issue
+#### Issue
 
 The Technical Notes paragraph beginning "Prefer a new `src/dot_tools/opencode_costs.py`…"
 is a multi-sentence paragraph following a plain paragraph, not inside a list. This is
@@ -190,12 +195,12 @@ acceptable, but the opening instruction "Follow existing Typer registration patt
 "existing test conventions" could be clearer as a short list.
 
 
-##### Suggestion
+#### Suggestion
 
 Minor: split into two short bullet items for readability, or leave as-is.
 
 
-##### Outcome
+#### Outcome
 
 Left acceptable prose unchanged.
 
@@ -203,12 +208,13 @@ Left acceptable prose unchanged.
 
 #### T03: Task 05 AC03 references design plan AC labels without quoting section titles
 
-##### Where
+
+#### Where
 
 Execution — Task 05 — Acceptance Criteria — line 349
 
 
-##### Issue
+#### Issue
 
 AC03 says "satisfy AC02 through AC04 of the design plan." Design plan AC labels are not
 numbered sequentially in the same namespace as this plan's task ACs. The reference is
@@ -217,14 +223,14 @@ implementation plan cannot resolve "AC02 through AC04 of the design plan" withou
 document. The full titles or a parenthetical description would make the criterion self-contained.
 
 
-##### Suggestion
+#### Suggestion
 
 Expand to: "satisfy design plan AC02 (`run-task` controls), AC03 (`run-hack` authority), and
 AC04 (evidence-led escalation), including gates, Git authority, final QA ownership, and
 escalation signals."
 
 
-##### Outcome
+#### Outcome
 
 Added the referenced acceptance-criterion titles.
 
@@ -232,12 +238,13 @@ Added the referenced acceptance-criterion titles.
 
 #### T04: `opencode_costs.py` proposed module path may conflict with the package layout
 
-##### Where
+
+#### Where
 
 Technical Notes — Proposed file layout — line 494
 
 
-##### Issue
+#### Issue
 
 The proposed path `src/dot_tools/opencode_costs.py` places a multi-concern domain module at
 the top level of the package. The plan also lists `src/dot_tools/cli/opencode.py`, which
@@ -247,14 +254,14 @@ The plan acknowledges this with "Adjust names only if repository inspection requ
 does not record whether inspection was performed.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a note in the Technical Notes or Task 01 to confirm the package layout during
 investigation and record the outcome before Task 04 begins. The proposed path is fine if the
 package is flat; flag it as a deviation if sub-packages are the norm.
 
 
-##### Outcome
+#### Outcome
 
 Documented the verified flat-domain-module convention.
 

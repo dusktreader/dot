@@ -1,11 +1,11 @@
 # Design Plan: Carve work-specific configuration into a private work-dot repository
 
-
 ## Goal
 
 Split Tucker's dotfiles into two repositories with clear ownership boundaries. The existing public `dot`
 repository keeps personal identity, generic tooling, and machine-agnostic shell/agent context. A new
-private repository, `Tucker-Beck_mcgraw/work-dot` (GitHub Cloud), owns everything that is McGraw Hill-specific: work agent
+private repository, `Tucker-Beck_mcgraw/work-dot` (GitHub Cloud), owns everything that is McGraw Hill-specific: work
+agent
 context, work Git configuration, work shell environment, and credentials for work services (Jira,
 Confluence, Datadog, and similar). A new CLI `wdt` mirrors the shape of `dt` and bootstraps the work
 layer independently. `dt configure` cooperates with `wdt` when it is present but never depends on it.
@@ -28,9 +28,7 @@ this design does not verify.
 
 ## Acceptance Criteria
 
-
 ### Repository split and CLI shape
-
 
 #### AC01: The private work repository exists and is self-contained
 
@@ -127,7 +125,6 @@ agent context describe work GitHub as GitHub Cloud under the `Tucker-Beck_mcgraw
 ----
 
 ### Generic Jira retention and cleanup
-
 
 #### AC13: The generic branch-pattern checkout stays in `dot`
 
@@ -411,24 +408,24 @@ substitution against the CLI rather than `jq` against a JSON file.
 This is the conceptual inventory of what moves, stays, or is deleted. Exact paths and rename choices
 are for the implementation plan.
 
-| Category                                                | Current home   | Destination                                                    |
-| ------------------------------------------------------- | -------------- | -------------------------------------------------------------- |
-| Personal identity and register guidance                 | `dot`          | `dot` (stays)                                                  |
-| McGraw Hill / Fusion / Assess identity                  | `dot`          | `work-dot`                                                     |
-| Generic machine context (OS, shell, editor)             | `dot`          | `dot` (stays)                                                  |
-| Work service credential instructions                    | `dot`          | `work-dot` (as CLI-mediated guidance)                          |
-| Generic Git config and personal include                 | `dot`          | `dot` (stays)                                                  |
-| Work Git-config overlay                                 | `dot`          | `work-dot`                                                     |
-| Retired GHES `insteadOf` rule                           | `dot`          | Deleted                                                        |
-| Work source-root env var and `cdwork` alias             | `dot` shell rc | `work-dot` shell rc                                            |
-| Generic branch-pattern checkout (`cojira`)              | `dot`          | `dot` (stays)                                                  |
-| Generic Jira client code                                | `dot`          | `dot` (stays, identity stripped)                               |
-| Hardcoded work Jira identity in client code             | `dot`          | Deleted from `dot`; moved to `work-dot`                        |
-| Plaintext credentials file guidance                     | `dot`          | Deleted                                                        |
-| Personal credential values                              | ad-hoc files   | `dt` credentials sub-model (batch: `dt settings bind`; individual: `dt creds set`)         |
-| Work credential values (Jira, Confluence, Datadog, etc.)| ad-hoc files   | `wdt` credentials sub-model (batch: `wdt settings bind`; individual: `wdt creds set`)      |
-| `~/.agents/credentials.json` plaintext credentials      | `~/.agents/`   | Deleted after validated CLI migration                          |
-| Agent-facing credential-file read instructions          | `dot` agents   | Replaced by `dt`/`wdt creds fetch` guidance                    |
+| Category                                                 | Current home   | Destination                                                                           |
+| -------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------- |
+| Personal identity and register guidance                  | `dot`          | `dot` (stays)                                                                         |
+| McGraw Hill / Fusion / Assess identity                   | `dot`          | `work-dot`                                                                            |
+| Generic machine context (OS, shell, editor)              | `dot`          | `dot` (stays)                                                                         |
+| Work service credential instructions                     | `dot`          | `work-dot` (as CLI-mediated guidance)                                                 |
+| Generic Git config and personal include                  | `dot`          | `dot` (stays)                                                                         |
+| Work Git-config overlay                                  | `dot`          | `work-dot`                                                                            |
+| Retired GHES `insteadOf` rule                            | `dot`          | Deleted                                                                               |
+| Work source-root env var and `cdwork` alias              | `dot` shell rc | `work-dot` shell rc                                                                   |
+| Generic branch-pattern checkout (`cojira`)               | `dot`          | `dot` (stays)                                                                         |
+| Generic Jira client code                                 | `dot`          | `dot` (stays, identity stripped)                                                      |
+| Hardcoded work Jira identity in client code              | `dot`          | Deleted from `dot`; moved to `work-dot`                                               |
+| Plaintext credentials file guidance                      | `dot`          | Deleted                                                                               |
+| Personal credential values                               | ad-hoc files   | `dt` credentials sub-model (batch: `dt settings bind`; individual: `dt creds set`)    |
+| Work credential values (Jira, Confluence, Datadog, etc.) | ad-hoc files   | `wdt` credentials sub-model (batch: `wdt settings bind`; individual: `wdt creds set`) |
+| `~/.agents/credentials.json` plaintext credentials       | `~/.agents/`   | Deleted after validated CLI migration                                                 |
+| Agent-facing credential-file read instructions           | `dot` agents   | Replaced by `dt`/`wdt creds fetch` guidance                                           |
 
 
 ### Rollout and compatibility

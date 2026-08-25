@@ -37,7 +37,6 @@ Do not confuse with `review-code`, which reviews code quality rather than answer
 
 ## Process
 
-
 ### 1. Understand the question
 
 Restate the question in your own words. If the question is ambiguous, stop and ask for clarification before

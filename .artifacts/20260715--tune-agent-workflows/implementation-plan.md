@@ -93,7 +93,7 @@ Ruff reports no violations and `ty` reports no type errors.
 Command:
 
 ```shell
-node ~/.agents/tools/check-markdown-format.mjs .artifacts/20260715--tune-agent-workflows/implementation-plan.md
+~/.agents/tools/markdown-format.py check .artifacts/20260715--tune-agent-workflows/implementation-plan.md
 ```
 
 Expected Output:

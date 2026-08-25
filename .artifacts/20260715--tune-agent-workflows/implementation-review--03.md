@@ -26,25 +26,26 @@ Review--02 carried zero findings. No prior findings required re-evaluation.
 
 ### Summary
 
-| Finding | Title                                                            | Outcome |
-| ------- | ---------------------------------------------------------------- | ------- |
-| S01     | "Staged OpenCode variants" is undefined across Tasks 06–07       |         |
-| S02     | Task 07 AC02 fixture scope is unverifiable without variant list  |         |
-| T01     | Task 06 AC06 duplicates Task 05 AC04 without worktree specificity|         |
-| T02     | Task 07 Step 3 checksums assertion conflates two distinct scopes |         |
+| Finding | Title                                                             | Outcome |
+| ------- | ----------------------------------------------------------------- | ------- |
+| S01     | "Staged OpenCode variants" is undefined across Tasks 06–07        |         |
+| S02     | Task 07 AC02 fixture scope is unverifiable without variant list   |         |
+| T01     | Task 06 AC06 duplicates Task 05 AC04 without worktree specificity |         |
+| T02     | Task 07 Step 3 checksums assertion conflates two distinct scopes  |         |
 
 
 ### Significant
 
 #### S01: "Staged OpenCode variants" is undefined across Tasks 06–07
 
-##### Where
+
+#### Where
 
 Task 06 — AC06 and Step 7; Task 07 — AC02, Step 2, Step 3; Task 05 — Step 10; approximately
 lines 452, 473, 499, 512, 513, 413.
 
 
-##### Issue
+#### Issue
 
 The phrase "staged OpenCode variants" appears in six locations across Tasks 05, 06, and 07 as
 if it names a concrete, bounded set of files or configurations. No section of the plan defines
@@ -54,7 +55,7 @@ and Task 06 AC06 requires that "staged guidance works with staged OpenCode varia
 criterion is testable until the variants are enumerated.
 
 
-##### Impact
+#### Impact
 
 Task 07 AC02 cannot be confirmed complete because an executor has no list against which to
 check fixture coverage. The validator extension in Task 07 Step 2 has no scope. An implementer
@@ -64,7 +65,7 @@ menus to be correctly separated — this gap means the staged enforcement of tha
 be validated systematically.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a single definition either in Task 05 Technical Notes or the top-level Technical Notes
 that names the variant set — for example: "Staged OpenCode variants are the two dispatch
@@ -77,7 +78,7 @@ If the variants are workflow-class variants (feature/task/hack) rather than prov
 say that explicitly. The plan should not use one label for two different scopes.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
@@ -86,12 +87,13 @@ say that explicitly. The plan should not use one label for two different scopes.
 
 #### S02: Task 07 AC02 fixture scope is unverifiable as written
 
-##### Where
+
+#### Where
 
 Task 07 — Acceptance Criteria — AC02 — approximately line 499.
 
 
-##### Issue
+#### Issue
 
 AC02 requires fixture coverage for "feature, task, hack, stale-parent, successful-cleanup,
 declined-run, abandoned-run, and principal/model-policy fixtures, including each staged
@@ -102,14 +104,14 @@ variant, or only the model-policy fixtures vary by variant. Combined with the un
 set from S01, this AC cannot be checked off by an executor with confidence.
 
 
-##### Impact
+#### Impact
 
 The validator suite may be accepted as complete with partial coverage. A later promotion
 review would find gaps in work-project versus personal-project enforcement, defeating the
 purpose of Task 07.
 
 
-##### Suggestion
+#### Suggestion
 
 Resolve S01 first. Then rewrite AC02 to separate lifecycle fixtures from model-policy
 fixtures: "Fixture coverage includes the full lifecycle matrix (feature, task, hack,
@@ -118,7 +120,7 @@ dispatch-context fixtures (work-project GitHub Copilot and personal-project Zen)
 exercised as a distinct minimal staged tree."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
@@ -127,12 +129,13 @@ exercised as a distinct minimal staged tree."
 
 #### T01: Task 06 AC06 duplicates Task 05 AC04 without adding worktree specificity
 
-##### Where
+
+#### Where
 
 Task 06 — Acceptance Criteria — AC06 — approximately line 452.
 
 
-##### Issue
+#### Issue
 
 AC06 states "staged guidance works with staged OpenCode variants and assigns model choice,
 escalation, risk classification, and approval decisions to the principal without allowing a
@@ -143,7 +146,7 @@ The two criteria cover the same policy constraint. Task 06 AC06 contributes no w
 observable behavior — it could be removed without losing any coverage unique to Task 06.
 
 
-##### Suggestion
+#### Suggestion
 
 Either remove Task 06 AC06 and rely on Task 05 AC04 for model policy coverage, or rewrite it
 as a worktree-specific criterion: "Worktree creation, gate prompts, and cleanup steps in the
@@ -151,7 +154,7 @@ staged `run-feature` and `run-task` guidance do not reference model selection, d
 decision entirely to the principal dispatch policy."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
@@ -160,12 +163,13 @@ decision entirely to the principal dispatch policy."
 
 #### T02: Task 07 Step 3 checksums assertion conflates staged and source scopes
 
-##### Where
+
+#### Where
 
 Task 07 — Steps — Step 3 — approximately line 513.
 
 
-##### Issue
+#### Issue
 
 Step 3 ends with "Compare `.agents` checksums before and after and confirm no unrelated source
 or staging files changed." The validator already asserts that tracked `.agents` is unchanged
@@ -175,14 +179,14 @@ non-modification. The instruction is also ambiguous — "before and after" what 
 does "staging files changed" mean the staging root or the source?
 
 
-##### Suggestion
+#### Suggestion
 
 Split into two clear sentences: "Run the validator against the complete staged tree with the
 canonical command and assert a clean exit. Confirm `git diff -- .agents` is empty after
 validation to verify the validator performed no write operations."
 
 
-##### Outcome
+#### Outcome
 
 
 ----

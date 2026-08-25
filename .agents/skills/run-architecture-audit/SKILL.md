@@ -50,7 +50,6 @@ project are stored there.
 
 ## Process
 
-
 ### 1. Investigate
 
 Dispatch one or more `engineer-investigator` subagents with the `investigate-codebase` skill. Derive

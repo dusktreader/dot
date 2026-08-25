@@ -42,29 +42,28 @@ addressed; one new significant finding and two new trivial findings surfaced in 
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                           | Outcome |
-| ------- | --------------------------------------------------------------- | ------- |
+| Finding | Title                                                            | Outcome |
+| ------- | ---------------------------------------------------------------- | ------- |
 | S01     | `dt secrets fetch` is unimplemented — design plan AC17 uncovered |         |
-| S02     | Task 05 has no AC confirming context-initialized seeding        |         |
-| S03     | Task 06 and Task 11 overlap heavily without differentiation     |         |
-| T01     | Task 12 AC01 specifies 80% coverage; pyproject.toml floor is 70% |        |
-| T02     | GitHub org name in Task 01 contains an invalid underscore       |         |
+| S02     | Task 05 has no AC confirming context-initialized seeding         |         |
+| S03     | Task 06 and Task 11 overlap heavily without differentiation      |         |
+| T01     | Task 12 AC01 specifies 80% coverage; pyproject.toml floor is 70% |         |
+| T02     | GitHub org name in Task 01 contains an invalid underscore        |         |
 
 
 ### Significant
 
-
 #### S01: `dt secrets fetch` is unimplemented — design plan AC17 uncovered
 
-##### Where
+
+#### Where
 
 Design plan — AC17; Implementation plan — Execution section (all tasks)
 
 
-##### Issue
+#### Issue
 
 Design plan AC17 requires: "`dt` exposes a `secrets fetch <key>` command that prints the named
 secret value to stdout with no surrounding formatting, exiting non-zero if the key is absent or
@@ -76,7 +75,7 @@ The design plan treats both CLIs symmetrically for secrets access. AC17 is a fir
 acceptance criterion of the approved design, not an optional stretch goal.
 
 
-##### Impact
+#### Impact
 
 Design plan AC17 is undelivered. Any agent or script that uses `dt secrets fetch` — as directed
 by the updated agent instructions in Task 14 — will receive a "no such command" error. Task 14
@@ -84,7 +83,7 @@ AC02 explicitly states that `dot` agent instructions should document `dt secrets
 which will be incorrect if the command does not exist.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a new task (or extend Task 04) to implement a `secrets fetch` sub-command in `dot`. The task
 should mirror `work-dot`'s Task 04 implementation: create `dot/src/dot_tools/cli/secrets.py`,
@@ -92,20 +91,20 @@ register it in `cli/main.py`, implement `fetch(key: str)`, and add unit tests. T
 disclosure AC (equivalent to Task 04 AC11) must also be included for `dt secrets fetch`.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### S02: Task 05 has no AC confirming context-initialized seeding
 
-##### Where
+
+#### Where
 
 Execution — Task 05 — Acceptance Criteria — lines 452–468
 
 
-##### Issue
+#### Issue
 
 The prior review (S02) requested an AC confirming that `_seed_secrets()` works when invoked
 from the live `wdt configure` command. The revision acknowledges the context-initialization
@@ -118,7 +117,7 @@ Without a verifiable AC, an executor may pass all unit tests while the actual co
 fails silently on the context requirement, leaving the issue undetected until manual testing.
 
 
-##### Impact
+#### Impact
 
 If the context initialization pattern is incorrect, `wdt configure` will fail at the seeding
 step (AC01–AC03 describe the desired behavior but none require end-to-end exercise). The bug
@@ -126,7 +125,7 @@ could persist through all unit tests and surface only during Task 06 integration
 acceptance.
 
 
-##### Suggestion
+#### Suggestion
 
 Add to Task 05 Acceptance Criteria:
 
@@ -135,20 +134,20 @@ Add to Task 05 Acceptance Criteria:
 > present), confirming seeding ran from within the live CLI context.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### S03: Task 06 and Task 11 overlap heavily without differentiation
 
-##### Where
+
+#### Where
 
 Execution — Task 06 — Steps — lines 536–565; Task 11 — Steps — lines 845–858
 
 
-##### Issue
+#### Issue
 
 Task 06 already instructs the implementor to build the subprocess invocation with correct
 argument passing (step 2, lines 537–546), including constructing the `wdt configure` command
@@ -162,37 +161,36 @@ difference being `--root` (which Task 06 also implicitly covers via the `--force
 everything it describes, with no clear incremental action.
 
 
-##### Impact
+#### Impact
 
 The implementor either skips Task 11 as already-done (leaving its ACs unverified) or
 re-implements the same logic a second time (risking divergence). Both outcomes reduce
 confidence in the task structure.
 
 
-##### Suggestion
+#### Suggestion
 
 Merge Task 11 into Task 06: add its ACs (AC01–AC05) directly to Task 06, and add `--root`
 argument handling and the corresponding tests to Task 06's Steps. Remove Task 11 as a
 standalone task and renumber subsequent tasks accordingly.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 ### Trivial
-
 
 #### T01: Task 12 AC01 specifies 80% coverage; configured floor is 70%
 
-##### Where
+
+#### Where
 
 Execution — Task 12 — Acceptance Criteria — line 879
 
 
-##### Issue
+#### Issue
 
 Task 12 AC01 reads: "Test coverage for `dot` includes at least 80% of code touched in this
 implementation." Task 12 AC02 sets the same 80% bar for `work-dot`. The `pyproject.toml` for
@@ -201,27 +199,27 @@ says coverage must "meet or exceed the configured floor," yet Task 12 raises the
 without noting that this exceeds the project setting.
 
 
-##### Suggestion
+#### Suggestion
 
 Either lower the Task 12 ACs to 70% to match the configured floor, or explicitly note that the
 80% figure applies only to the files touched in this implementation (using `--cov-fail-under 80`
 for a scoped run), and document the exact `pytest` invocation that enforces it.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### T02: GitHub org name in Task 01 contains an invalid underscore
 
-##### Where
+
+#### Where
 
 Execution — Task 01 — Acceptance Criteria — AC04; Technical Notes — line 208; Goal — line 15
 
 
-##### Issue
+#### Issue
 
 The plan references `https://github.com/Tucker-Beck_mcgraw/work-dot` in several places. GitHub
 organization and user names may contain hyphens but not underscores. The org name
@@ -229,7 +227,7 @@ organization and user names may contain hyphens but not underscores. The org nam
 account name under which `work-dot` will be hosted is unclear.
 
 
-##### Suggestion
+#### Suggestion
 
 Confirm the correct GitHub Cloud account name for the McGraw Hill work account and replace all
 occurrences of `Tucker-Beck_mcgraw` with the verified name. If the account does not yet exist,
@@ -237,11 +235,10 @@ note this as a prerequisite in Task 01 and add an AC for account creation before
 is configured.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ## Notes
 

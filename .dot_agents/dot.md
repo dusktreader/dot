@@ -8,16 +8,16 @@ Repository path: `~/src/dusktreader/dot`
 
 ## Repository overview
 
-| Path                        | Purpose                                                      |
-|-----------------------------|--------------------------------------------------------------|
-| `src/dot_tools/`            | Python package `dot-tools`                                   |
-| `src/dot_tools/cli/`        | Typer CLI entry points                                       |
-| `src/dot_tools/configure.py`| `DotInstaller` class — core bootstrap logic                  |
-| `etc/install.yaml`          | Install manifest (links, copies, tools, settings, services)  |
-| `bin/`                      | Shell helper scripts sourced at login                        |
-| `.dot_*`, `.dotrc`          | Dotfiles sourced via `.extra_dotfiles` at shell startup      |
-| `pyproject.toml`            | Project metadata; entry point `dt = dot_tools.cli.main:cli`  |
-| `tests/`                    | pytest test suite                                            |
+| Path                         | Purpose                                                     |
+| ---------------------------- | ----------------------------------------------------------- |
+| `src/dot_tools/`             | Python package `dot-tools`                                  |
+| `src/dot_tools/cli/`         | Typer CLI entry points                                      |
+| `src/dot_tools/configure.py` | `DotInstaller` class — core bootstrap logic                 |
+| `etc/install.yaml`           | Install manifest (links, copies, tools, settings, services) |
+| `bin/`                       | Shell helper scripts sourced at login                       |
+| `.dot_*`, `.dotrc`           | Dotfiles sourced via `.extra_dotfiles` at shell startup     |
+| `pyproject.toml`             | Project metadata; entry point `dt = dot_tools.cli.main:cli` |
+| `tests/`                     | pytest test suite                                           |
 
 
 ## The `dt` CLI
@@ -30,16 +30,16 @@ dt = "dot_tools.cli.main:cli"
 
 Top-level commands:
 
-| Command      | Description                                              |
-|--------------|----------------------------------------------------------|
-| `configure`  | Bootstrap / re-apply the full dotfiles installation      |
-| `git`        | Git helper sub-commands                                  |
-| `ssh`        | SSH key management sub-commands                          |
-| `kv`         | Produce a JSON string from key→value pairs               |
-| `line-length`| Report configured line length for the current project    |
-| `urlencode`  | URL-encode a string and copy it to the clipboard         |
-| `logs`       | View application logs (typerdrive built-in)              |
-| `settings`   | Inspect/edit app settings (typerdrive built-in)          |
+| Command       | Description                                           |
+| ------------- | ----------------------------------------------------- |
+| `configure`   | Bootstrap / re-apply the full dotfiles installation   |
+| `git`         | Git helper sub-commands                               |
+| `ssh`         | SSH key management sub-commands                       |
+| `kv`          | Produce a JSON string from key→value pairs            |
+| `line-length` | Report configured line length for the current project |
+| `urlencode`   | URL-encode a string and copy it to the clipboard      |
+| `logs`        | View application logs (typerdrive built-in)           |
+| `settings`    | Inspect/edit app settings (typerdrive built-in)       |
 
 Run `dt --help` or `dt <command> --help` for full option details.
 
@@ -66,13 +66,15 @@ Run `dt --help` or `dt <command> --help` for full option details.
     (macOS) that sources `~/.extra_dotfiles`
 11. **`_install_services`** — register services via launchd (macOS) or systemd user units (Linux)
 
+
 ### Key options for `dt configure`
 
-| Option            | Default                          | Description                                          |
-|-------------------|----------------------------------|------------------------------------------------------|
-| `--root`          | `~/src/dusktreader/dot`          | Root of the dot repo to install from                 |
-| `--override-home` | none                             | Install into this directory instead of `$HOME`       |
-| `--force`         | `$DOT_FORCE` env var or `False`  | Overwrite destination files even if locally modified |
+| Option            | Default                         | Description                                          |
+| ----------------- | ------------------------------- | ---------------------------------------------------- |
+| `--root`          | `~/src/dusktreader/dot`         | Root of the dot repo to install from                 |
+| `--override-home` | none                            | Install into this directory instead of `$HOME`       |
+| `--force`         | `$DOT_FORCE` env var or `False` | Overwrite destination files even if locally modified |
+
 
 ### Copy-file conflict resolution
 

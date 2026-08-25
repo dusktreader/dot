@@ -81,22 +81,16 @@ Review the `## Relevant Skills` section. Ensure that all listed skills actually 
 skills.
 
 
-### 5. Check markdown formatting
+### 5. Format markdown
 
-Verify the document conforms to the markdown style guide (`~/.agents/instructions/markdown.md`
-and the project's `.agents/docs/standards/markdown.md` if present). Flag violations as findings:
-
-- Lines exceeding 120 characters (outside code blocks and tables)
-- Bold-subject quasi-headings used for multi-sentence content instead of proper `###`/`####`
-  subsections
-- Missing two blank lines before a heading (unless the parent heading has no content)
-- List items using `*` or `+` instead of `-`
-- Fenced code blocks without a language hint
+Run the `markdown_format` OpenCode tool with `mode: "format"` before reviewing the document. Do not run `check` or
+spend review tokens manually fixing formatting that the formatter handles.
 
 
 ### 6. Evaluate execution tasks
 
 Step through the `## Execution` section. For each task, review:
+
 
 #### Acceptance criteria
 

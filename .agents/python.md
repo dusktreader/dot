@@ -84,6 +84,7 @@ Never write comments that:
 
 - Label what the next function or block is named (`# Authentication` above `def authenticate`)
 - Divide a class into sections with banners (`# ---`, `# ===`)
-- Describe what a well-named variable or call already makes obvious (`# hash the password` above `pswd_ctx.hash(password)`)
+- Describe what a well-named variable or call already makes obvious (`# hash the password` above
+  `pswd_ctx.hash(password)`)
 
 If a class feels like it needs section signposting, that is a signal to split it up instead.

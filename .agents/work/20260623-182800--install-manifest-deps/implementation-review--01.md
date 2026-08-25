@@ -25,32 +25,31 @@ Findings:
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                              | Outcome |
-| ------- | ------------------------------------------------------------------ | ------- |
+| Finding | Title                                                             | Outcome |
+| ------- | ----------------------------------------------------------------- | ------- |
 | S01     | Wrong type checker throughout: `pyright` should be `ty`           |         |
-| S02     | Task 02 AC01 overspecifies ordering for independent tools          |         |
-| S03     | Task 05 duplicates test scenarios already assigned to Tasks 02/04  |         |
-| T01     | Task 02 Step 4 graph-direction wording contradicts itself          |         |
-| T02     | Two prose lines exceed 120 characters                              |         |
+| S02     | Task 02 AC01 overspecifies ordering for independent tools         |         |
+| S03     | Task 05 duplicates test scenarios already assigned to Tasks 02/04 |         |
+| T01     | Task 02 Step 4 graph-direction wording contradicts itself         |         |
+| T02     | Two prose lines exceed 120 characters                             |         |
 | T03     | Sibling `###` task headings separated by `---` bars               |         |
-| T04     | `####` subsection headings preceded by only one blank line         |         |
+| T04     | `####` subsection headings preceded by only one blank line        |         |
 
 
 ### Significant
 
-
 #### S01: Wrong type checker throughout — `pyright` should be `ty`
 
-##### Where
+
+#### Where
 
 Project Commands — "Run quality gate" — line 28; Task 05 Step 7 — line 302;
 Task 06 Steps 3 and 4 — lines 333–334
 
 
-##### Issue
+#### Issue
 
 The plan references `uv run pyright src tests` in four places. This project uses `ty` (not
 `pyright`) as its type checker, configured under `[tool.ty.rules]` in `pyproject.toml` and
@@ -60,14 +59,14 @@ not found" because `pyright` is not installed in the project environment.
 The `.dot_agents/dot.md` documents the correct command as `uv run ty check`.
 
 
-##### Impact
+#### Impact
 
 The quality gate command in Project Commands is broken. An executor running it verbatim will
 hit an error immediately, before any tool logic is exercised. Task 06 Steps 3 and 4 suffer the
 same failure. Task 05 Step 7 will also fail when the executor runs the final quality check.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace every occurrence of `uv run pyright src tests` with `uv run ty check src tests`.
 
@@ -82,20 +81,20 @@ uv run pytest
 Apply the same substitution in Task 05 Step 7 and Task 06 Steps 3–4.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### S02: Task 02 AC01 overspecifies ordering for independent tools
 
-##### Where
+
+#### Where
 
 Execution — Task 02 — Acceptance Criteria — line 128
 
 
-##### Issue
+#### Issue
 
 AC01 states: "Given tools with no dependencies, returns them in the same order as the input
 list." Python's `graphlib.TopologicalSorter` documentation explicitly says: "The particular
@@ -106,7 +105,7 @@ More importantly, the design plan states: "No tiebreak policy is imposed on inde
 tools." An AC that enforces input-order preservation contradicts the design.
 
 
-##### Impact
+#### Impact
 
 The AC is testable and will pass under CPython, but it encodes a contract the design
 intentionally does not make. A future CPython change or a different interpreter could break
@@ -114,7 +113,7 @@ the test without breaking the feature. It also tells the executor to write a tes
 order where the design says order is undefined for independent tools.
 
 
-##### Suggestion
+#### Suggestion
 
 Replace AC01 with a weaker, design-consistent assertion:
 
@@ -127,20 +126,20 @@ predictability guarantee), state it explicitly as a design decision and update t
 to reflect it.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### S03: Task 05 duplicates test scenarios already assigned to Tasks 02 and 04
 
-##### Where
+
+#### Where
 
 Execution — Task 05 — Steps and Acceptance Criteria — lines 268–311
 
 
-##### Issue
+#### Issue
 
 Task 05 is presented as a "comprehensive end-to-end" testing task, but the scenarios it
 covers are substantially already assigned to earlier tasks:
@@ -161,14 +160,14 @@ The only genuinely new scenario is Task 05 AC03 ("multiple independent tools pro
 topological order") and Step 5 ("full install flow with mocked subprocess").
 
 
-##### Impact
+#### Impact
 
 The executor faces an ambiguous assignment: the task implies writing tests that may already
 exist, and may end up with duplicate test methods. Alternatively, the executor may skip Task 05
 steps silently. Either outcome reduces test clarity.
 
 
-##### Suggestion
+#### Suggestion
 
 Restructure Task 05 to contain only the scenarios not already covered in Tasks 02 and 04:
 
@@ -185,23 +184,22 @@ If the intent is that Task 05 is a pure verification pass over tests written els
 so explicitly: "Run the tests from Tasks 02–04 together and confirm no gaps."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 ### Trivial
-
 
 #### T01: Task 02 Step 4 graph-direction wording conflicts with the Technical Notes
 
-##### Where
+
+#### Where
 
 Execution — Task 02 — Steps — line 144; Task 02 — Technical Notes — line 163
 
 
-##### Issue
+#### Issue
 
 Step 4 says: "For each tool, add edges from the tool to each of its dependencies (reverse
 direction)." The parenthetical "(reverse direction)" without further explanation is ambiguous —
@@ -214,7 +212,7 @@ an edge B→A (B must come before A)" and the global Technical Notes repeat the 
 `sorter.add(B_name, A_name)`. The contradiction is between the step prose and the notes.
 
 
-##### Suggestion
+#### Suggestion
 
 Rewrite Step 4 to match the Technical Notes:
 
@@ -225,20 +223,20 @@ Rewrite Step 4 to match the Technical Notes:
 >      in the graph automatically as predecessors of other tools.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### T02: Two prose lines exceed the 120-character limit
 
-##### Where
+
+#### Where
 
 Task 04 — Steps — line 247 (127 chars); Technical Notes — "Error messages" — line 367 (122 chars)
 
 
-##### Issue
+#### Issue
 
 Line 247: the YAML-validation command inline in a step prose line runs 127 characters.
 Line 367: the cycle-error message example runs 122 characters.
@@ -246,7 +244,7 @@ Line 367: the cycle-error message example runs 122 characters.
 Code blocks and tables are exempt from the 120-character limit, but prose lines are not.
 
 
-##### Suggestion
+#### Suggestion
 
 For line 247, move the shell command to a fenced code block instead of inlining it in the
 step prose:
@@ -263,48 +261,48 @@ For line 367, wrap the line at a natural break before 120 characters:
 >   `Please check your dependency declarations."`
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### T03: Sibling `###` task headings separated by `---` bars
 
-##### Where
+
+#### Where
 
 Execution section — between every pair of task headings — lines 118, 170, 224, 265, 312
 
 
-##### Issue
+#### Issue
 
 The markdown style guide states: "Add a separator bar before going back to a higher-level
 heading. Do not use a separator bar between siblings at the same level." All five `---` bars in
 the Execution section appear between sibling `### ` task headings, not before a return to `##`.
 
 
-##### Suggestion
+#### Suggestion
 
 Remove the `---` separator bars between task headings. The two blank lines required before
 each `###` heading provide sufficient visual separation.
 
 
-##### Outcome
+#### Outcome
 
 
 ----
 
-
 #### T04: `####` subsection headings preceded by only one blank line
 
-##### Where
+
+#### Where
 
 All task subsections throughout the Execution section (e.g., line 90 "#### Acceptance
 Criteria", line 99 "#### Steps", line 112 "#### Technical Notes", and equivalents in Tasks
 02–06)
 
 
-##### Issue
+#### Issue
 
 The markdown style guide requires two blank lines before any heading whose parent heading has
 content. Every `###` task heading has a description paragraph, so the `####` subsections
@@ -312,7 +310,7 @@ underneath each task — Acceptance Criteria, Steps, Technical Notes — all req
 lines before them. The plan uses only one blank line throughout.
 
 
-##### Suggestion
+#### Suggestion
 
 Add a second blank line before each `####` heading in the Execution section. For example,
 before "#### Acceptance Criteria" in Task 01:
@@ -325,11 +323,10 @@ Ensure the field defaults to an empty list and loads correctly from YAML.
 ```
 
 
-##### Outcome
+#### Outcome
 
 
 ----
-
 
 ## Notes
 

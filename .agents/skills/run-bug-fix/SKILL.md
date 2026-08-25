@@ -39,13 +39,13 @@ so `{JIRA-ID}` is known, then create `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project
 (no match, or it contains `NO-TICKET`), omit the `{JIRA-ID}` segment entirely — do not write the literal
 text `NO-TICKET` into the path. All artifacts for this project are stored there.
 
-| Artifact                                  | Description                                                                                |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `bug-report.md`                           | Investigation findings and confirmed root cause                                            |
-| `implementation-plan.md`                  | Fix plan                                                                                   |
-| `implementation-review--{N}.md`           | Implementation plan review (N = zero-padded 2 digits: 01, 02, ...)                         |
-| `implementation-journal.md`               | Execution journal                                                                          |
-| `execution-review--{scope-id}--{N}.md`    | Execution review (scope-id = task-NN or whole-plan; N = zero-padded 2 digits: 01, 02, ...) |
+| Artifact                               | Description                                                                                |
+| -------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `bug-report.md`                        | Investigation findings and confirmed root cause                                            |
+| `implementation-plan.md`               | Fix plan                                                                                   |
+| `implementation-review--{N}.md`        | Implementation plan review (N = zero-padded 2 digits: 01, 02, ...)                         |
+| `implementation-journal.md`            | Execution journal                                                                          |
+| `execution-review--{scope-id}--{N}.md` | Execution review (scope-id = task-NN or whole-plan; N = zero-padded 2 digits: 01, 02, ...) |
 
 
 ## Isolated worktree lifecycle

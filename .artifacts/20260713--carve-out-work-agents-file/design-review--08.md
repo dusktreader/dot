@@ -23,25 +23,24 @@ The review surfaced findings:
 
 ## Findings
 
-
 ### Summary
 
-| Finding | Title                                                           | Outcome |
-| ------- | --------------------------------------------------------------- | ------- |
-| T01     | AC30 help-output identity claim could be tightened              |         |
+| Finding | Title                                              | Outcome |
+| ------- | -------------------------------------------------- | ------- |
+| T01     | AC30 help-output identity claim could be tightened |         |
 
 
 ### Trivial
 
-
 #### T01: AC30 help-output identity claim could be tightened
 
-##### Where
+
+#### Where
 
 Acceptance Criteria — AC30, line 303
 
 
-##### Issue
+#### Issue
 
 AC30 states that the bare `dt creds` invocation displays help output "exits zero, with the same
 pure-wrapper contract as AC29 (no default action, no store access, help output identical to `dt
@@ -53,20 +52,20 @@ identical string-for-string (they will differ in `dt` vs `wdt` label). The curre
 unambiguous on close reading but slightly awkward.
 
 
-##### Impact
+#### Impact
 
 Minimal. No implementer is likely to misread this as requiring byte-for-byte identical help
 strings across `dt` and `wdt`. The implementation plan should not be affected.
 
 
-##### Suggestion
+#### Suggestion
 
 Rewrite the parenthetical as: "(no default action, no store access, and bare invocation produces
 the same output as `dt creds --help`)." Drop the phrase "with the same pure-wrapper contract as
 AC29" or rephrase it to "following the same pure-wrapper contract defined in AC29."
 
 
-##### Outcome
+#### Outcome
 
 
 ----
