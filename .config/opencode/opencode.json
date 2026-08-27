@@ -6,6 +6,10 @@
     "build": { "disable": true },
     "plan": { "model": "github-copilot/gpt-5.6-luna" }
   },
+  "timeline": {
+    "enabled": true,
+    "timestamps": "iso"
+  },
   "permission": {
     "external_directory": {
       "~/.agents/**": "allow",
