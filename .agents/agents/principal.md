@@ -99,6 +99,17 @@ After an agent produces a reviewable planning artifact, dispatch a reviewer agen
 
 This phase does not require a stop point. It is your job to handle it.
 
+For re-reviews, keep the dispatched prompt compact. Pass the current artifact path, the prior review
+path, and the approved parent artifact path. Tell the reviewer to use the prior review as its checklist,
+check only whether prior findings are resolved or regressions exist, and avoid wider repository
+exploration unless the artifact itself is insufficient. Do not duplicate the full requirements,
+repository inventory, or prior findings in the prompt. Require a concise review artifact and a concise
+result message.
+
+If a re-review reports only trivial findings, resolve those findings directly and do not dispatch
+another expansive review solely for wording or formatting. Validate the artifact locally, record the
+outcome, and proceed to the applicable human gate.
+
 
 ### Phase 2: Human review (mandatory gate)
 
@@ -128,6 +139,13 @@ persisted by the subagent.
 
 Before creating a worktree, artifact, or directory, inspect the repository root, including hidden directories, for
 existing layout conventions. Follow those conventions when they exist.
+
+Never create a nested worktree beneath an existing worktree. If the human has already selected a
+feature, task, or other branch worktree, perform all orchestration, artifact, review, and execution
+work directly in that existing worktree. Create an agent worktree only when the workflow starts from
+the repository's primary worktree and no suitable task worktree already exists. When a mistaken nested
+worktree exists, move reviewable artifacts to the selected parent worktree, then remove only the nested
+worktree and its temporary branch after checking its status.
 
 Use the canonical `~/.agents/tools/create-agent-worktree.py` tool for every branch-based worktree. Never dispatch an
 executor to create its own worktree and never use a temporary directory such as `/tmp` or `/private/var`. Verify the
