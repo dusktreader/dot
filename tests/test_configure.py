@@ -1,4 +1,5 @@
 import json
+import subprocess
 import textwrap
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -31,6 +32,16 @@ MINIMAL_MANIFEST = {
     "tools": [],
     "services": [],
 }
+
+
+class FakeBinaryStream:
+    def __init__(self, *chunks: bytes):
+        self.chunks = list(chunks) + [b""]
+        self.read_sizes: list[int] = []
+
+    def read(self, size: int) -> bytes:
+        self.read_sizes.append(size)
+        return self.chunks.pop(0)
 
 
 def make_dot_root(tmp_path: Path, manifest: dict | None = None) -> Path:
@@ -569,22 +580,31 @@ class TestDotInstallerMakeDirs:
 
 
 # ---------------------------------------------------------------------------
-# DotInstaller._startup
+# DotInstaller._ensure_startup_config / _startup
 # ---------------------------------------------------------------------------
 
 class TestDotInstallerStartup:
 
-    def test_startup__creates_startup_config_if_missing(self, tmp_path: Path):
+    def test_ensure_startup_config__creates_startup_config_if_missing(self, tmp_path: Path):
         installer = make_installer(tmp_path)
         installer.startup_config = tmp_path / ".zshrc"
         # file does not exist yet
 
         with patch("dot_tools.configure.spinner"):
-            installer._startup()
+            installer._ensure_startup_config()
 
         assert installer.startup_config.exists()
-        content = installer.startup_config.read_text()
-        assert "EXTRA DOTFILES START" in content
+
+    def test_ensure_startup_config__preserves_existing_content(self, tmp_path: Path):
+        installer = make_installer(tmp_path)
+        installer.startup_config = tmp_path / ".zshrc"
+        original_content = "export FOO=bar\n"
+        installer.startup_config.write_text(original_content)
+
+        with patch("dot_tools.configure.spinner"):
+            installer._ensure_startup_config()
+
+        assert installer.startup_config.read_text() == original_content
 
     def test_startup__scrubs_and_readds_block_when_config_exists(self, tmp_path: Path):
         installer = make_installer(tmp_path)
@@ -603,6 +623,66 @@ class TestDotInstallerStartup:
         assert "source /old/path" not in content
         assert "EXTRA DOTFILES START" in content
         assert "export FOO=bar" in content
+
+    def test_install_dot__integrates_startup_before_tools_and_settings(self, tmp_path: Path):
+        installer = make_installer(tmp_path)
+        call_order: list[str] = []
+
+        def record_startup_creation():
+            call_order.append("ensure")
+            DotInstaller._ensure_startup_config(installer)
+
+        def record_dotfile_update():
+            call_order.append("update")
+            DotInstaller._update_dotfiles(installer)
+
+        def record_scrub():
+            call_order.append("scrub")
+            DotInstaller._scrub_extra_dotfiles_block(installer)
+
+        def record_add():
+            call_order.append("add")
+            DotInstaller._add_extra_dotfiles_block(installer)
+
+        def record_tools():
+            assert installer.startup_config.exists()
+            assert (installer.home / ".extra_dotfiles").exists()
+            assert "EXTRA DOTFILES START" in installer.startup_config.read_text()
+            assert "EXTRA DOTFILES END" in installer.startup_config.read_text()
+            call_order.append("tools")
+
+        with (
+            patch.object(installer, "_ensure_startup_config", side_effect=record_startup_creation),
+            patch.object(installer, "_update_dotfiles", side_effect=record_dotfile_update),
+            patch.object(installer, "_scrub_extra_dotfiles_block", side_effect=record_scrub),
+            patch.object(installer, "_add_extra_dotfiles_block", side_effect=record_add),
+            patch.object(installer, "_install_tools", side_effect=record_tools),
+            patch.object(installer, "_apply_settings", side_effect=lambda: call_order.append("settings")),
+            patch.object(installer, "_make_dirs"),
+            patch.object(installer, "_make_links"),
+            patch.object(installer, "_copy_files"),
+            patch.object(installer, "_setup_ssh_config"),
+            patch.object(installer, "_create_dotrc_local"),
+            patch.object(installer, "_github_cli_login"),
+            patch.object(installer, "_add_ssh_keys"),
+            patch.object(installer, "_install_services"),
+            patch.object(installer, "_create_local_agents_file"),
+            patch("dot_tools.configure.generate_keypair"),
+            patch("dot_tools.configure.terminal_message"),
+            patch("dot_tools.configure.spinner"),
+            patch("dot_tools.configure.os.getlogin", return_value="test-user"),
+        ):
+            installer.install_dot()
+
+        assert call_order.index("ensure") < call_order.index("tools")
+        assert call_order.index("update") < call_order.index("tools")
+        assert call_order.index("scrub") < call_order.index("tools")
+        assert call_order.index("add") < call_order.index("tools")
+        assert call_order.index("ensure") < call_order.index("settings")
+        assert call_order.index("update") < call_order.index("settings")
+        assert call_order.index("scrub") < call_order.index("settings")
+        assert call_order.index("add") < call_order.index("settings")
+        assert call_order == ["ensure", "update", "scrub", "add", "tools", "settings"]
 
 
 # ---------------------------------------------------------------------------
@@ -632,6 +712,76 @@ class TestDotInstallerApplySettings:
         environment = mock_run.call_args.kwargs["env"]
         assert command == "test -d $HOME/.config/opencode"
         assert environment["HOME"] == str(installer.home)
+
+    @pytest.mark.parametrize(
+        ("method_name", "manifest_key", "name", "script"),
+        [
+            ("_apply_settings", "settings", "prompt-setting", "setting-script"),
+            ("_install_tools", "tools", "prompt-tool", "tool-script"),
+        ],
+    )
+    def test_install_script__streams_partial_combined_output_to_terminal_and_log(
+        self, tmp_path: Path, method_name: str, manifest_key: str, name: str, script: str, capsys
+    ):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            manifest_key: [{"name": name, "check": f"check-{name}", "scripts": {"generic": script}}],
+        }
+        installer = make_installer(tmp_path, manifest)
+        stream = FakeBinaryStream(b"prompt> ", b"progress\n", b"stderr text")
+        process = MagicMock(stdout=stream)
+        process.returncode = 0
+
+        with (
+            patch("dot_tools.configure.subprocess.run", return_value=MagicMock(returncode=1)),
+            patch("dot_tools.configure.subprocess.Popen", return_value=process) as popen,
+            patch("dot_tools.configure.select.select", side_effect=lambda streams, *_: (streams, [], [])),
+            patch("dot_tools.configure.pause_live"),
+            patch("dot_tools.configure.logger.debug") as log_debug,
+        ):
+            getattr(installer, method_name)()
+
+        assert capsys.readouterr().out == "prompt> progress\nstderr text"
+        assert any("prompt> " in call.args[0] for call in log_debug.call_args_list)
+        assert any("stderr text" in call.args[0] for call in log_debug.call_args_list)
+        assert popen.call_args.kwargs["stderr"] == subprocess.STDOUT
+        assert popen.call_args.kwargs["bufsize"] == 0
+        assert "text" not in popen.call_args.kwargs
+        assert stream.read_sizes[:2] == [4096, 4096]
+
+    @pytest.mark.parametrize(
+        ("method_name", "manifest_key", "name", "script"),
+        [
+            ("_apply_settings", "settings", "failing-setting", "setting-script"),
+            ("_install_tools", "tools", "failing-tool", "tool-script"),
+        ],
+    )
+    def test_install_script__failure_includes_last_20_output_lines(
+        self, tmp_path: Path, method_name: str, manifest_key: str, name: str, script: str
+    ):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            manifest_key: [{"name": name, "check": f"check-{name}", "scripts": {"generic": script}}],
+        }
+        installer = make_installer(tmp_path, manifest)
+        stream = FakeBinaryStream("\n".join(f"line-{index}" for index in range(25)).encode())
+        process = MagicMock(stdout=stream)
+        process.returncode = 7
+
+        with (
+            patch("dot_tools.configure.subprocess.run", return_value=MagicMock(returncode=1)),
+            patch("dot_tools.configure.subprocess.Popen", return_value=process),
+            patch("dot_tools.configure.select.select", side_effect=lambda streams, *_: (streams, [], [])),
+            patch("dot_tools.configure.pause_live"),
+        ):
+            with pytest.raises(DotError) as exc_info:
+                getattr(installer, method_name)()
+
+        message = str(exc_info.value)
+        assert "line-5" in message
+        assert "line-24" in message
+        assert "line-4" not in message
+        assert name in message
 
 
 # ---------------------------------------------------------------------------

@@ -489,6 +489,51 @@ No straightforward QA defects were exposed, so no fixes were made. The task plan
 modified. No commit or push was performed.
 
 
+## Installer streaming hardening
+
+Using the `--personal-luna` variant, hardened `_run_install_script()` by passing `bufsize=0` to `Popen`. The combined
+binary pipe now uses the selector-safe unbuffered stream, so `read(4096)` returns available output instead of waiting
+for
+a newline or a full buffer. Extended the isolated partial-output test to verify the unbuffered Popen argument and raw
+chunk read size. Merged stderr, immediate flushed terminal and Loguru output, Rich live pause handling, failure status,
+and last-20-lines diagnostics remain unchanged.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py --no-cov -k 'install_script'`: exit 0; 4 passed, 51 deselected.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; 54 passed, 1 failed. The unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
+- `uv run ty check src/dot_tools/configure.py`: exit 0; `All checks passed!`.
+
+The task plan and prior review artifact were not modified. No `dt configure`, installer, sudoers configurator, or live
+sudoers operation was run. No commit or push was performed.
+
+
+## Installer output observability fix
+
+Using the `--personal-luna` variant, replaced the duplicated tool and setting installer stream loops with
+`DotInstaller._run_install_script()`. The shared helper runs scripts through `/bin/bash` with the existing install
+environment, merges stderr into stdout to avoid pipe deadlock, drains raw binary chunks after `select` readiness, and
+flushes each chunk to the terminal and Loguru immediately inside `pause_live()`. It retains combined output and includes
+the last 20 lines in the existing tool and setting failure labels. Added mocked binary-stream coverage for both tools
+and settings, including partial output without a trailing newline, merged stderr output, and recent failure output.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py --no-cov -k 'install_script'`: exit 0; 4 passed, 51 deselected.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; 54 passed, 1 failed. The unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
+
+The task plan and prior review artifact were not modified. No installer, `dt configure`, or live sudoers operation was
+run. No commit or push was performed.
+
+
 ## Post-revision QA
 
 Post-revision QA ran on 2026-09-01 with the `--personal-luna` variant against the current worktree. The revision adds
@@ -504,6 +549,45 @@ run, and live `/etc/sudoers` was not modified.
 
 No straightforward QA defects were exposed, so no fixes were made. Only this journal was updated. The task plan and
 review artifact were not modified. No commit or push was performed.
+
+
+## Startup integration follow-up
+
+Moved the early startup integration in `DotInstaller.install_dot()` to immediately follow SSH key setup and precede
+`_install_tools()` and `_apply_settings()`. The flow now ensures the platform rc file exists, updates
+`.extra_dotfiles`, and scrubs and re-adds the `EXTRA DOTFILES` block before tools and settings run. Removed the former
+late calls to `_update_dotfiles()` and `_startup()`. The ordering test now exercises the real helpers, verifies the
+startup file, `.extra_dotfiles`, and block exist before tools, and asserts there is no late duplicate integration.
+
+Verification for this follow-up:
+
+- `uv run pytest tests/test_configure.py --no-cov -k 'startup or dotfiles_block or update_dotfiles'`: exit 0; 13 passed,
+  38 deselected.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; 50 passed, 1 failed. The unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no whitespace errors.
+
+The sudoers task plan was not modified. No `dt configure`, installer, or sudoers configurator was run; live
+`/etc/sudoers` was not touched. No commit or push was performed.
+
+
+## Related installer usability revision
+
+Using the `--personal-luna` variant, moved startup configuration file creation into `_ensure_startup_config()`. The
+helper runs before tool and settings installation, while `_startup()` retains only EXTRA DOTFILES block scrubbing and
+injection. Existing startup content remains untouched by the early helper, and the creation debug message now uses the
+startup-config path interpolation correctly. Added focused coverage for creation, preservation, and install ordering.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py --no-cov -k 'startup or install_dot'`: exit 0; `8 passed, 43 deselected`.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `50 passed, 1 failed`. The pre-existing
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failed because the tracked package contains
+  `{"dependencies": {"@opencode-ai/plugin": "1.18.14"}}` instead of `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
 
 
 ## Live verification attempt
@@ -539,6 +623,26 @@ resolution without configuring sudoers. No production configurator was run, and 
 - `uv run ruff check src tests`: exit 0; `All checks passed!`.
 - `git diff --check`: exit 0; no output.
 - `./tools/configure-sudoers.py --help`: exit 0; help displayed; no configuration performed.
+
+No straightforward QA defects were exposed, so no fixes were made. Only this journal was updated. The task plan and
+review artifact were not modified. No commit or push was performed.
+
+
+## Post-revision QA
+
+Post-revision QA ran on 2026-09-02 with the `--personal-luna` variant against the current worktree. The revision adds
+`_ensure_startup_config()`, calls it from `DotInstaller.install_dot()` before `_install_tools()` and
+`_apply_settings()`,
+leaves `_startup()` responsible for scrubbing and readding the EXTRA DOTFILES block, fixes the creation-log f-string,
+and adds startup creation, preservation, ordering, and late block-setup tests. No production configurator was run, and
+live `/etc/sudoers` was not modified.
+
+- `uv run pytest tests/test_configure.py --no-cov -k startup`: exit 0; `8 passed, 43 deselected`.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `50 passed, 1 failed`. The pre-existing
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failed because the tracked package contains
+  `{"dependencies": {"@opencode-ai/plugin": "1.18.14"}}` instead of `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
 
 No straightforward QA defects were exposed, so no fixes were made. Only this journal was updated. The task plan and
 review artifact were not modified. No commit or push was performed.
@@ -622,3 +726,22 @@ the path-based APIs through the normal configuration flow, with all configurator
 
 No straightforward QA defects were exposed, so no fixes were made. Only this journal was updated. The task plan and
 review artifact were not modified. No commit or push was performed.
+
+
+## Post-revision QA
+
+Post-revision QA ran on 2026-09-02 with the `--personal-luna` variant against the current worktree. The revision moves
+complete startup integration before tool and settings installation: `_ensure_startup_config()`, `_update_dotfiles()`,
+`_startup()`, then `_install_tools()` and `_apply_settings()`. The tests verify startup file and block existence before
+tools and assert the exact phase order. No `dt configure`, installer, or sudoers configurator was run, and live
+`/etc/sudoers` was not modified.
+
+- `uv run pytest tests/test_configure.py --no-cov -k startup`: exit 0; `8 passed, 43 deselected`.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `50 passed, 1 failed`. The unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no whitespace errors.
+
+No straightforward QA defects were exposed, so no fixes were made. The task plan and review artifact were not
+modified. No commit or push was performed.

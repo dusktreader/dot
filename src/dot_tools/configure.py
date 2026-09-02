@@ -276,6 +276,46 @@ class DotInstaller:
     def _is_headless(self) -> bool:
         return not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
 
+    def _run_install_script(self, script: str, action: str, name: str, install_env: dict[str, str]) -> None:
+        """
+        Run an installer script while streaming its combined output to the terminal and log.
+
+        Readiness is checked before each raw chunk read so output without a trailing newline is visible immediately.
+        Keeping stderr on the same pipe also prevents one full stream from blocking the other.
+        """
+        with pause_live():
+            proc = subprocess.Popen(
+                script,
+                shell=True,
+                executable="/bin/bash",
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                env=install_env,
+                bufsize=0,
+            )
+            assert proc.stdout is not None
+
+            output_chunks: list[bytes] = []
+            while True:
+                readable, _, _ = select.select([proc.stdout], [], [])
+                if not readable:
+                    continue
+                chunk = proc.stdout.read(4096)
+                if not chunk:
+                    break
+                output_chunks.append(chunk)
+                output = chunk.decode(errors="replace")
+                print(output, end="", flush=True)
+                logger.debug(output)
+
+            proc.wait()
+            return_code = proc.returncode
+
+        if return_code != 0:
+            output = b"".join(output_chunks).decode(errors="replace")
+            last_lines = "\n".join(output.splitlines()[-20:])
+            raise DotError(f"Failed to {action} {name}:\n{last_lines}")
+
     def _install_tools(self):
         install_env = os.environ.copy()
         install_env["PYTHON_VERSION"] = platform.python_version()
@@ -313,36 +353,7 @@ class DotInstaller:
                         continue
 
                     logger.debug(f"Running installation script for {tool.name}")
-                    output_lines: list[str] = []
-
-                    proc = subprocess.Popen(
-                        script,
-                        shell=True,
-                        executable="/bin/bash",
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        env=install_env,
-                        text=True,
-                    )
-                    assert proc.stdout is not None
-                    assert proc.stderr is not None
-
-                    open_streams = [proc.stdout, proc.stderr]
-                    while open_streams:
-                        readable, _, _ = select.select(open_streams, [], [])
-                        for stream in readable:
-                            line = stream.readline()
-                            if line:
-                                stripped = line.rstrip()
-                                output_lines.append(stripped)
-                                logger.debug(stripped)
-                            else:
-                                open_streams.remove(stream)
-                    proc.wait()
-
-                    if proc.returncode != 0:
-                        last_lines = "\n".join(output_lines[-20:])
-                        raise DotError(f"Failed to install {tool.name}:\n{last_lines}")
+                    self._run_install_script(script, "install", tool.name, install_env)
                     logger.debug(f"Completed {tool.name} installation", status=Status.CONFIRM)
 
     def _apply_settings(self):
@@ -378,36 +389,7 @@ class DotInstaller:
                         continue
 
                     logger.debug(f"Running script for {setting.name}")
-                    output_lines: list[str] = []
-
-                    proc = subprocess.Popen(
-                        script,
-                        shell=True,
-                        executable="/bin/bash",
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE,
-                        env=install_env,
-                        text=True,
-                    )
-                    assert proc.stdout is not None
-                    assert proc.stderr is not None
-
-                    open_streams = [proc.stdout, proc.stderr]
-                    while open_streams:
-                        readable, _, _ = select.select(open_streams, [], [])
-                        for stream in readable:
-                            line = stream.readline()
-                            if line:
-                                stripped = line.rstrip()
-                                output_lines.append(stripped)
-                                logger.debug(stripped)
-                            else:
-                                open_streams.remove(stream)
-                    proc.wait()
-
-                    if proc.returncode != 0:
-                        last_lines = "\n".join(output_lines[-20:])
-                        raise DotError(f"Failed to apply {setting.name}:\n{last_lines}")
+                    self._run_install_script(script, "apply", setting.name, install_env)
                     logger.debug(f"Applied {setting.name}", status=Status.CONFIRM)
 
     def _update_dotfiles(self):
@@ -685,11 +667,15 @@ class DotInstaller:
                     else:
                         raise DotError(f"Unsupported platform {platform.system()} for service {service.name}")
 
-    def _startup(self):
+    def _ensure_startup_config(self):
+        """Create the platform startup configuration file when it is missing."""
         with spinner(f"Using {self.startup_config} as startup config file", context_level="DEBUG"):
             if not self.startup_config.exists():
-                logger.debug("{self.startup_config} doesn't exist. Creating it")
+                logger.debug(f"{self.startup_config} doesn't exist. Creating it")
                 self.startup_config.touch()
+
+    def _startup(self):
+        with spinner(f"Using {self.startup_config} as startup config file", context_level="DEBUG"):
             self._scrub_extra_dotfiles_block()
             self._add_extra_dotfiles_block()
 
@@ -804,13 +790,14 @@ class DotInstaller:
                 logger.warning(f"SSH key {key_path} already exists. Skipping key generation.")
             else:
                 generate_keypair()
+            self._ensure_startup_config()
+            self._update_dotfiles()
+            self._startup()
             self._install_tools()
             self._apply_settings()
-            self._update_dotfiles()
             self._create_dotrc_local()
             self._github_cli_login()
             self._add_ssh_keys()
-            self._startup()
             self._install_services()
             self._create_local_agents_file()
 
