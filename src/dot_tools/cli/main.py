@@ -21,6 +21,7 @@ from dot_tools.cli.git import cli as git_cli
 from dot_tools.cli.ssh import cli as ssh_cli
 from dot_tools.cli.creds import cli as creds_cli
 from dot_tools.cli.opencode import cli as opencode_cli
+from dot_tools.cli.markdown import markdown_cli
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
 from dot_tools.line_length import get_config_line_length
@@ -35,6 +36,7 @@ cli.add_typer(git_cli, name="git")
 cli.add_typer(ssh_cli, name="ssh")
 cli.add_typer(creds_cli, name="creds")
 cli.add_typer(opencode_cli, name="opencode")
+cli.add_typer(markdown_cli, name="markdown")
 
 
 @cli.callback(invoke_without_command=True)
