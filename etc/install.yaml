@@ -335,6 +335,10 @@ tools:
         printf '#!/usr/bin/env bash\nexec "$HOME/.local/chrome-headless-shell/chrome-headless-shell" "$@"\n' > "$HOME/.local/bin/chrome-headless-shell"
         chmod +x "$HOME/.local/bin/chrome-headless-shell"
 settings:
+  - name: passwordless sudo
+    check: '"$DOT_ROOT/tools/configure-sudoers.py" --check'
+    scripts:
+      generic: '"$DOT_ROOT/tools/configure-sudoers.py"'
   - name: capslock-to-escape
     check: "grep -q 'caps:escape' /etc/default/keyboard"
     scripts:

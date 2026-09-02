@@ -36,23 +36,6 @@ export XDG_BIN_HOME="${XDG_BIN_HOME:-$home/.local/bin}"
 export PATH="$XDG_BIN_HOME:$PATH"
 confirm "Setup complete"
 
-check "Checking if $USER has already been added to sudoers"
-sudo grep $USER /etc/sudoers > /dev/null 2>&1
-if (( $? ))
-then
-    status "Making passwordless sudo"
-    echo "$USER ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$USER > /dev/null
-    if (( $? ))
-    then
-        fail "Failed to configure sudo! Aborting..."
-    else
-        confirm "Added $USER to sudoers"
-    fi
-else
-    confirm "$USER is already a sudoer"
-fi
-
-
 check "Checking if git is installed"
 command -v uv > /dev/null 2>&1
 if (( $? ))
