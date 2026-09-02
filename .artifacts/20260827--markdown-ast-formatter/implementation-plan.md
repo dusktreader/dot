@@ -100,9 +100,8 @@ Expected Output: Ty reports no type errors.
 #### Acceptance Criteria
 
 - AC01: Add `markdown-it-py==4.2.0` to `pyproject.toml` and refresh `uv.lock`.
-- AC02: Create formatter modules under
-  `src/dot_tools/markdown_formatter/{__init__,models,frontmatter,parser,normalize,render,operations}.py` and the
-  Typer command group at `src/dot_tools/cli/markdown.py`.
+- AC02: Create the formatter package and public model skeleton under
+  `src/dot_tools/markdown_formatter/{__init__,models}.py`.
 - AC03: Implement the public models, statuses, signatures, and `dt markdown` CLI contract in the Public contract
   notes below.
 
@@ -148,8 +147,7 @@ exists. These rules apply to every `OperationResult`, including mixed outcomes a
 
 #### Steps
 
-- Add the dependency and package skeleton, then add contract tests in `tests/markdown_formatter/test_models.py` and
-  `tests/markdown_formatter/test_markdown_cli_contract.py` for the grouped command surface.
+- Add the dependency and package/model skeleton.
 - Run the only Task 01 verification:
 
   ```shell
@@ -361,8 +359,8 @@ command module.
 - AC06: Replace target `.agents/tools/markdown-format.py` with a thin wrapper. Import only `typer` if used; capture
   `entry_cwd = Path.cwd()` once; resolve wrapper operands from `entry_cwd`; locate the repository by walking
   `Path(__file__).resolve().parent` and parents through filesystem root for the first directory containing
-  `pyproject.toml`; invoke `uv run --project <repo> dt markdown format/check <absolute paths>` with subprocess CWD
-  `entry_cwd`,
+  `pyproject.toml`; wrapper `format` invokes `uv run --project <repo> dt markdown format <absolute paths>`, and wrapper
+  `check` invokes `uv run --project <repo> dt markdown check <absolute paths>`, with subprocess CWD `entry_cwd`,
   passing child stdout, stderr, and return code through, with no project exit `2`. The existing TS caller remains
   unchanged unless required. The wrapper target is `.agents/tools/markdown-format.py`; use
   `~/.agents/tools/markdown-format.py --help` or `uv run .agents/tools/markdown-format.py --help` only if executable,
@@ -386,15 +384,21 @@ command module.
 
 #### Steps
 
-- Add `test_operations.py`, `test_markdown_cli.py`, and `test_wrapper.py` with temporary-directory and subprocess
-  fixtures. Test grouped format/check behavior and wrapper delegation to `dt markdown format/check`.
-- Red phase: `uv run pytest tests/markdown_formatter/test_operations.py tests/markdown_formatter/test_markdown_cli.py
-  tests/markdown_formatter/test_wrapper.py`.
+- Add `test_operations.py`, `test_markdown_cli.py`, `test_markdown_cli_contract.py`, and `test_wrapper.py` with
+  temporary-directory and subprocess fixtures. Test grouped format and check behavior and wrapper delegation where
+  wrapper
+  `format` invokes `uv run --project <repo> dt markdown format <absolute paths>` and wrapper `check` invokes
+  `uv run --project <repo> dt markdown check <absolute paths>`.
+- Red phase:
+
+  ```shell
+  uv run pytest tests/markdown_formatter/test_operations.py tests/markdown_formatter/test_markdown_cli.py tests/markdown_formatter/test_markdown_cli_contract.py tests/markdown_formatter/test_wrapper.py
+  ```
 - Implement operations, `src/dot_tools/cli/markdown.py`, its registration in `src/dot_tools/cli/main.py`, and the
   wrapper, including snapshots, preflight, atomic replacement, cleanup, statuses, and output contracts. Keep public
   document orchestration in `dot_tools.markdown_formatter`; the CLI only adapts Typer arguments and exit/output
   handling to package operations.
-- Green phase: rerun exactly the same three test modules, then run all six smoke commands.
+- Green phase: rerun exactly the same four test modules, then run all six smoke commands.
 
 
 ### 07: Complete generic corpus and quality gate
