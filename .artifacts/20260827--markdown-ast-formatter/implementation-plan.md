@@ -127,7 +127,7 @@ Fix signatures: `format_document(source: bytes) -> bytes`, `check_document(sourc
 `dot_tools.cli.markdown` exposes `format_markdown` and `check_markdown` subcommands. The grouped commands resolve
 relative paths against process CWD, write diagnostics to stderr and summaries to stdout, and use exit `0` for
 success/no-op, `1` for
-check mismatch, `2` for input/path or frontmatter/parser/policy/raw-HTML failure, and `3` for read, write, or atomic
+check mismatch, `2` for input/path or frontmatter/parser failure, and `3` for read, write, or atomic
 replacement failure. The total mapping is exact: `format_paths` with all files `FORMATTED` or `UNCHANGED` returns
 `OperationStatus.SUCCESS` and exit `0`; any `INPUT_ERROR` returns `INPUT_ERROR` and exit `2`; any `PREFLIGHT_ERROR`
 returns `PREFLIGHT_ERROR` and exit `2`; any `READ_ERROR` returns `READ_ERROR` and exit `3`; and any write failure
@@ -214,9 +214,9 @@ exists. These rules apply to every `OperationResult`, including mixed outcomes a
   unrecognized construct remains ordinary text where parsing permits; an unknown child or unprovable span makes the
   containing block opaque. Fixtures assert ownership and opaque fallback for every listed form, nesting, repeated text,
   CRLF, and astral Unicode.
-- AC05: Collect code ranges first. Scan raw HTML outside code, including opaque ranges, and raise
-  `RawHtmlError(ValueError)`.
-  HTML-looking code remains code. Enforce AST-scoped H1 policy with `StructureError(ValueError)`.
+- AC05: Preserve parser-delimited HTML blocks as opaque source and allow HTML-looking inline and block text without a
+  formatter policy error. HTML-looking code remains code through ordinary parser handling. Enforce AST-scoped H1 policy
+  with `StructureError(ValueError)`.
 - AC06: Identify task markers and thematic breaks. A break outside an immediately required downward-heading transition
   raises `UnsupportedSyntaxError(ValueError)`. Preserve a recognized parent wholly when an opaque child would be
   altered.
@@ -226,7 +226,7 @@ exists. These rules apply to every `OperationResult`, including mixed outcomes a
 
 - Add fixtures under `tests/markdown_formatter/fixtures/parser/` and `tests/markdown_formatter/test_parser.py`.
 - Red phase: `uv run pytest tests/markdown_formatter/test_parser.py`.
-- Implement token maps, byte indexing, code-first ranges, raw-HTML scanning, delimiter scanning, H1 policy, and
+- Implement token maps, byte indexing, delimiter scanning, H1 policy, and
   whole-block
   opaque fallback. Raise `ParseError` for parser failures.
 - Green phase: rerun exactly `uv run pytest tests/markdown_formatter/test_parser.py`.
@@ -312,7 +312,7 @@ exists. These rules apply to every `OperationResult`, including mixed outcomes a
   short-row, extra-row, escaped-pipe, arbitrary-backslash-run, and code-span-pipe case. Reparse and formatting again
   produce identical bytes.
 - AC03: `format_document` extracts, parses, normalizes, and renders; `check_document` computes identical canonical bytes
-  without writing. Propagate exactly `FrontmatterError`, `UnicodeError`, `RawHtmlError`, `StructureError`,
+  without writing. Propagate exactly `FrontmatterError`, `UnicodeError`, `StructureError`,
   `UnsupportedSyntaxError`, `TableError`, or `ParseError`.
 - AC04: Golden fixtures under `tests/markdown_formatter/fixtures/render/` cover exact bytes and idempotence.
 
@@ -355,7 +355,7 @@ command module.
   expected and actual SHA-256 digests, never raw content. Preflight failure commits no files and leaves all prepared
   files untouched. The first write failure stops; earlier paths are committed and the failed and later paths are
   untouched. Exit codes are 0 for success/no-op, 1 for check mismatch, 2 for input/path/frontmatter/parser/policy or
-  raw-HTML failures, and 3 for read/write/atomic replacement failures.
+  parser failures, and 3 for read/write/atomic replacement failures.
 - AC06: Replace target `.agents/tools/markdown-format.py` with a thin wrapper. Import only `typer` if used; capture
   `entry_cwd = Path.cwd()` once; resolve wrapper operands from `entry_cwd`; locate the repository by walking
   `Path(__file__).resolve().parent` and parents through filesystem root for the first directory containing
@@ -407,7 +407,8 @@ command module.
 
 - AC01: Generic corpus fixtures under `tests/markdown_formatter/fixtures/corpus/` cover frontmatter, boundaries,
   headings,
-  lists, tables, code, raw HTML, opaque spans, source-break policy, idempotence, and multi-file failure behavior.
+  lists, tables, code, HTML-looking text, opaque spans, source-break policy, idempotence, and multi-file failure
+  behavior.
 - AC02: Full pytest, Ruff, and Ty gates pass for the bounded generic formatter.
 
 
@@ -433,7 +434,7 @@ Any stale profile-oriented design elsewhere is superseded; do not consult it or 
 
 Opaque spans remain byte-for-byte, including CRLF and trailing whitespace. Recognized nodes use canonical LF. Never
 guess
-source offsets or silently downgrade a policy violation. `FrontmatterError`, `RawHtmlError`, `StructureError`,
+source offsets or silently downgrade a policy violation. `FrontmatterError`, `StructureError`,
 `UnsupportedSyntaxError`, and `TableError` derive from `ValueError`; `ParseError` represents parser failures.
 
 

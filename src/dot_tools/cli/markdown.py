@@ -5,19 +5,23 @@ from typing import Annotated
 
 import typer
 
+from dot_tools.markdown_formatter.models import OperationResult, OperationStatus
 from dot_tools.markdown_formatter.operations import check_paths, format_paths
 
 markdown_cli = typer.Typer(no_args_is_help=True, help="Format and check Markdown files.")
 Paths = Annotated[list[Path], typer.Argument(..., metavar="PATH")]
 
 
-def _run(result) -> None:
-    """Print operation records and exit with the operation status."""
+def _run(result: OperationResult) -> None:
+    """Print operation records and map operation status to the CLI contract."""
     for file in result.files:
-        typer.echo(f"{file.status} {file.path}")
+        typer.echo(f"{file.status.value} {file.path}")
+    for diagnostic in result.diagnostics:
+        typer.echo(diagnostic, err=True)
     typer.echo(f"summary {result.operation} {result.status} {len(result.files)}")
-    if result.status.value != "SUCCESS":
-        raise typer.Exit(1)
+    exit_code = {OperationStatus.SUCCESS: 0, OperationStatus.MISMATCH: 1, OperationStatus.READ_ERROR: 3, OperationStatus.PARTIAL_WRITE: 3, OperationStatus.WRITE_ERROR: 3}.get(result.status, 2)
+    if exit_code:
+        raise typer.Exit(exit_code)
 
 
 @markdown_cli.command("format")

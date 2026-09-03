@@ -9,14 +9,13 @@ from .render import render_document
 
 def format_document(source: bytes) -> bytes:
     """Format one Markdown document."""
+    source.decode("utf-8")
     frontmatter, body = extract_frontmatter(source)
     rendered = render_document(normalize_document(parse_document(body)))
     if frontmatter is not None:
         from .frontmatter import serialize_frontmatter
 
-        rendered = serialize_frontmatter(frontmatter) + rendered.lstrip(b"\n")
-    if rendered and not rendered.endswith(b"\n"):
-        rendered += b"\n"
+        rendered = serialize_frontmatter(frontmatter) + rendered
     return rendered
 
 
