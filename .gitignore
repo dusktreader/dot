@@ -9,6 +9,7 @@
 .config/opencode/node_modules/
 .config/opencode/bun.lock
 .config/opencode/package-lock.json
+!.config/opencode/.npmrc
 
 # OpenCode per-project state
 .opencode/

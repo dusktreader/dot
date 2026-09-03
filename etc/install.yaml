@@ -189,6 +189,13 @@ tools:
     scripts:
       generic: |
         curl -fsSL https://opencode.ai/install | bash
+  - name: opencode-npm-deps
+    check: "test -d \"$HOME/.config/opencode/node_modules/@opencode-ai/plugin\""
+    depends_on: [node]
+    scripts:
+      generic: |
+        . "$HOME/.nvm/nvm.sh"
+        npm install --prefix "$HOME/.config/opencode"
   - name: 1password-cli
     check: "command -v op"
     scripts:
