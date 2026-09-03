@@ -797,10 +797,11 @@ class TestDotInstallerInstallTools:
 
         assert ".config/opencode/package.json" in manifest["link_paths"]
         opencode_deps = next(tool for tool in manifest["tools"] if tool["name"] == "opencode-npm-deps")
-        assert "$HOME/.config/opencode" in opencode_deps["check"]
-        assert "$DOT_ROOT" not in opencode_deps["check"]
-        assert "$HOME/.config/opencode" in opencode_deps["scripts"]["generic"]
-        assert "$DOT_ROOT" not in opencode_deps["scripts"]["generic"]
+        assert opencode_deps["check"] == 'test -d "$DOT_ROOT/.config/opencode/node_modules/@opencode-ai/plugin"'
+        assert opencode_deps["scripts"]["generic"] == (
+            '. "$HOME/.nvm/nvm.sh"\n'
+            'npm install --prefix "$DOT_ROOT/.config/opencode"\n'
+        )
         assert opencode_deps["depends_on"] == ["node"]
         assert "bun" not in {tool["name"] for tool in manifest["tools"]}
         assert package["dependencies"]["@opencode-ai/plugin"] == "1.18.14"
@@ -811,8 +812,8 @@ class TestDotInstallerInstallTools:
             "tools": [
                 {
                     "name": "opencode-npm-deps",
-                    "check": "test -d \"$HOME/.config/opencode/node_modules/@opencode-ai/plugin\"",
-                    "scripts": {"generic": "npm install --prefix \"$HOME/.config/opencode\""},
+                    "check": "test -d \"$DOT_ROOT/.config/opencode/node_modules/@opencode-ai/plugin\"",
+                    "scripts": {"generic": "npm install --prefix \"$DOT_ROOT/.config/opencode\""},
                 }
             ],
         }
@@ -822,8 +823,9 @@ class TestDotInstallerInstallTools:
             mock_run.return_value = MagicMock(returncode=0)
             installer._install_tools()
 
-        assert mock_run.call_args.args[0] == 'test -d "$HOME/.config/opencode/node_modules/@opencode-ai/plugin"'
+        assert mock_run.call_args.args[0] == 'test -d "$DOT_ROOT/.config/opencode/node_modules/@opencode-ai/plugin"'
         assert mock_run.call_args.kwargs["env"]["HOME"] == str(installer.home)
+        assert mock_run.call_args.kwargs["env"]["DOT_ROOT"] == str(installer.root)
 
     def test_install_tools__uses_override_home_for_opencode_npm_install(self, tmp_path: Path):
         manifest = {
@@ -831,8 +833,8 @@ class TestDotInstallerInstallTools:
             "tools": [
                 {
                     "name": "opencode-npm-deps",
-                    "check": "test -d \"$HOME/.config/opencode/node_modules/@opencode-ai/plugin\"",
-                    "scripts": {"generic": "npm install --prefix \"$HOME/.config/opencode\""},
+                    "check": "test -d \"$DOT_ROOT/.config/opencode/node_modules/@opencode-ai/plugin\"",
+                    "scripts": {"generic": "npm install --prefix \"$DOT_ROOT/.config/opencode\""},
                 }
             ],
         }
@@ -847,8 +849,9 @@ class TestDotInstallerInstallTools:
         ):
             installer._install_tools()
 
-        assert mock_popen.call_args.args[0] == 'npm install --prefix "$HOME/.config/opencode"'
+        assert mock_popen.call_args.args[0] == 'npm install --prefix "$DOT_ROOT/.config/opencode"'
         assert mock_popen.call_args.kwargs["env"]["HOME"] == str(installer.home)
+        assert mock_popen.call_args.kwargs["env"]["DOT_ROOT"] == str(installer.root)
 
     def test_install_tools__calls_resolve_tool_order(self, tmp_path: Path):
         # Verify that _install_tools calls resolve_tool_order
