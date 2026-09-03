@@ -18,7 +18,7 @@ from pathlib import Path
 from typerdrive import terminal_message
 
 from dot_tools.exceptions import DotError
-from dot_tools.spinner import spinner, pause_live
+from dot_tools.spinner import spinner, pause_live, print_output
 from dot_tools.constants import Status
 from dot_tools.ssh_tools import generate_keypair
 
@@ -283,33 +283,32 @@ class DotInstaller:
         Readiness is checked before each raw chunk read so output without a trailing newline is visible immediately.
         Keeping stderr on the same pipe also prevents one full stream from blocking the other.
         """
-        with pause_live():
-            proc = subprocess.Popen(
-                script,
-                shell=True,
-                executable="/bin/bash",
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                env=install_env,
-                bufsize=0,
-            )
-            assert proc.stdout is not None
+        proc = subprocess.Popen(
+            script,
+            shell=True,
+            executable="/bin/bash",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            env=install_env,
+            bufsize=0,
+        )
+        assert proc.stdout is not None
 
-            output_chunks: list[bytes] = []
-            while True:
-                readable, _, _ = select.select([proc.stdout], [], [])
-                if not readable:
-                    continue
-                chunk = proc.stdout.read(4096)
-                if not chunk:
-                    break
-                output_chunks.append(chunk)
-                output = chunk.decode(errors="replace")
-                print(output, end="", flush=True)
-                logger.debug(output)
+        output_chunks: list[bytes] = []
+        while True:
+            readable, _, _ = select.select([proc.stdout], [], [])
+            if not readable:
+                continue
+            chunk = proc.stdout.read(4096)
+            if not chunk:
+                break
+            output_chunks.append(chunk)
+            output = chunk.decode(errors="replace")
+            print_output(output)
+            logger.bind(installer_output=True).debug(output)
 
-            proc.wait()
-            return_code = proc.returncode
+        proc.wait()
+        return_code = proc.returncode
 
         if return_code != 0:
             output = b"".join(output_chunks).decode(errors="replace")

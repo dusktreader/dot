@@ -4,9 +4,12 @@ import textwrap
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
+from loguru import logger
 import pytest
 import yaml
+from rich.text import Text
 
+import dot_tools.spinner as spinner_mod
 from dot_tools.configure import (
     parse_octal,
     FileSpecs,
@@ -18,6 +21,7 @@ from dot_tools.configure import (
     resolve_tool_order,
 )
 from dot_tools.exceptions import DotError
+from dot_tools.spinner import ProgressLogger
 
 
 # ---------------------------------------------------------------------------
@@ -736,18 +740,49 @@ class TestDotInstallerApplySettings:
             patch("dot_tools.configure.subprocess.run", return_value=MagicMock(returncode=1)),
             patch("dot_tools.configure.subprocess.Popen", return_value=process) as popen,
             patch("dot_tools.configure.select.select", side_effect=lambda streams, *_: (streams, [], [])),
-            patch("dot_tools.configure.pause_live"),
-            patch("dot_tools.configure.logger.debug") as log_debug,
+            patch("dot_tools.configure.pause_live") as pause_live,
+            patch("dot_tools.configure.print_output", side_effect=lambda output: print(output, end="", flush=True)) as output,
         ):
             getattr(installer, method_name)()
 
         assert capsys.readouterr().out == "prompt> progress\nstderr text"
-        assert any("prompt> " in call.args[0] for call in log_debug.call_args_list)
-        assert any("stderr text" in call.args[0] for call in log_debug.call_args_list)
+        assert output.call_count == 3
+        # The installer path must not stop and restart the enclosing spinner.
+        pause_live.assert_not_called()
         assert popen.call_args.kwargs["stderr"] == subprocess.STDOUT
         assert popen.call_args.kwargs["bufsize"] == 0
         assert "text" not in popen.call_args.kwargs
         assert stream.read_sizes[:2] == [4096, 4096]
+
+    def test_run_install_script__preserves_braces_in_rich_and_loguru_output(self, tmp_path: Path):
+        installer = make_installer(tmp_path)
+        raw_chunk = "literal {unknown} and {installer_output}\n"
+        stream = FakeBinaryStream(raw_chunk.encode())
+        process = MagicMock(stdout=stream, returncode=0)
+        progress = ProgressLogger()
+        live = MagicMock()
+        logged_chunks: list[str] = []
+        progress_handler_id = logger.add(progress.handler, format="{message}")
+        sink_id = logger.add(lambda message: logged_chunks.append(message.record["message"]), format="{message}")
+
+        spinner_mod.progress_logger_stack.append(progress)
+        spinner_mod.active_live = live
+        try:
+            with (
+                patch("dot_tools.configure.subprocess.Popen", return_value=process),
+                patch("dot_tools.configure.select.select", side_effect=lambda streams, *_: (streams, [], [])),
+            ):
+                installer._run_install_script("installer-script", "install", "test-tool", {})
+        finally:
+            spinner_mod.progress_logger_stack.pop()
+            spinner_mod.active_live = None
+            logger.remove(sink_id)
+            logger.remove(progress_handler_id)
+
+        process.wait.assert_called_once_with()
+        rendered_output = [renderable.plain for renderable in progress.get_renderables() if isinstance(renderable, Text)]
+        assert rendered_output.count(raw_chunk.rstrip("\n")) == 1
+        assert logged_chunks == [raw_chunk]
 
     @pytest.mark.parametrize(
         ("method_name", "manifest_key", "name", "script"),

@@ -6,6 +6,7 @@ from typing import Any, override, TYPE_CHECKING
 from loguru import logger
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.live import Live
+from rich.text import Text
 from rich.tree import Tree
 from rich.panel import Panel
 
@@ -19,7 +20,20 @@ else:
 
 branch_stack: list[Tree] = []
 logger_stack: list[int] = []
+progress_logger_stack: list["ProgressLogger"] = []
 active_live: Live | None = None
+
+
+def print_output(output: str) -> None:
+    """Show installer output in the active progress view, or flush it to stdout."""
+    if progress_logger_stack and active_live is not None:
+        progress_logger_stack[-1].add_output(output)
+        active_live.refresh()
+    elif active_live is not None:
+        active_live.console.print(Text(output), end="")
+    else:
+        sys.stdout.write(output)
+        sys.stdout.flush()
 
 
 @contextmanager
@@ -38,10 +52,20 @@ def pause_live():
 
 class ProgressLogger(Progress):
     messages: deque[str]
+    output_lines: deque[str]
+    partial_output: str
 
     def __init__(self, *args: Any, **kwargs: Any):
         self.messages = deque(maxlen=10)
+        self.output_lines = deque(maxlen=20)
+        self.partial_output = ""
         super().__init__(*args, **kwargs)
+
+    def add_output(self, output: str) -> None:
+        """Append an installer chunk while retaining complete and partial output lines."""
+        chunks = (self.partial_output + output).split("\n")
+        self.partial_output = chunks.pop()
+        self.output_lines.extend(chunks)
 
     @override
     def get_renderables(self):
@@ -49,8 +73,14 @@ class ProgressLogger(Progress):
             yield r
         for line in self.messages:
             yield line
+        for line in self.output_lines:
+            yield Text(line)
+        if self.partial_output:
+            yield Text(self.partial_output)
 
     def handler(self, message: Message):
+        if message.record["extra"].get("installer_output"):
+            return
         status: Status | None = message.record["extra"].get("status")
         stripped_message = message.strip()
         if status:
@@ -87,6 +117,7 @@ def spinner(text: str, context_level: str = "INFO"):
         live.start()
     else:
         branch_stack.append(branch_stack[-1].add(progress))
+    progress_logger_stack.append(progress)
 
     logger.log(context_level, f"Commenced: {text}", spin=True)
     try:
@@ -101,6 +132,7 @@ def spinner(text: str, context_level: str = "INFO"):
         logger.remove(spin_logger)
         spin_logger = None
         branch_stack.pop()
+        progress_logger_stack.pop()
         if len(branch_stack) > 0:
             branch_stack[-1].children = []
         if live:

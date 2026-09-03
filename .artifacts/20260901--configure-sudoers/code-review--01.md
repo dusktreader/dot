@@ -808,3 +808,179 @@ The fixture patches all configurator subprocesses and the focused suite passes w
 **APPROVED.** The path-based API, metadata preservation and restoration, optional-path contract, and test isolation
 remain
 correct. This revision is approved for the human code-review gate.
+
+
+## Rolling-output window revision re-review
+
+This compact independent `--personal-luna` re-review covers only the installer observability diff against the original
+request and prior approved sudoers/startup work.
+
+
+### Verification
+
+- `uv run pytest tests/test_configure.py -k 'install_script' --no-cov`: 4 passed, 51 deselected.
+- `uv run pytest tests/test_spinner.py --no-cov`: 21 passed.
+- `uv run pytest tests/test_configure.py --no-cov`: 54 passed, 1 failed. The known unrelated failure at
+  `tests/test_configure.py:807` expects `{}`, but the tracked `.config/opencode/package.json` contains
+  `{"dependencies": {"@opencode-ai/plugin": "1.18.14"}}`.
+- `uv run ruff check src/dot_tools/configure.py src/dot_tools/spinner.py tests/test_configure.py tests/test_spinner.py`:
+  passed.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: passed.
+- `git diff --check`: passed.
+
+No installer, `dt configure`, or live sudoers operation was run. An integration probe using the real Loguru progress
+handler reproduced the finding below.
+
+
+### Findings
+
+#### S01: Installer chunks render twice in the active Rich progress
+
+
+#### Where
+
+`src/dot_tools/configure.py:307-308`; `src/dot_tools/spinner.py:29-31,74-88`
+
+
+#### Issue
+
+Each installer chunk is sent to `print_output()`, which appends it to `output_lines`, and to `logger.debug()`, whose
+active `ProgressLogger.handler` appends the same chunk to `messages`. `get_renderables()` yields both collections. The
+integration probe rendered one `chunk` as both `"  chunk"` and `"chunk"`. The logger copy is also a plain Rich
+markup-bearing string, so installer text such as `[red]text[/red]` can be parsed in that duplicate path.
+
+
+#### Impact
+
+The live view duplicates installer output and can show up to ten logger copies plus twenty rolling output lines instead
+of the requested approximately twenty lines. The duplicate entries also consume the progress logger's status-message
+window, obscuring ordinary spinner diagnostics.
+
+
+#### Fix
+
+Exclude installer-output records from the progress-message handler while retaining them in the normal Loguru file sink,
+or make the handler recognize an explicit installer-output record. Add an integration test with the real progress
+handler and a Loguru sink that proves each partial and merged-stderr chunk renders once and is logged exactly.
+
+
+#### Outcome
+
+Blocks approval.
+
+
+### Final decision
+
+**NOT APPROVED — CHANGES REQUIRED.** Resolve S01 before this revision enters the human code-review gate. The known
+`package.json` test failure is unrelated to this observability diff and is not the blocking finding.
+
+
+## Final rolling-output re-review
+
+This compact independent `--personal-luna` re-review checks the current installer observability diff against S01 only.
+
+
+### Prior finding resolution
+
+- **S01 ⚠ Partially resolved**: tagged installer records no longer enter `ProgressLogger.messages`, and an end-to-end
+  probe rendered one ordinary chunk once as literal `Text` while a normal Loguru sink captured it once. The remaining
+  logging call does not preserve arbitrary installer chunks.
+
+
+### Verification
+
+- `uv run pytest tests/test_spinner.py --no-cov`: 22 passed.
+- `uv run pytest tests/test_configure.py -k 'install_script' --no-cov`: 4 passed, 51 deselected.
+- `uv run pytest tests/test_configure.py --no-cov`: 54 passed, 1 failed. The known unrelated failure at
+  `tests/test_configure.py:808` expects `{}`, but `.config/opencode/package.json` contains the existing
+  `@opencode-ai/plugin` dependency at version `1.18.14`.
+- `uv run ruff check src tests`: passed.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: passed.
+- `git diff --check`: passed.
+- Probes passed for active Live rendering, normal-message isolation, nested routing, and no-live stdout fallback.
+
+
+### Findings
+
+#### S01: Raw installer chunks are still used as Loguru format strings
+
+
+#### Where
+
+`src/dot_tools/configure.py:308`; the production path is not exercised by `tests/test_spinner.py:70-81`.
+
+
+#### Issue
+
+`logger.debug(output, installer_output=True)` treats `output` as a Loguru format string. A valid installer chunk such as
+`literal {unknown}` raises `KeyError`, while `{installer_output}` is rewritten to `True` instead of being logged
+literally. The captured sink therefore does not receive the raw chunk exactly.
+
+
+#### Impact
+
+Arbitrary installer output can abort `_run_install_script()` before `proc.wait()` and before failure handling, or
+corrupt
+the normal log record. This violates exact sink capture and can leave the installer subprocess unmanaged.
+
+
+#### Fix
+
+Bind the marker without passing it as a formatting argument, for example
+`logger.bind(installer_output=True).debug(output)`. Add an end-to-end test through `_run_install_script()` with unknown
+and matching brace fields that asserts literal output, one progress renderable, and one exact normal-sink record.
+
+
+#### Outcome
+
+Blocks approval.
+
+
+### Final decision
+
+**NOT APPROVED: CHANGES REQUIRED.** The duplicate-window, progress isolation, literal `Text`, active-spinner, nested,
+and ordinary no-live behaviors pass. S01 remains open because brace-containing installer output breaks exact Loguru
+capture. The known `package.json` failure is unrelated and is not the blocking finding.
+
+
+## Final S01 installer observability re-review
+
+This compact independent `--personal-luna` re-review checks the current installer observability remediation against S01.
+
+
+### Prior finding resolution
+
+- **S01 ✓ Fully resolved**: `_run_install_script()` binds `installer_output=True` before logging each chunk, so Loguru
+  preserves arbitrary brace-containing text; `ProgressLogger.handler()` excludes only those tagged records
+  (`src/dot_tools/configure.py:307-308`; `src/dot_tools/spinner.py:81-90`).
+
+
+### Verification
+
+- `uv run pytest tests/test_configure.py --no-cov -k 'install_script'`: 5 passed, 51 deselected.
+- `uv run pytest tests/test_spinner.py --no-cov`: 22 passed.
+- `uv run pytest tests/test_configure.py --no-cov`: 55 passed, 1 failed. The known unrelated failure at
+  `tests/test_configure.py:836` expects `{}`, while the existing `.config/opencode/package.json` contains the
+  `@opencode-ai/plugin` dependency at version `1.18.14`.
+- `uv run ruff check src tests`: passed.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: passed.
+- `bash -n install.sh`: passed.
+- `git diff --check`: passed.
+- Production streaming probes passed: brace-containing chunks were captured literally once by a normal Loguru sink,
+  rendered once each as Rich `Text` in the active rolling view, and did not displace the ordinary progress message.
+  Success and nonzero-return paths both called `proc.wait()` once; the latter preserved the last-line failure
+  diagnostic.
+
+No `dt configure`, real installer, or live sudoers operation was run.
+
+
+### Findings
+
+None. The binding prevents Loguru interpolation, the tagged record is excluded from the progress-message deque, and
+the existing subprocess completion and failure handling remains intact.
+
+
+### Final decision
+
+**APPROVED.** S01 is fully resolved and this installer observability remediation is approved for the human code-review
+gate. The known `package.json` test failure is unrelated.

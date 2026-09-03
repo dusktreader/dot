@@ -745,3 +745,142 @@ tools and assert the exact phase order. No `dt configure`, installer, or sudoers
 
 No straightforward QA defects were exposed, so no fixes were made. The task plan and review artifact were not
 modified. No commit or push was performed.
+
+
+## Installer observability regression correction
+
+Using the `--personal-luna` variant, corrected the installer streaming path so `_run_install_script()` no longer wraps
+the subprocess in `pause_live()`. Installer chunks now go through `spinner.print_output()`: an active Rich `Live`
+console receives a `Text` renderable, preserving arbitrary installer output as literal text while allowing Rich to print
+above and redraw the spinner. Direct helper use without an active display falls back to flushed stdout. The existing
+merged stderr pipe, unbuffered binary pipe, selector-safe raw chunk reads, immediate Loguru logging, failure return-code
+handling, and last-20-lines diagnostics remain in place.
+
+Added isolated coverage for partial output without a trailing newline, logging, merged stderr, no live-display pause,
+active Live console routing, literal Rich markup handling, and failure diagnostics. No installer, `dt configure`, or
+sudoers configurator was run.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py -k 'install_script' --no-cov`: exit 0; `4 passed, 51 deselected`.
+- `uv run pytest tests/test_spinner.py --no-cov`: exit 0; `21 passed`.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `54 passed, 1 failed`. The unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no whitespace errors.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: exit 0; `All checks passed!`.
+
+The task plan and prior review artifact were not modified. No commit or push was performed.
+
+
+## Final observability QA pass
+
+The required final QA pass ran on 2026-09-02 against the current worktree with the `--personal-luna` variant. The
+installer observability changes were reviewed in the current implementation and tests. No `dt configure`, real
+installer, or sudoers configurator was run, and live `/etc/sudoers` was not modified.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `54 passed, 1 failed`. The known unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run pytest tests/test_spinner.py --no-cov`: exit 0; `21 passed`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
+
+The max-20-line rolling output window, partial-output preservation, nested progress routing, literal Rich `Text`
+rendering, active spinner display, and raw-chunk Loguru logging checks exposed no straightforward QA defects. No
+implementation fixes were required. The task plan and prior review artifact were not modified. No commit or push was
+performed.
+
+
+## S01 rolling-output correction
+
+Using the `--personal-luna` variant, corrected the blocking installer-output duplication finding. Installer Loguru
+records now carry `installer_output=True`; `ProgressLogger.handler()` ignores only those records, while the ordinary
+configured Loguru sinks still receive the complete raw chunks. Added an integration test using the real progress handler
+and a captured Loguru sink. It proves one chunk renders once as literal Rich `Text`, does not enter the normal messages
+deque, and is captured exactly in the log. Existing partial-output, merged-stderr, failure, nested-progress, spinner,
+and no-live stdout coverage remains in place.
+
+Verification on 2026-09-02:
+
+- `uv run pytest tests/test_configure.py -k 'install_script' --no-cov`: exit 0; `4 passed, 51 deselected`.
+- `uv run pytest tests/test_spinner.py --no-cov`: exit 0; `22 passed`.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `54 passed, 1 failed`. The known unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
+
+The task plan and prior review artifact were not modified. No `dt configure`, real installer, sudoers configurator, or
+live sudoers operation was run. No commit or push was performed.
+
+
+## Final observability QA pass
+
+The required final QA pass ran on 2026-09-02 against the current worktree with the `--personal-luna` variant. The
+current implementation marks installer Loguru records with `installer_output=True`, and `ProgressLogger.handler()`
+ignores only those records so rolling output is not duplicated while ordinary Loguru sinks retain complete file logging.
+No `dt configure`, real installer, or sudoers configurator was run, and live `/etc/sudoers` was not modified.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `54 passed, 1 failed`. The known unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure found the existing
+  `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, rather than `{}`.
+- `uv run pytest tests/test_spinner.py --no-cov`: exit 0; `22 passed`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
+
+No straightforward QA defects were exposed in the requested observability changes, so no implementation fixes were
+required. The task plan and review artifact were not modified. No commit or push was performed.
+
+
+## Final rolling-output correction
+
+Using the `--personal-luna` variant, corrected the remaining S01 review finding by binding the installer-output marker
+before calling Loguru. `_run_install_script()` now treats every raw installer chunk as a literal message, so unknown and
+matching brace fields cannot raise or interpolate. Added an end-to-end isolated helper test with the real progress
+handler and a normal Loguru sink. It verifies completion and `wait()`, one literal Rich rolling renderable, and one
+exact
+raw sink record. Subprocess execution remains mocked; no installer, `dt configure`, or sudoers operation was run.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py --no-cov -k 'install_script'`: exit 0; `5 passed, 51 deselected`.
+- `uv run pytest tests/test_spinner.py --no-cov`: exit 0; `22 passed`.
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `55 passed, 1 failed`. The unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure at `tests/test_configure.py:836`
+  found that the tracked `.config/opencode/package.json` contains `{"dependencies": {"@opencode-ai/plugin":
+  "1.18.14"}}`, while the test expects `{}`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
+
+The task plan and review artifact were not modified. No commit or push was performed.
+
+
+## Final QA pass
+
+The required final QA pass ran on 2026-09-02 against the current worktree with the `--personal-luna` variant. The
+installer logging uses `logger.bind(installer_output=True).debug(output)`, and the end-to-end brace-preservation test
+was reviewed. No `dt configure`, real installer, sudoers configurator, or live `/etc/sudoers` operation was run.
+
+Verification:
+
+- `uv run pytest tests/test_configure.py --no-cov`: exit 1; `55 passed, 1 failed`. The known unrelated
+  `test_install_manifest__does_not_install_opencode_npm_dependencies` failure at `tests/test_configure.py:836` found
+  the existing `.config/opencode/package.json` dependency `@opencode-ai/plugin` at version `1.18.14`, while the test
+  expects `{}`.
+- `uv run pytest tests/test_spinner.py --no-cov`: exit 0; `22 passed`.
+- `uv run ruff check src tests`: exit 0; `All checks passed!`.
+- `uv run ty check src/dot_tools/configure.py src/dot_tools/spinner.py`: exit 0; `All checks passed!`.
+- `git diff --check`: exit 0; no output.
+
+No straightforward QA defects were exposed, so no implementation fixes were required. The task plan and review
+artifact were not modified. No commit or push was performed.
