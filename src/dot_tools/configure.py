@@ -43,6 +43,7 @@ class SettingSpecs(pydantic.BaseModel):
     name: str
     check: str
     scripts: ScriptSpecs
+    platform: str | None = None
 
 
 class ToolSpecs(pydantic.BaseModel):
@@ -60,6 +61,8 @@ class ServiceSpecs(pydantic.BaseModel):
     args: Annotated[list[str], pydantic.Field(default_factory=lambda: [])]
     config_template: Path | None = None
     gui_only: bool = False
+    platform: str | None = None
+    keep_alive: bool = True
 
 
 class InstallManifest(pydantic.BaseModel):
@@ -364,6 +367,9 @@ class DotInstaller:
         with spinner("Applying settings", context_level="DEBUG"):
             for setting in self.install_manifest.settings:
                 with spinner(f"Applying {setting.name}", context_level="DEBUG"):
+                    if setting.platform is not None and setting.platform != platform.system():
+                        logger.debug(f"Skipping {setting.name} — setting is for {setting.platform}")
+                        continue
                     logger.debug(f"Checking if {setting.name} is already applied", status=Status.CHECK)
                     result = subprocess.run(
                         setting.check, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=install_env
@@ -520,6 +526,10 @@ class DotInstaller:
             args_xml = "\n".join(
                 f"        <string>{arg}</string>" for arg in args
             )
+            keep_alive_xml = """
+                    <key>KeepAlive</key>
+                    <true/>
+            """ if service.keep_alive else ""
             return snick.dedent(
                 f"""
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -536,8 +546,7 @@ class DotInstaller:
                     </array>
                     <key>RunAtLoad</key>
                     <true/>
-                    <key>KeepAlive</key>
-                    <true/>
+                {keep_alive_xml}
                     <key>StandardOutPath</key>
                     <string>{self.home}/Library/Logs/{service.label}.log</string>
                     <key>StandardErrorPath</key>
@@ -569,6 +578,9 @@ class DotInstaller:
         with spinner("Installing services", context_level="DEBUG"):
             for service in self.install_manifest.services:
                 with spinner(f"Installing service {service.name}", context_level="DEBUG"):
+                    if service.platform is not None and service.platform != platform.system():
+                        logger.debug(f"Skipping {service.name} — service is for {service.platform}")
+                        continue
                     if service.gui_only and self._is_headless():
                         logger.debug(f"Skipping service {service.name} — gui_only and headless system detected")
                         continue

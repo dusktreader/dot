@@ -11,6 +11,7 @@ from dot_tools.configure import (
     parse_octal,
     FileSpecs,
     ScriptSpecs,
+    SettingSpecs,
     ToolSpecs,
     ServiceSpecs,
     InstallManifest,
@@ -160,6 +161,79 @@ class TestServiceSpecs:
         )
         assert spec.args == ["--port", "8080"]
         assert spec.config_template == Path(".config/my-svc/config.yaml")
+
+    def test_service_specs__stores_platform(self):
+        spec = ServiceSpecs(name="my-svc", label="com.example.my-svc", executable="my-svc", platform="Darwin")
+        assert spec.platform == "Darwin"
+        assert spec.keep_alive is True
+
+    def test_setting_specs__stores_platform(self):
+        spec = SettingSpecs(
+            name="linux-setting",
+            check="check-setting",
+            scripts=ScriptSpecs(linux="apply-setting"),
+            platform="Linux",
+        )
+        assert spec.platform == "Linux"
+
+
+class TestDotInstallerInstallServices:
+
+    def test_install_services__skips_service_for_other_platform(self, tmp_path: Path):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "services": [
+                {
+                    "name": "mac-only",
+                    "label": "com.example.mac-only",
+                    "executable": "mac-only",
+                    "platform": "Darwin",
+                }
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+
+        with (
+            patch("dot_tools.configure.platform.system", return_value="Linux"),
+            patch("dot_tools.configure.shutil.which") as which,
+            patch("dot_tools.configure.subprocess.run") as run,
+            patch("dot_tools.configure.spinner"),
+        ):
+            installer._install_services()
+
+        assert not (installer.home / "Library" / "LaunchAgents").exists()
+        which.assert_not_called()
+        run.assert_not_called()
+
+    def test_install_services__installs_non_keep_alive_darwin_service(self, tmp_path: Path):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "services": [
+                {
+                    "name": "one-shot",
+                    "label": "com.example.one-shot",
+                    "executable": "one-shot",
+                    "platform": "Darwin",
+                    "keep_alive": False,
+                }
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+        launchctl_result = MagicMock(returncode=0, stderr=b"")
+
+        with (
+            patch("dot_tools.configure.platform.system", return_value="Darwin"),
+            patch("dot_tools.configure.shutil.which", return_value="/usr/local/bin/one-shot"),
+            patch("dot_tools.configure.subprocess.run", return_value=launchctl_result) as run,
+            patch("dot_tools.configure.spinner"),
+        ):
+            installer._install_services()
+
+        plist_path = installer.home / "Library" / "LaunchAgents" / "com.example.one-shot.plist"
+        plist_content = plist_path.read_text()
+        assert plist_path.exists()
+        assert "<key>KeepAlive</key>" not in plist_content
+        assert ["launchctl", "load", "-w", str(plist_path)] in [call.args[0] for call in run.call_args_list]
 
 
 class TestInstallManifest:
@@ -690,6 +764,29 @@ class TestDotInstallerStartup:
 # ---------------------------------------------------------------------------
 
 class TestDotInstallerApplySettings:
+
+    def test_apply_settings__skips_setting_for_other_platform(self, tmp_path: Path):
+        manifest = {
+            **MINIMAL_MANIFEST,
+            "settings": [
+                {
+                    "name": "linux-only",
+                    "check": "check-setting",
+                    "scripts": {"linux": "apply-setting"},
+                    "platform": "Linux",
+                }
+            ],
+        }
+        installer = make_installer(tmp_path, manifest)
+
+        with (
+            patch("dot_tools.configure.platform.system", return_value="Darwin"),
+            patch("dot_tools.configure.subprocess.run") as run,
+            patch("dot_tools.configure.spinner"),
+        ):
+            installer._apply_settings()
+
+        run.assert_not_called()
 
     def test_apply_settings__uses_override_home_for_setting_check(self, tmp_path: Path):
         manifest = {

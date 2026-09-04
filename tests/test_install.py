@@ -554,6 +554,34 @@ def test_sudoers_manifest_contains_passwordless_sudo_setting():
     assert settings[0]["scripts"]["generic"] == '"$DOT_ROOT/tools/configure-sudoers.py"'
 
 
+def test_capslock_manifest_contains_linux_setting_and_darwin_service():
+    manifest = yaml.safe_load((SCRIPT.parents[1] / "etc" / "install.yaml").read_text())
+    settings = [setting for setting in manifest["settings"] if setting["name"] == "capslock-to-escape"]
+    assert len(settings) == 1
+
+    capslock = settings[0]
+    assert capslock["platform"] == "Linux"
+    assert capslock["check"] == "grep -q 'caps:escape' /etc/default/keyboard"
+    assert capslock["scripts"]["linux"].startswith("sudo sed -i")
+    assert capslock["scripts"].get("darwin") is None
+
+    services = [service for service in manifest["services"] if service["name"] == "capslock-to-escape"]
+    assert services == [
+        {
+            "name": "capslock-to-escape",
+            "label": "com.dusktreader.capslock-to-escape",
+            "executable": "/usr/bin/hidutil",
+            "args": [
+                "property",
+                "--set",
+                '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x700000029}]}',
+            ],
+            "platform": "Darwin",
+            "keep_alive": False,
+        }
+    ]
+
+
 def test_sudoers_install_script_has_no_username_derived_write():
     install = (SCRIPT.parents[1] / "install.sh").read_text()
     assert "sudo tee /etc/sudoers.d/$USER" not in install

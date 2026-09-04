@@ -347,6 +347,7 @@ settings:
     scripts:
       generic: '"$DOT_ROOT/tools/configure-sudoers.py"'
   - name: capslock-to-escape
+    platform: Linux
     check: "grep -q 'caps:escape' /etc/default/keyboard"
     scripts:
       linux: |
@@ -360,4 +361,13 @@ settings:
         sudo ufw allow ssh
         sudo ufw allow 60000:61000/udp
         sudo ufw --force enable
-services: []
+services:
+  - name: capslock-to-escape
+    label: com.dusktreader.capslock-to-escape
+    executable: /usr/bin/hidutil
+    args:
+      - property
+      - --set
+      - '{"UserKeyMapping":[{"HIDKeyboardModifierMappingSrc":0x700000039,"HIDKeyboardModifierMappingDst":0x700000029}]}'
+    platform: Darwin
+    keep_alive: false
