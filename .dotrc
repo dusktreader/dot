@@ -139,6 +139,8 @@ alias terraform="terraform1.13"
 alias tfm='terraform'
 
 alias dc='docker compose'
+export DOCKER_HOST="unix://${HOME}/.docker/run/docker.sock"
+unset DOCKER_CONTEXT
 
 if [[ "$OSTYPE" != "darwin"* ]]
 then
