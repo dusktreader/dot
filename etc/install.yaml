@@ -128,6 +128,13 @@ tools:
         sudo snap install nvim --classic
       darwin: |
         sudo port -N install neovim
+  - name: tree-sitter-cli
+    check: "command -v tree-sitter"
+    scripts:
+      linux: |
+        sudo apt install -y tree-sitter-cli
+      darwin: |
+        sudo port -N install tree-sitter-cli
   - name: lua
     check: "command -v lua"
     scripts:
@@ -353,6 +360,13 @@ settings:
     check: '"$DOT_ROOT/tools/configure-sudoers.py" --check'
     scripts:
       generic: '"$DOT_ROOT/tools/configure-sudoers.py"'
+  - name: macOS Home and End keybindings
+    platform: Darwin
+    check: 'test -f "$HOME/Library/KeyBindings/DefaultKeyBinding.dict" && cmp -s "$DOT_ROOT/etc/macos/DefaultKeyBinding.dict" "$HOME/Library/KeyBindings/DefaultKeyBinding.dict"'
+    scripts:
+      darwin: |
+        mkdir -p "$HOME/Library/KeyBindings"
+        cp "$DOT_ROOT/etc/macos/DefaultKeyBinding.dict" "$HOME/Library/KeyBindings/DefaultKeyBinding.dict"
   - name: capslock-to-escape
     platform: Linux
     check: "grep -q 'caps:escape' /etc/default/keyboard"

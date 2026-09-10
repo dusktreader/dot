@@ -582,6 +582,45 @@ def test_capslock_manifest_contains_linux_setting_and_darwin_service():
     ]
 
 
+def test_home_end_manifest_contains_darwin_only_setting_and_keybindings():
+    root = SCRIPT.parents[1]
+    manifest = yaml.safe_load((root / "etc" / "install.yaml").read_text())
+    settings = [setting for setting in manifest["settings"] if setting["name"] == "macOS Home and End keybindings"]
+
+    assert settings == [
+        {
+            "name": "macOS Home and End keybindings",
+            "platform": "Darwin",
+            "check": (
+                'test -f "$HOME/Library/KeyBindings/DefaultKeyBinding.dict" && '
+                'cmp -s "$DOT_ROOT/etc/macos/DefaultKeyBinding.dict" '
+                '"$HOME/Library/KeyBindings/DefaultKeyBinding.dict"'
+            ),
+            "scripts": {
+                "darwin": (
+                    'mkdir -p "$HOME/Library/KeyBindings"\n'
+                    'cp "$DOT_ROOT/etc/macos/DefaultKeyBinding.dict" '
+                    '"$HOME/Library/KeyBindings/DefaultKeyBinding.dict"\n'
+                ),
+            },
+        }
+    ]
+
+    keybindings = (root / "etc" / "macos" / "DefaultKeyBinding.dict").read_text()
+    expected_mappings = {
+        r'"\UF729" = "moveToBeginningOfLine:";',
+        r'"\UF72B" = "moveToEndOfLine:";',
+        r'"$\UF729" = "moveToBeginningOfLineAndModifySelection:";',
+        r'"$\UF72B" = "moveToEndOfLineAndModifySelection:";',
+        r'"^\UF729" = "moveToBeginningOfDocument:";',
+        r'"^\UF72B" = "moveToEndOfDocument:";',
+        r'"$^\UF729" = "moveToBeginningOfDocumentAndModifySelection:";',
+        r'"$^\UF72B" = "moveToEndOfDocumentAndModifySelection:";',
+    }
+
+    assert expected_mappings <= {line.strip() for line in keybindings.splitlines()}
+
+
 def test_sudoers_install_script_has_no_username_derived_write():
     install = (SCRIPT.parents[1] / "install.sh").read_text()
     assert "sudo tee /etc/sudoers.d/$USER" not in install

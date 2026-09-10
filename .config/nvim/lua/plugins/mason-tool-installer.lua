@@ -1,11 +1,13 @@
 return {
   -- automated mason tool installation
   "WhoIsSethDaniel/mason-tool-installer.nvim",
-  event = "VeryLazy",
+  lazy = false,
   dependencies = {
     "williamboman/mason.nvim",
   },
   opts = {
+    run_on_start = true,
+    start_delay = 1000,
     ensure_installed = {
 
       -- Language LSPs

@@ -901,7 +901,7 @@ class TestDotInstallerInstallTools:
         )
         assert opencode_deps["depends_on"] == ["node"]
         assert "bun" not in {tool["name"] for tool in manifest["tools"]}
-        assert package["dependencies"]["@opencode-ai/plugin"] == "1.18.14"
+        assert package["dependencies"]["@opencode-ai/plugin"] == "1.18.27"
 
     def test_install_tools__uses_override_home_for_opencode_npm_check(self, tmp_path: Path):
         manifest = {
