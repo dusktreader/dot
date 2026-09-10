@@ -37,6 +37,35 @@ cli.add_typer(creds_cli, name="creds")
 cli.add_typer(opencode_cli, name="opencode")
 
 
+_SSH_TUNNEL_OPTIONS = (
+    "-N",
+    "-T",
+    "-o",
+    "ExitOnForwardFailure=yes",
+    "-o",
+    "ServerAliveInterval=60",
+    "-o",
+    "ServerAliveCountMax=3",
+)
+
+
+def _format_tunnel_forward(spec: str) -> str:
+    """Format a local-to-remote port specification for ``ssh -L``."""
+    parts = spec.split(":")
+    if len(parts) == 1:
+        local_port = remote_port = parts[0]
+    elif len(parts) == 2:
+        local_port, remote_port = parts
+    else:
+        raise typer.BadParameter("must be a PORT or LOCAL_PORT:REMOTE_PORT")
+
+    for port in (local_port, remote_port):
+        if not port.isascii() or not port.isdecimal() or not 1 <= int(port) <= 65535:
+            raise typer.BadParameter(f"port must be an integer between 1 and 65535: {port!r}")
+
+    return f"{int(local_port)}:127.0.0.1:{int(remote_port)}"
+
+
 @cli.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
@@ -124,6 +153,27 @@ def configure(
 
         if result.returncode != 0:
             raise typer.Exit(code=result.returncode)
+
+
+@cli.command(no_args_is_help=True)
+def tunnel(
+    target: Annotated[str, typer.Argument(help="SSH destination, such as user@example.com")],
+    ports: Annotated[list[str], typer.Argument(help="Local port or LOCAL_PORT:REMOTE_PORT")],
+):
+    """
+    Open an SSH tunnel to a remote host.
+
+    A bare port forwards the same port on both sides. A LOCAL_PORT:REMOTE_PORT
+    specification forwards different local and remote ports.
+    """
+    command = ["ssh", *_SSH_TUNNEL_OPTIONS]
+    for port_spec in ports:
+        command.extend(("-L", _format_tunnel_forward(port_spec)))
+    command.append(target)
+
+    result = subprocess.run(command)
+    if result.returncode != 0:
+        raise typer.Exit(code=result.returncode)
 
 
 @cli.command()

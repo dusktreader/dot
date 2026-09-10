@@ -38,6 +38,7 @@ Top-level commands:
 | `kv`          | Produce a JSON string from key→value pairs            |
 | `line-length` | Report configured line length for the current project |
 | `urlencode`   | URL-encode a string and copy it to the clipboard      |
+| `tunnel`      | Open an SSH tunnel with local port forwarding         |
 | `logs`        | View application logs (typerdrive built-in)           |
 | `settings`    | Inspect/edit app settings (typerdrive built-in)       |
 

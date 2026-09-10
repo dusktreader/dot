@@ -157,3 +157,44 @@ class TestConfigure:
             assert mock_run.called
             call_args = mock_run.call_args[0][0]
             assert "--force" in call_args
+
+
+class TestTunnel:
+
+    def test_tunnel__builds_ssh_command_for_bare_and_mapped_ports(self, runner: CliRunner):
+        with patch("dot_tools.cli.main.subprocess.run", return_value=MagicMock(returncode=0)) as mock_run:
+            result = runner.invoke(cli, ["tunnel", "user@raven", "15000", "9000:19000", "8000"])
+
+        assert result.exit_code == 0
+        mock_run.assert_called_once_with([
+            "ssh",
+            "-N",
+            "-T",
+            "-o",
+            "ExitOnForwardFailure=yes",
+            "-o",
+            "ServerAliveInterval=60",
+            "-o",
+            "ServerAliveCountMax=3",
+            "-L",
+            "15000:127.0.0.1:15000",
+            "-L",
+            "9000:127.0.0.1:19000",
+            "-L",
+            "8000:127.0.0.1:8000",
+            "user@raven",
+        ])
+
+    def test_tunnel__propagates_ssh_failure(self, runner: CliRunner):
+        with patch("dot_tools.cli.main.subprocess.run", return_value=MagicMock(returncode=17)):
+            result = runner.invoke(cli, ["tunnel", "user@raven", "15000"])
+
+        assert result.exit_code == 17
+
+    def test_tunnel__rejects_malformed_port_specification(self, runner: CliRunner):
+        with patch("dot_tools.cli.main.subprocess.run") as mock_run:
+            result = runner.invoke(cli, ["tunnel", "user@raven", "9000:19000:1"])
+
+        assert result.exit_code == 2
+        assert "LOCAL_PORT:REMOTE_PORT" in result.output
+        mock_run.assert_not_called()
