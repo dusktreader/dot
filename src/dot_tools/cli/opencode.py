@@ -1,20 +1,20 @@
 """OpenCode CLI commands."""
 
+import sys
 from datetime import date
 from pathlib import Path
-import sys
 from typing import Annotated
 
 import dateparser
-from auto_name_enum import AutoNameEnum, auto
 import typer
+from auto_name_enum import AutoNameEnum, auto
 from typerdrive import handle_errors, log_error
 
 from dot_tools.exceptions import OpenCodeError
 from dot_tools.opencode_costs import REPORT_COLUMNS, OpenCodeSessionStore, Report, fields
+from dot_tools.opencode_profile import OpenCodeProfileError, personal_lifecycle, validate_tier
 from dot_tools.opencode_staleness_guard import check_before_edit, record_read
 from dot_tools.opencode_trends import DEFAULT_MAX_MODELS, aggregate_daily_model_costs, render_trends
-
 
 cli = typer.Typer(no_args_is_help=True)
 staleness_guard_cli = typer.Typer(no_args_is_help=True)
@@ -25,6 +25,60 @@ class OutputFormat(AutoNameEnum):
     table = auto()
     json = auto()
     csv = auto()
+
+
+@cli.command(
+    "launch",
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
+def launch(
+    ctx: typer.Context,
+    tier: Annotated[str, typer.Option("--tier", help="Routing tier: light, standard, or premium")] = "light",
+) -> None:
+    """
+    Launch OpenCode through the personal LiteLLM router.
+
+    The default `light` tier uses the tool-capable Luna route. Select `standard` for a specific higher-capability case
+    with `--tier standard`. Explicit `--tier premium` is user authorization and does not require an approval
+    environment variable. Invalid tiers fail before router startup.
+
+    OpenCode arguments are passed through unchanged. The personal router listens only on `127.0.0.1:4010` and keeps
+    OpenCode, Copilot, XDG, PID, log, and cache state under `~/.local/state/personal`. `HOME` remains unchanged so
+    the shared `~/.agents` directory remains available.
+
+    Use `dt opencode status` to inspect the router and `dt opencode stop` to stop only the profile-owned router. The
+    personal light route may fall back to OpenCode Zen; the work profile never uses that fallback. Routing profile,
+    capability, and tier metadata come from the launcher and plugin, not model-generated text.
+    """
+    try:
+        validate_tier(tier)
+        personal_lifecycle().launch(ctx.args, tier, explicit_cli_premium=tier == "premium")
+    except ValueError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=2) from error
+    except OpenCodeProfileError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from error
+
+
+@cli.command("status")
+def status() -> None:
+    """Show the personal OpenCode router status."""
+    try:
+        personal_lifecycle().status()
+    except OpenCodeProfileError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from error
+
+
+@cli.command("stop")
+def stop() -> None:
+    """Stop the personal OpenCode router when this profile owns it."""
+    try:
+        personal_lifecycle().stop()
+    except OpenCodeProfileError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from error
 
 
 @staleness_guard_cli.command("read")
@@ -53,7 +107,9 @@ def _parse_sort(value: str) -> list[tuple[str, bool]]:
         direction, separator, column = item.strip().partition(":")
         if separator:
             direction = direction.casefold()
-            OpenCodeError.require_condition(direction in {"asc", "desc"}, f"Invalid sort direction {direction!r}; use 'asc' or 'desc'")
+            OpenCodeError.require_condition(
+                direction in {"asc", "desc"}, f"Invalid sort direction {direction!r}; use 'asc' or 'desc'"
+            )
         else:
             direction, column = "desc", item.strip()
         query = column.strip().casefold()

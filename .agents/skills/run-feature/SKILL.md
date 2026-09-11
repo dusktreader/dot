@@ -156,14 +156,14 @@ Continue directly to stage 1 (design) and its approval gate. Do not stop before 
 
 ### 1. Design
 
-Before each dispatch, the principal selects the model using the principal's Model selection policy, chooses the
-corresponding model-specific specialist variant, and records and dispatches that exact variant agent name. Do not
-dispatch a generic unvaried specialist role name. Apply this requirement to every dispatch in this workflow.
+Before each dispatch, the principal selects the active profile and tier using the principal's routing policy, records
+both values, and dispatches the generic shared role through that profile's launcher. Never encode the account or model
+in a specialist role name. Ask before selecting `tier:premium`; a difficult task or failed lower tier is not approval.
 
-Dispatch the selected `architect-planner--{work|personal}-{suffix}` variant with the `create-design-plan` skill, the
+Dispatch the shared `architect-planner` role with the `create-design-plan` skill, the
 feature description, and the project directory.
 
-Then dispatch the selected `architect-reviewer--{work|personal}-{suffix}` variant with the `review-design-plan` skill,
+Then dispatch the shared `architect-reviewer` role with the `review-design-plan` skill,
 the design plan path, and iteration `01`.
 
 Address all findings from the review:
@@ -220,10 +220,10 @@ Once approved: commit (see Git workflow — "After design plan approved").
 
 ### 2. Plan
 
-Dispatch the selected `engineer-planner--{work|personal}-{suffix}` variant with the `create-implementation-plan` skill
+Dispatch the shared `engineer-planner` role with the `create-implementation-plan` skill
 and the design plan path.
 
-Then dispatch the selected `architect-reviewer--{work|personal}-{suffix}` variant with the
+Then dispatch the shared `architect-reviewer` role with the
 `review-implementation-plan` skill, the implementation plan path, and iteration `01`.
 
 Address all findings from the review:
@@ -266,7 +266,7 @@ Once approved: commit (see Git workflow — "After implementation plan approved"
 
 ### 3. Execute
 
-Dispatch the selected `engineer-executor--{work|personal}-{suffix}` variant with the
+Dispatch the shared `engineer-executor` role with the
 `execute-implementation-plan` skill and the implementation plan path.
 
 
@@ -278,7 +278,7 @@ The lightweight executor must not expand the work or make design decisions. Re-r
 changes an acceptance criterion, introduces a new code path, or changes behavior, an interface, data, security, or
 tests.
 
-Then dispatch the selected `engineer-reviewer--{work|personal}-{suffix}` variant with the
+Then dispatch the shared `engineer-reviewer` role with the
 `review-implementation-execution` skill, the journal path, scope `whole-plan`, and iteration `01`.
 
 Address all findings from the review:

@@ -32,13 +32,13 @@ has no plan, reviewer, or human gate by default.
 
 ## Process
 
-1. The principal selects the executor model using the principal's Model selection policy, chooses and dispatches the
-   exact `engineer-executor--{work|personal}-{suffix}` variant, and records the exact variant agent name.
+1. The principal selects the active profile and tier, dispatches the shared `engineer-executor` role, and records the
+   profile and tier.
 2. The selected variant makes the focused change and records the files, intent, and relevant verification in
    `hack-journal.md`.
 3. Run relevant verification for the changed behavior.
-4. The principal selects a review model using the Model selection policy, chooses and dispatches the exact
-   `engineer-reviewer--{work|personal}-{suffix}` variant, and performs a concise diff-first review.
+4. The principal selects the active review profile and tier, dispatches the shared `engineer-reviewer` role, and
+   performs a concise diff-first review.
 
 Ambiguity is discretionary. It does not cause escalation unless it blocks coherent work. Resolve bounded ambiguity
 using judgment when the change remains low-risk, reversible, and within scope; escalate only when the ambiguity

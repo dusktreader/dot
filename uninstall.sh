@@ -96,8 +96,10 @@ link_paths=(
     .config/opencode/agents
     .config/opencode/tools
     .config/opencode/plugins
+    .config/opencode/profiles/personal.json
     .config/opencode/package.json
     .config/opencode/opencode.json
+    .config/litellm/personal.yaml
 )
 for path in "${link_paths[@]}"
 do

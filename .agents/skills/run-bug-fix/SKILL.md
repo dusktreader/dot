@@ -55,13 +55,10 @@ Keep every
 bug report, implementation plan, journal, code change, QA correction, and review context in the
 agent worktree. Every later gate names the agent worktree path and agent branch.
 
-Before each specialist handoff, the principal selects a model-specific variant from the
-project-class menu. Use `engineer-investigator--{work|personal}-{suffix}` for investigation,
-`engineer-planner--{work|personal}-{suffix}` for planning,
-`engineer-executor--{work|personal}-{suffix}` for execution and constrained QA-fix, and
-`engineer-reviewer--{work|personal}-{suffix}` for review. Record the exact variant, provider/model
-ID, project class, and handoff purpose in the implementation journal or review context. Never dispatch
-a generic specialist role.
+Before each specialist handoff, the principal selects the active profile and tier. Use `engineer-investigator` for
+investigation, `engineer-planner` for planning, `engineer-executor` for execution and constrained QA-fix, and
+`engineer-reviewer` for review. Record the profile, tier, project class, and handoff purpose in the implementation
+journal or review context.
 
 Perform final QA exactly once before independent review. QA-fix is a constrained executor handoff,
 not a second QA owner. Review approval remains an explicit human gate. Immediately before exclusive
@@ -159,9 +156,9 @@ feature branch:
 
 Run branch setup (see Git workflow above) before doing anything else.
 
-Dispatch the selected model-specific `engineer-investigator--{work|personal}-{suffix}` variant with
-the `investigate-codebase` skill. Direct the investigator to determine: root cause, affected code
-paths, and blast radius. Record the selected variant and model ID in the journal before dispatch.
+Dispatch the shared `engineer-investigator` role through the selected profile launcher with the
+`investigate-codebase` skill. Direct the investigator to determine: root cause, affected code
+paths, and blast radius. Record the selected profile and tier in the journal before dispatch.
 
 Synthesize the investigator's findings into `bug-report.md`. Read
 `.agents/artifacts/bug-report/description.md` for the canonical section definitions, and render
@@ -185,12 +182,12 @@ Once confirmed: commit (see Git workflow — "After bug report approved").
 
 ### 2. Plan
 
-Dispatch the selected model-specific `engineer-planner--{work|personal}-{suffix}` variant with the
+Dispatch the shared `engineer-planner` role through the selected profile launcher with the
 `create-implementation-plan` skill, passing the bug report path as the planning input in place of a
-design plan. Record the exact variant and model ID in the journal.
+design plan. Record the selected profile and tier in the journal.
 
-Then dispatch an `architect-reviewer` subagent with the `review-implementation-plan` skill, the plan
-path, and iteration `01`.
+Then dispatch the shared `architect-reviewer` role through the selected profile launcher with the
+`review-implementation-plan` skill, the plan path, and iteration `01`.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
@@ -216,18 +213,18 @@ Once approved: commit (see Git workflow — "After implementation plan approved"
 
 ### 3. Execute
 
-Dispatch the selected model-specific `engineer-executor--{work|personal}-{suffix}` variant with the
-`execute-implementation-plan` skill and the plan path. Record the exact variant and model ID in the
-journal. Use the same variant family for a constrained QA-fix handoff and record that purpose.
+Dispatch the shared `engineer-executor` role through the selected profile launcher with the
+`execute-implementation-plan` skill and the plan path. Record the selected profile and tier in the
+journal. Use the same role for a constrained QA-fix handoff and record that purpose.
 
-Then dispatch the selected model-specific `engineer-reviewer--{work|personal}-{suffix}` variant with
+Then dispatch the shared `engineer-reviewer` role through the selected profile launcher with
 the `review-implementation-execution` skill, the journal path, scope `whole-plan`, and iteration
-`01`. Record the exact reviewer variant, project class, and provider/model ID in the review context.
+`01`. Record the selected profile, tier, and project class in the review context.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
-- Dispatch the selected model-specific executor variant to fix significant and critical findings.
-  Flag genuinely ambiguous ones inline.
+- Dispatch the shared `engineer-executor` role through the selected profile launcher to fix significant and critical
+  findings. Flag genuinely ambiguous ones inline.
 - Record the outcome in each finding's `##### Outcome` subsection.
 - Re-dispatch an `engineer-reviewer` at N+1 if changes were substantial. Repeat until the
   agent reviewer approves.

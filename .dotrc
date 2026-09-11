@@ -155,6 +155,7 @@ alias wjst='watch -n 1 -c juju status --color'
 alias bfg='java -jar $DOT_HOME/bin/bfg-1.15.0.jar'
 
 alias ask='opencode run'
+alias doc='dt opencode launch'
 
 dcup () {
     services=$@

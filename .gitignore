@@ -14,6 +14,14 @@
 # OpenCode per-project state
 .opencode/
 
+# OpenCode profile runtime and router state
+.local/state/personal/
+.local/state/work/
+.config/litellm/*.db
+.config/litellm/*.log
+.config/litellm/*.pid
+.config/litellm/*/tokens/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

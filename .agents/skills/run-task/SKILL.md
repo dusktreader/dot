@@ -130,11 +130,11 @@ Continue directly to stage 1 (plan) and its approval gate. Do not stop before th
 
 ### 1. Plan
 
-The principal selects the model for the planner using the principal's Model selection policy, chooses and dispatches the
-model-specific `engineer-task-planner` variant, and records the exact variant agent name. Stop for explicit human
-approval of the task plan before execution.
+The principal selects the profile and tier for the planner using the principal's routing policy, dispatches the shared
+`engineer-task-planner` role, and records the active profile and tier. Stop for explicit human approval of the task plan
+before execution.
 
-Dispatch the selected `engineer-task-planner--{work|personal}-{suffix}` variant to write
+Dispatch the shared `engineer-task-planner` role to write
 `task-plan.md`. The prompt must include:
 - The task description
 - The project directory path
@@ -177,9 +177,9 @@ Proceeding to: stage 2 (execute)
 
 ### 2. Execute
 
-Select the executor model using the principal's Model selection policy, choose and dispatch the
-exact `engineer-executor--{work|personal}-{suffix}` variant, and record the exact variant agent
-name. The executor runs the focused tests relevant to the task and records results.
+Select the executor profile and tier using the principal's routing policy, then dispatch the shared
+`engineer-executor` role and record the active profile and tier. The executor runs the focused tests
+relevant to the task and records results.
 
 
 ### 3. Final QA
@@ -192,9 +192,8 @@ change behavior, an interface, data, security, or tests.
 
 ### 4. Review
 
-Read the journal to collect modified files. Select the reviewer model using the principal's
-Model selection policy, choose and dispatch the exact
-`engineer-reviewer--{work|personal}-{suffix}` variant, and record the exact variant agent name.
+Read the journal to collect modified files. Select the reviewer profile and tier using the principal's
+routing policy, then dispatch the shared `engineer-reviewer` role and record the active profile and tier.
 Reviewers start diff-first, expand context only as required, and return compact findings without
 redundant skill loading. Re-review only after acceptance-criteria, new-code-path, behavior,
 interface, data, security, or test changes.

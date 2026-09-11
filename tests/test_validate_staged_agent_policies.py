@@ -1,8 +1,8 @@
-import json
 import hashlib
+import json
 import re
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -11,10 +11,8 @@ from tools.validate_staged_agent_policies import validate
 
 def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
     root = tmp_path / "staging"
-    staging = Path(__file__).resolve().parents[1]
-    staging_config = staging / ".config/opencode/agents"
-    config_files = [path.relative_to(staging) for path in staging_config.glob("*.md")]
-    paths_to_copy = [
+    source = Path(__file__).parents[1]
+    relative_files = [
         Path(".agents/agents/principal.md"),
         Path(".agents/skills/create-agent-worktree/SKILL.md"),
         Path(".agents/skills/cleanup-agent-worktree/SKILL.md"),
@@ -26,22 +24,26 @@ def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
         Path(".agents/skills/run-hotfix/SKILL.md"),
         Path(".agents/skills/run-pr/SKILL.md"),
         Path(".agents/skills/review-pr/SKILL.md"),
-        *config_files,
+        *[path.relative_to(source) for path in (source / ".config/opencode/agents").glob("*.md")],
     ]
-    for relative in paths_to_copy:
+    for relative in relative_files:
         destination = root / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(staging / relative, destination)
+        shutil.copy2(source / relative, destination)
     if text is not None:
         (root / ".agents/agents/principal.md").write_text(text)
-    paths = paths_to_copy
     manifest = root / "manifest.json"
     manifest.write_text(json.dumps({
         "staging_root": str(root),
-        "files": [{"staged_path": str(path), "sha256": hashlib.sha256((root / path).read_bytes()).hexdigest()} for path in paths],
+        "files": [
+            {"staged_path": str(path), "sha256": hashlib.sha256((root / path).read_bytes()).hexdigest()}
+            for path in relative_files
+        ],
         "promotion": {
-            "approval_required": True, "atomic_replacement": True,
-            "rollback_required": True, "restart_required": "OpenCode",
+            "approval_required": True,
+            "atomic_replacement": True,
+            "rollback_required": True,
+            "restart_required": "OpenCode",
         },
     }))
     return root, manifest
@@ -57,7 +59,7 @@ def add_manifest_file(root: Path, manifest: Path, relative: Path) -> None:
     manifest.write_text(json.dumps(manifest_data))
 
 
-def test_validator_accepts_complete_fixture(tmp_path: Path) -> None:
+def test_validator_accepts_shared_role_fixture(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
     assert validate(root, manifest) == []
 
@@ -137,72 +139,22 @@ def test_validator_requires_shared_worktree_contract(tmp_path: Path, relative: s
     assert any("shared worktree contract" in failure for failure in validate(root, manifest))
 
 
-def test_validator_requires_all_work_variants(tmp_path: Path) -> None:
+def test_validator_rejects_profile_specific_role(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    variant = root / ".config/opencode/agents/architect-reviewer--work-luna.md"
-    variant.unlink()
-    assert "architect-reviewer--work-luna.md" in "\n".join(validate(root, manifest))
+    extra = root / ".config/opencode/agents/engineer-executor--work-luna.md"
+    extra.write_text((root / ".config/opencode/agents/engineer-executor.md").read_text())
+    add_manifest_file(root, manifest, extra.relative_to(root))
+    assert any("profile-specific" in failure for failure in validate(root, manifest))
 
 
-def test_validator_rejects_added_work_opus_variants(tmp_path: Path) -> None:
+def test_validator_rejects_zen_work_dispatch(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    relative = Path(".config/opencode/agents/architect-planner--work-opus.md")
-    variant = root / relative
-    source = root / ".config/opencode/agents/architect-planner--work-luna.md"
-    variant.write_text(source.read_text().replace("work-luna", "work-opus").replace("gpt-5.6-luna", "claude-opus-4.8"))
-    add_manifest_file(root, manifest, relative)
-    assert "architect-planner--work-opus.md" in "\n".join(validate(root, manifest))
-
-
-def test_validator_rejects_added_personal_terra_variants(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    relative = Path(".config/opencode/agents/architect-planner--personal-terra.md")
-    terra = root / relative
-    source = root / ".config/opencode/agents/architect-planner--personal-luna.md"
-    terra.write_text(source.read_text().replace("personal-luna", "personal-terra").replace("gpt-5.6-luna", "gpt-5.6-terra"))
-    add_manifest_file(root, manifest, relative)
-    failures = validate(root, manifest)
-    assert any("unexpected or generic specialist agents" in failure for failure in failures)
-
-
-def test_validator_rejects_non_review_work_alternate_variants(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    relative = Path(".config/opencode/agents/engineer-executor--work-sonnet.md")
-    variant = root / relative
-    source = root / ".config/opencode/agents/engineer-executor--work-luna.md"
-    variant.write_text(source.read_text().replace("work-luna", "work-sonnet").replace("gpt-5.6-luna", "claude-sonnet-5"))
-    add_manifest_file(root, manifest, relative)
-    failures = validate(root, manifest)
-    assert any("unexpected or generic specialist agents" in failure for failure in failures)
-
-
-def test_validator_requires_personal_review_variants(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    variant = root / ".config/opencode/agents/architect-reviewer--personal-luna.md"
-    variant.unlink()
-    assert "architect-reviewer--personal-luna.md" in "\n".join(validate(root, manifest))
-
-
-def test_validator_rejects_non_review_personal_alternate_variants(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    relative = Path(".config/opencode/agents/architect-planner--personal-glm.md")
-    variant = root / relative
-    source = root / ".config/opencode/agents/architect-planner--personal-luna.md"
-    variant.write_text(source.read_text().replace("personal-luna", "personal-glm").replace("gpt-5.6-luna", "glm-5"))
-    add_manifest_file(root, manifest, relative)
-    failures = validate(root, manifest)
-    assert any("unexpected or generic specialist agents" in failure for failure in failures)
-
-
-def test_validator_rejects_added_gemini_review_variants(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    relative = Path(".config/opencode/agents/engineer-reviewer--work-gemini.md")
-    variant = root / relative
-    source = root / ".config/opencode/agents/engineer-reviewer--work-luna.md"
-    variant.write_text(source.read_text().replace("work-luna", "work-gemini").replace("gpt-5.6-luna", "gemini-3.6-flash"))
-    add_manifest_file(root, manifest, relative)
-    failures = validate(root, manifest)
-    assert any("unexpected or generic specialist agents" in failure for failure in failures)
+    principal = root / ".agents/agents/principal.md"
+    principal.write_text(principal.read_text() + "\nprofile:work routes opencode/zen.\n")
+    data = json.loads(manifest.read_text())
+    data["files"][0]["sha256"] = hashlib.sha256(principal.read_bytes()).hexdigest()
+    manifest.write_text(json.dumps(data))
+    assert any("Zen model" in failure for failure in validate(root, manifest))
 
 
 def test_validator_reports_inventory_stale_reference_and_promotion_failures(tmp_path: Path) -> None:
@@ -244,20 +196,65 @@ def test_validator_requires_structured_principal_ownership(tmp_path: Path) -> No
         (".agents/skills/run-hack/SKILL.md", "no Git lifecycle"),
     ],
 )
-def test_validator_rejects_missing_worktree_lifecycle_requirement(
-    tmp_path: Path, relative: str, needle: str
-) -> None:
+def test_validator_rejects_missing_worktree_lifecycle_requirement(tmp_path: Path, relative: str, needle: str) -> None:
     root, manifest = write_fixture(tmp_path)
     path = root / relative
     path.write_text(re.sub(needle, "removed lifecycle text", path.read_text(), flags=re.IGNORECASE))
     assert any(relative in failure and "lifecycle requirement" in failure for failure in validate(root, manifest))
 
 
-def test_validator_rejects_unvaried_dispatch(tmp_path: Path) -> None:
+def test_validator_rejects_model_specific_dispatch_names(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    path = root / ".agents/skills/run-task/SKILL.md"
-    path.write_text(path.read_text() + "\nDispatch an `engineer-executor` subagent.\n")
-    assert any("unvaried specialist dispatch" in failure for failure in validate(root, manifest))
+    path = root / ".agents/skills/run-bug-fix/SKILL.md"
+    path.write_text(path.read_text() + "\nDispatch engineer-executor--work-luna.\n")
+    assert any("model-specific dispatch" in failure for failure in validate(root, manifest))
+
+
+def test_validator_rejects_model_specific_run_hack_dispatch_names(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".agents/skills/run-hack/SKILL.md"
+    path.write_text(path.read_text() + "\nDispatch engineer-executor--work-luna.\n")
+    manifest_data = json.loads(manifest.read_text())
+    for item in manifest_data["files"]:
+        if item["staged_path"] == str(path.relative_to(root)):
+            item["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+    manifest.write_text(json.dumps(manifest_data))
+    failures = validate(root, manifest)
+    assert any("model-specific dispatch" in failure for failure in failures)
+
+
+def test_validator_requires_generic_role_profile_and_tier_contract(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".agents/skills/run-fix/SKILL.md"
+    path.write_text(path.read_text().replace("shared `engineer-executor` role", "engineer-executor--work-luna", 1))
+    failures = validate(root, manifest)
+    assert any("model-specific dispatch" in failure for failure in failures)
+
+
+def test_validator_rejects_incorrect_shared_role_prompt(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / ".config/opencode/agents/engineer-executor.md"
+    path.write_text(path.read_text().replace("~/.agents/agents/engineer-executor.md", "~/.agents/agents/wrong-role.md"))
+    assert any("shared role prompt" in failure for failure in validate(root, manifest))
+
+
+@pytest.mark.parametrize(
+    ("relative", "needle"),
+    [
+        (".agents/skills/run-bug-fix/SKILL.md", "before investigation"),
+        (".agents/skills/run-fix/SKILL.md", "fail closed"),
+        (".agents/skills/run-hotfix/SKILL.md", "exclusive squash integration"),
+        (".agents/skills/review-pr/SKILL.md", "direct the user to run-pr"),
+        (".agents/skills/create-agent-worktree/SKILL.md", "immutable parent base"),
+        (".agents/skills/cleanup-agent-worktree/SKILL.md", "git worktree list"),
+    ],
+)
+def test_validator_rejects_omitted_staged_policy_controls(tmp_path: Path, relative: str, needle: str) -> None:
+    root, manifest = write_fixture(tmp_path)
+    path = root / relative
+    path.write_text(re.sub(needle, "removed control", path.read_text(), count=1, flags=re.IGNORECASE))
+    failures = validate(root, manifest)
+    assert any(relative in failure for failure in failures)
 
 
 @pytest.mark.parametrize(
@@ -322,11 +319,9 @@ def test_validator_rejects_missing_required_policy(tmp_path: Path, field: str) -
         (root / ".agents/agents/principal.md").write_text("The principal owns risk and escalation.")
     elif field == "hack":
         path = root / ".agents/skills/run-hack/SKILL.md"
-        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("---\nname: run-task\n---\n")
     else:
         path = root / ".agents/skills/run-task/SKILL.md"
-        path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("# task\n")
     assert validate(root, manifest)
 
@@ -348,47 +343,13 @@ def test_validator_requires_branch_contract(tmp_path: Path, relative: str) -> No
     assert any(relative in failure and "branch contract" in failure for failure in validate(root, manifest))
 
 
-def test_validator_rejects_publication_in_branch_workflow(tmp_path: Path) -> None:
+def test_validator_rejects_publication_and_worktree_mutation_controls(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    path = root / ".agents/skills/run-task/SKILL.md"
-    path.write_text(path.read_text() + "\ngit push origin feature\n")
-    assert any("publication mechanics" in failure for failure in validate(root, manifest))
-
-
-def test_validator_rejects_git_switch_in_branch_setup(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    path = root / ".agents/skills/run-task/SKILL.md"
-    path.write_text(path.read_text() + "\ngit switch feature/example\n")
-    assert any("permits git switch" in failure for failure in validate(root, manifest))
-
-
-@pytest.mark.parametrize("relative", [
-    ".agents/skills/run-feature/SKILL.md",
-    ".agents/skills/run-task/SKILL.md",
-    ".agents/skills/run-bug-fix/SKILL.md",
-    ".agents/skills/run-fix/SKILL.md",
-    ".agents/skills/run-hotfix/SKILL.md",
-])
-def test_validator_requires_ordered_main_integration(tmp_path: Path, relative: str) -> None:
-    root, manifest = write_fixture(tmp_path)
-    path = root / relative
-    text = path.read_text()
-    path.write_text(text.replace("After approval rebase", "Before approval rebase", 1))
-    assert any("ordered approval, rebase, and fast-forward" in failure for failure in validate(root, manifest))
-
-
-def test_validator_requires_run_pr_temporary_branch_rejection(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    path = root / ".agents/skills/run-pr/SKILL.md"
-    path.write_text(path.read_text().replace("`--agents`", "temporary branches", 1))
-    assert any("run-pr missing required control" in failure for failure in validate(root, manifest))
-
-
-def test_validator_rejects_review_pr_push_command(tmp_path: Path) -> None:
-    root, manifest = write_fixture(tmp_path)
-    path = root / ".agents/skills/review-pr/SKILL.md"
-    path.write_text(path.read_text() + "\ngit push origin feature\n")
-    assert "review-pr includes a push command" in validate(root, manifest)
+    task = root / ".agents/skills/run-task/SKILL.md"
+    task.write_text(task.read_text() + "\ngit push origin feature\ngit switch feature/example\n")
+    failures = validate(root, manifest)
+    assert any("publication mechanics" in failure for failure in failures)
+    assert any("permits git switch" in failure for failure in failures)
 
 
 @pytest.mark.parametrize(
@@ -399,16 +360,32 @@ def test_validator_rejects_review_pr_push_command(tmp_path: Path) -> None:
         ".agents/skills/run-bug-fix/SKILL.md",
         ".agents/skills/run-fix/SKILL.md",
         ".agents/skills/run-hotfix/SKILL.md",
-        ".agents/skills/review-pr/SKILL.md",
     ],
 )
-def test_validator_requires_retained_temporary_branch_policy(tmp_path: Path, relative: str) -> None:
+def test_validator_requires_ordered_main_integration(tmp_path: Path, relative: str) -> None:
     root, manifest = write_fixture(tmp_path)
     path = root / relative
-    path.write_text(
-        re.sub(r"Never delete it\s+automatically", "Delete it automatically", path.read_text(), flags=re.IGNORECASE)
-    )
-    assert any(relative in failure and "retained temporary branch policy" in failure for failure in validate(root, manifest))
+    path.write_text(path.read_text().replace("After approval rebase", "Before approval rebase", 1))
+    assert any("ordered approval, rebase, and fast-forward" in failure for failure in validate(root, manifest))
+
+
+def test_validator_preserves_principal_ownership_and_run_pr_controls(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path, "The principal participates in reviews.")
+    failures = validate(root, manifest)
+    assert any("principal ownership" in failure for failure in failures)
+
+    run_pr = root / ".agents/skills/run-pr/SKILL.md"
+    run_pr.write_text(run_pr.read_text().replace("`--agents`", "temporary branches", 1))
+    assert any("run-pr missing required control" in failure for failure in validate(root, manifest))
+
+
+def test_validator_rejects_review_pr_publication_and_unretained_worktree(tmp_path: Path) -> None:
+    root, manifest = write_fixture(tmp_path)
+    review_pr = root / ".agents/skills/review-pr/SKILL.md"
+    review_pr.write_text(review_pr.read_text() + "\ngit push origin feature\n")
+    assert any("review-pr includes a push command" in failure for failure in validate(root, manifest))
+    review_pr.write_text(review_pr.read_text().replace("Never delete it automatically", "Delete it automatically", 1))
+    assert any("retained temporary branch policy" in failure for failure in validate(root, manifest))
 
 
 @pytest.mark.parametrize(

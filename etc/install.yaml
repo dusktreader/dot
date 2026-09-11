@@ -13,9 +13,11 @@ link_paths:
   - .config/opencode/agents
   - .config/opencode/tools
   - .config/opencode/plugins
+  - .config/opencode/profiles/personal.json
   - .config/opencode/package.json
   - .config/opencode/opencode.json
   - .config/opencode/.npmrc
+  - .config/litellm/personal.yaml
   - .config/ghostty
 copy_paths:
   - path: .ssh/config.base

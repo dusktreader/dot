@@ -75,10 +75,9 @@ Fail closed when the project is missing, the artifact directory is ambiguous, or
 path cannot be established in the agent worktree. Report the specific resolution failure and create
 or modify no artifact or code. Never attach fix work to the human worktree or guess a project path.
 
-For investigator, planner, executor, constrained QA-fix, and reviewer handoffs, the principal selects
-and dispatches a model-specific `--work-{suffix}` or `--personal-{suffix}` variant from the approved
-project-class menu. Record the exact variant, provider/model ID, project class, and handoff purpose in
-the fix journal or review context. Never dispatch a generic specialist role.
+For investigator, planner, executor, constrained QA-fix, and reviewer handoffs, the principal selects and records the
+active `profile:*` and `tier:*` routing metadata. Dispatch the shared specialist role through the active launcher.
+Record the profile, tier, project class, and handoff purpose in the fix journal or review context.
 
 Run final QA once, obtain independent review, and wait for explicit approval. Immediately before
 exclusive squash integration, compare the recorded parent worktree, branch, and base with current
@@ -152,7 +151,7 @@ Run branch setup before reading the existing implementation project.
 
 Read the existing `implementation-plan.md` and `design-plan.md` to understand the project context.
 
-Dispatch the selected model-specific `engineer-planner--{work|personal}-{suffix}` variant to create
+Dispatch the shared `engineer-planner` role through the selected profile launcher to create
 `implementation-plan--fix-{N}.md`. The prompt
 must include:
 - The specific gap or missed requirement
@@ -162,7 +161,7 @@ must include:
   render `.agents/artifacts/implementation-plan/template.md.j2` to produce the initial file, and replace
   all dummy content with real content. The rendered file must contain no placeholder text when submitted.
 
-Then dispatch an `architect-reviewer` subagent with the `review-implementation-plan` skill, the
+Then dispatch the shared `architect-reviewer` role through the selected profile launcher with the
 fix plan path, and iteration `01`.
 
 Address all findings from the review:
@@ -189,20 +188,20 @@ Once approved: commit (see Git workflow — "After fix plan approved").
 
 ### 2. Execute
 
-Dispatch the selected model-specific `engineer-executor--{work|personal}-{suffix}` variant with the
-`execute-implementation-plan` skill and the fix plan path. Record the exact variant and model ID.
-The journal is `implementation-journal--fix-{N}.md`. Use the same variant family for a constrained
-QA-fix handoff and record that purpose.
+Dispatch the shared `engineer-executor` role through the selected profile launcher with the
+`execute-implementation-plan` skill and the fix plan path. Record the selected profile and tier.
+The journal is `implementation-journal--fix-{N}.md`. Use the same role for a constrained QA-fix
+handoff and record that purpose.
 
-Then dispatch the selected model-specific `engineer-reviewer--{work|personal}-{suffix}` variant with
+Then dispatch the shared `engineer-reviewer` role through the selected profile launcher with
 the `review-implementation-execution` skill, the fix journal path, scope `whole-plan`, and iteration
-`01`. Record the exact reviewer variant, project class, and provider/model ID. The review artifact is
+`01`. Record the selected profile, tier, and project class. The review artifact is
 `execution-review--fix-{N}--whole-plan--01.md`.
 
 Address all findings from the review:
 - Apply trivial findings directly without discussion.
-- Dispatch the selected model-specific executor variant to fix significant and critical findings.
-  Flag genuinely ambiguous ones inline.
+- Dispatch the shared `engineer-executor` role through the selected profile launcher to fix significant and critical
+  findings. Flag genuinely ambiguous ones inline.
 - Record the outcome in each finding's `##### Outcome` subsection.
 - Re-dispatch an `engineer-reviewer` at M+1 if changes were substantial. Repeat until the
   agent reviewer approves.

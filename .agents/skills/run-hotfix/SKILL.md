@@ -55,13 +55,10 @@ Before investigation, the principal-authored minimal plan, or code changes, invo
 workflow identifier `hotfix`. Investigation notes, the minimal plan, code, QA-fix changes, and lightweight review
 context stay there, and every existing hotfix gate identifies the agent worktree path and agent branch.
 
-Select a model-specific variant before every applicable handoff: use
-`engineer-investigator--{work|personal}-{suffix}` for investigation,
-`engineer-executor--{work|personal}-{suffix}` for execution and constrained QA-fix, and
-`engineer-reviewer--{work|personal}-{suffix}` for review. Record the exact variant, provider/model ID,
-project class, and handoff purpose in the hotfix journal or review context. Never dispatch a generic
-specialist, and do not add an engineer-planner handoff unless the principal explicitly changes the
-workflow class.
+Select the active profile and tier before every applicable handoff: use `engineer-investigator` for investigation,
+`engineer-executor` for execution and constrained QA-fix, and `engineer-reviewer` for review. Record the profile and
+tier, project class, and handoff purpose in the hotfix journal or review context. Do not add an engineer-planner
+handoff unless the principal explicitly changes the workflow class.
 
 Preserve the streamlined gates: brief investigation, principal-authored minimal plan, direct execution,
 one lightweight review, and the existing approval thresholds. Do not add task-style plan approval,
@@ -112,9 +109,9 @@ Do NOT push the parent branch — that is the human's decision.
 
 ### 1. Investigate
 
-Dispatch the selected model-specific `engineer-investigator--{work|personal}-{suffix}` variant with
-the `investigate-codebase` skill. Keep the investigation focused: root cause and minimal blast radius
-only. Record the exact variant and model ID in the hotfix journal before dispatch.
+Dispatch the shared `engineer-investigator` role through the selected profile launcher with the
+`investigate-codebase` skill. Keep the investigation focused: root cause and minimal blast radius
+only. Record the selected profile and tier in the hotfix journal before dispatch.
 
 Synthesize findings into `bug-report.md`. Read `.agents/artifacts/bug-report/description.md` for
 the canonical section definitions, and render `.agents/artifacts/bug-report/template.md.j2` to produce
@@ -136,17 +133,17 @@ Do not dispatch a planner subagent. Do not dispatch a reviewer. Speed is the pri
 
 ### 3. Execute
 
-Dispatch the selected model-specific `engineer-executor--{work|personal}-{suffix}` variant with the
-`execute-implementation-plan` skill and the plan path. Record the exact variant and model ID. Use the
-same variant family for a constrained QA-fix handoff and record that purpose.
+Dispatch the shared `engineer-executor` role through the selected profile launcher with the
+`execute-implementation-plan` skill and the plan path. Record the selected profile and tier. Use the
+same role for a constrained QA-fix handoff and record that purpose.
 
 
 ### 4. Review
 
-Read the journal to collect the list of modified files. Dispatch the selected model-specific
-`engineer-reviewer--{work|personal}-{suffix}` variant with the `review-code` skill, passing the list of
-modified files and the project directory. Record the exact reviewer variant, project class, and
-provider/model ID in the hotfix review context.
+Read the journal to collect the list of modified files. Dispatch the shared `engineer-reviewer` role through the
+selected
+profile launcher with the `review-code` skill, passing the list of modified files and the project directory. Record the
+selected profile, tier, and project class in the hotfix review context.
 
 Before presenting the review, use any interactive diff-review capability available in the current runtime to gather
 human feedback on the change. Incorporate clear feedback before the approval gate. If no such capability is available,

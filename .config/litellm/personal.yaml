@@ -1,0 +1,61 @@
+model_list:
+  - model_name: light
+    litellm_params:
+      model: github_copilot/gpt-5.6-luna
+      tags:
+        - profile:personal
+        - tier:light
+        - capability:coding
+        - capability:analysis
+        - capability:tools
+  - model_name: personal-light-zen
+    litellm_params:
+      model: openai/deepseek-v4-flash
+      api_base: https://opencode.ai/zen/v1
+      api_key: os.environ/OPENCODE_ZEN_API_KEY
+      tags:
+        - profile:personal
+        - tier:light
+        - capability:coding
+        - capability:analysis
+        - capability:tools
+        - fallback:zen
+  - model_name: standard
+    litellm_params:
+      model: github_copilot/gpt-5.6-sol
+      tags:
+        - profile:personal
+        - tier:standard
+        - capability:coding
+        - capability:analysis
+        - capability:tools
+  - model_name: premium
+    litellm_params:
+      model: opencode/gpt-5.6-sol
+      api_key: os.environ/OPENCODE_ZEN_API_KEY
+      tags:
+        - profile:personal
+        - tier:premium
+        - capability:coding
+        - capability:analysis
+        - capability:tools
+        - capability:large-context
+
+router_settings:
+  enable_tag_filtering: true
+  tag_filtering_match_any: false
+  tag_routing_prefix: "route:"
+  fallbacks:
+    - light:
+        - personal-light-zen
+  retry_policy:
+    RateLimitErrorRetries: 0
+    DefaultRetries: 0
+
+general_settings:
+  master_key: os.environ/OPENCODE_ROUTER_KEY
+  enforce_fallback_model_access: false
+
+litellm_settings:
+  turn_off_message_logging: true
+  disable_spend_logs: true

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "personal/light",
+  "small_model": "personal/light",
+  "provider": {
+    "personal": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Personal LiteLLM router",
+      "options": {
+        "baseURL": "{env:OPENCODE_ROUTER_ENDPOINT}",
+        "apiKey": "{env:OPENCODE_ROUTER_KEY}"
+      },
+      "models": {
+        "light": { "name": "Light" },
+        "standard": { "name": "Standard" },
+        "premium": { "name": "Premium" }
+      }
+    }
+  },
+  "agent": {
+    "principal": { "model": "personal/light" },
+    "title": { "model": "personal/light" },
+    "compaction": { "model": "personal/light" },
+    "summary": { "model": "personal/light" }
+  }
+}
