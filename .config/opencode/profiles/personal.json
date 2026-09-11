@@ -4,7 +4,7 @@
   "small_model": "personal/light",
   "provider": {
     "personal": {
-      "npm": "@ai-sdk/openai-compatible",
+      "npm": "@ai-sdk/openai",
       "name": "Personal LiteLLM router",
       "options": {
         "baseURL": "{env:OPENCODE_ROUTER_ENDPOINT}",
@@ -18,7 +18,7 @@
     }
   },
   "agent": {
-    "principal": { "model": "personal/light" },
+    "principal": { "model": "personal/light", "variant": "xhigh" },
     "title": { "model": "personal/light" },
     "compaction": { "model": "personal/light" },
     "summary": { "model": "personal/light" }

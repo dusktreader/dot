@@ -1,9 +1,37 @@
 local M = {}
 
+local selected_tool = "opencode"
+
+function M.toggle(opts, tool_name)
+  opts = opts or {}
+  selected_tool = tool_name or selected_tool
+  opts.name = selected_tool
+  require("sidekick.cli").toggle(opts)
+end
+
+function M.send(opts, tool_name)
+  opts = opts or {}
+  opts.name = tool_name or selected_tool
+  require("sidekick.cli").send(opts)
+end
+
+function M.select()
+  vim.ui.select({ "Personal OpenCode", "Work OpenCode" }, { prompt = "Select OpenCode profile" }, function(choice)
+    if choice == "Personal OpenCode" then
+      selected_tool = "opencode"
+    elseif choice == "Work OpenCode" then
+      selected_tool = "work_opencode"
+    end
+    if choice then
+      M.toggle({ focus = true })
+    end
+  end)
+end
+
 -- Send text (and optionally submit) via sidekick's attached opencode session.
 local function send_to_session(text, submit, cb)
   local State = require("sidekick.cli.state")
-  local states = State.get({ name = "opencode", attached = true })
+  local states = State.get({ name = selected_tool, attached = true })
 
   if #states == 0 then
     vim.notify("opencode: no attached session found", vim.log.levels.ERROR)
@@ -25,12 +53,12 @@ end
 -- Ensure the opencode terminal is visible and attached, then call cb.
 ---@param focus boolean whether to focus the terminal after opening
 local function ensure_open(cb, focus)
-  require("sidekick.cli").show({ name = "opencode", focus = false })
+  require("sidekick.cli").show({ name = selected_tool, focus = false })
   -- Give sidekick a moment to attach before we try to use the session.
   vim.defer_fn(function()
     cb()
     if focus then
-      require("sidekick.cli").focus({ name = "opencode" })
+        require("sidekick.cli").focus({ name = selected_tool })
     end
   end, 150)
 end
@@ -129,14 +157,14 @@ function M.send_selection()
 
   -- For real file buffers, delegate to sidekick's own send so {this} works normally.
   if is_file_buf(buf) then
-    require("sidekick.cli").send({ msg = "{this}" })
+    require("sidekick.cli").send({ name = selected_tool, msg = "{this}" })
     return
   end
 
   if vim.b[buf].worktree_diff_metadata then
-    require("sidekick.cli").send({ msg = "{worktree_diff}" })
+    require("sidekick.cli").send({ name = selected_tool, msg = "{worktree_diff}" })
   else
-    require("sidekick.cli").send({ msg = "{selection}" })
+    require("sidekick.cli").send({ name = selected_tool, msg = "{selection}" })
   end
 end
 

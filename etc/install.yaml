@@ -205,6 +205,10 @@ tools:
       generic: |
         . "$HOME/.nvm/nvm.sh"
         npm install --prefix "$DOT_ROOT/.config/opencode"
+  - name: litellm
+    check: "command -v litellm"
+    scripts:
+      generic: "uv tool install --force 'litellm[proxy] @ git+https://github.com/BerriAI/litellm.git@366c06607e88e63d0b73c41bfc0eba7085661a91'"
   - name: 1password-cli
     check: "command -v op"
     scripts:
@@ -302,7 +306,7 @@ tools:
     scripts:
       linux: |
         sudo snap install ghostty --classic
-      darwin: s|
+      darwin: |
         curl -fL "https://release.files.ghostty.org/1.3.1/Ghostty.dmg" -o /tmp/Ghostty.dmg
         hdiutil attach /tmp/Ghostty.dmg -quiet
         cp -R "/Volumes/Ghostty/Ghostty.app" /Applications/
@@ -313,7 +317,7 @@ tools:
     scripts:
       linux: |
         sudo apt install btop
-      darwin: s|
+      darwin: |
         sudo port install btop
   - name: openssh-server
     check: "command -v sshd"
@@ -357,6 +361,13 @@ tools:
         sudo snap install helm --classic
       darwin: |
         sudo port install helm
+  - name: terraform
+    check: "command -v terraform"
+    scripts:
+      linux: |
+        sudo snap install terraform --classic
+      darwin: |
+        sudo port -N install terraform
 settings:
   - name: passwordless sudo
     check: '"$DOT_ROOT/tools/configure-sudoers.py" --check'

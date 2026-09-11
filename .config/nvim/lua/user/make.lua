@@ -3,6 +3,8 @@ local M = {}
 -- job table: cmd -> { job_id, term }
 local jobs = {}
 local current_cmd = nil
+local history = {}
+local max_history = 10
 
 -- Parse make targets from the Makefile in cwd
 local function get_targets()
@@ -54,6 +56,11 @@ local function term_opts(id, cmd)
 end
 
 local function run_command(cmd)
+  table.insert(history, 1, cmd)
+  if #history > max_history then
+    table.remove(history)
+  end
+
   -- If this command is already running, kill it first
   if jobs[cmd] then
     pcall(vim.fn.jobstop, jobs[cmd].job_id)
@@ -108,6 +115,25 @@ function M.run_edit()
     }, function(cmd)
       if cmd and cmd ~= "" then
         run_command(cmd)
+      end
+    end)
+  end)
+end
+
+function M.history()
+  if #history == 0 then
+    vim.notify("No make command history", vim.log.levels.INFO)
+    return
+  end
+
+  Snacks.picker.select(history, { prompt = "Make command history" }, function(cmd)
+    if not cmd then return end
+    vim.ui.input({
+      prompt = "Command: ",
+      default = cmd,
+    }, function(edited_cmd)
+      if edited_cmd and edited_cmd ~= "" then
+        run_command(edited_cmd)
       end
     end)
   end)

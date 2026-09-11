@@ -554,3 +554,61 @@ frontmatter prompt references. LiteLLM remains responsible only for model routin
 - Personal focused tests: 100 passed.
 - Work focused tests: 22 passed.
 - Ruff, offline profile validation, Node routing tests, and diff checks passed.
+
+
+## Live launch fixes
+
+### Changes
+
+- Added the personal `litellm[proxy]` installer entry to `etc/install.yaml`.
+- Made LiteLLM startup status and device-auth output visible in the invoking terminal while retaining router logs.
+- Added Sidekick personal/work tools and explicit profile selection bindings instead of path-based profile inference.
+- Pinned the LiteLLM installer to upstream commit `366c06607e88e63d0b73c41bfc0eba7085661a91`, which merges PR
+  `#33966` and adds the exact `gpt-5.6-luna`, `gpt-5.6-terra`, and `gpt-5.6-sol` GitHub Copilot catalog entries as
+  Responses API-only models. Restored those intended model routes instead of downgrading tiers to unrelated models.
+- Tightened router ownership matching to accept the installed `python .../litellm` process shape while rejecting
+  unrelated wrappers.
+- Made the principal `xhigh` variant explicit in the static profile and generated runtime configuration.
+
+
+### Verification
+
+- Personal profile tests: 31 passed.
+- Work profile tests: 23 passed.
+- Ruff and diff checks passed in both repositories.
+- Upstream LiteLLM issue/PR evidence confirms GPT-5.6 Copilot requires Responses API catalog metadata; the current
+  installed PyPI release predates that support.
+- The live personal router process now passes profile ownership validation.
+
+
+### Residual limitations
+
+- GitHub Copilot device authentication must complete once in the personal token directory before model requests work.
+- The personal Zen fallback still requires `OPENCODE_ZEN_API_KEY`; it is not a substitute for Copilot authentication.
+
+
+## GPT-5.6 Responses transport remediation
+
+### Changes
+
+- Added `LITELLM_LOCAL_MODEL_COST_MAP=True` to the personal lifecycle environment so the pinned LiteLLM build loads the
+  GPT-5.6 Copilot catalog entries when the router starts.
+- Switched personal and work custom OpenCode providers from `@ai-sdk/openai-compatible` to `@ai-sdk/openai`, which
+  selects the Responses API required by the GPT-5.6 Copilot deployments instead of `/chat/completions`.
+- Corrected the work route matrix so `light` uses Luna and both `standard` and `premium` use Sol, matching personal
+  routing and the approved model selection.
+- Added regression coverage for the Responses transport, catalog environment flag, and both route matrices.
+- Stopped and restarted the stale personal router with the current lifecycle environment. The replacement is healthy and
+  carries `LITELLM_LOCAL_MODEL_COST_MAP=True`.
+
+
+### Verification
+
+- Personal profile tests: 32 passed.
+- Work profile tests: 24 passed.
+- Personal and work focused Ruff checks passed.
+- Personal and work `git diff --check` passed.
+- Offline profile validation passed for personal and optional work profiles.
+- The installed pinned LiteLLM build reports `gpt-5.6-luna` and `gpt-5.6-sol` as Responses-only models.
+- No model request or Zen fallback request was made. The personal Zen fallback remains unavailable until
+  `OPENCODE_ZEN_API_KEY` is configured.

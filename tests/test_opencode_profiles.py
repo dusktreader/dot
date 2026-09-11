@@ -35,6 +35,32 @@ def test_personal_profile_has_aliases_and_only_personal_zen_fallback() -> None:
     assert "os.environ/OPENCODE_ZEN_API_KEY" in (ROOT / ".config/litellm/personal.yaml").read_text()
 
 
+def test_personal_overlay_uses_responses_transport_for_gpt_5_6() -> None:
+    overlay = json.loads((ROOT / ".config/opencode/profiles/personal.json").read_text())
+    assert overlay["provider"]["personal"]["npm"] == "@ai-sdk/openai"
+
+
+def test_personal_premium_route_uses_github_copilot_provider() -> None:
+    router = yaml.safe_load((ROOT / ".config/litellm/personal.yaml").read_text())
+    premium = next(item for item in router["model_list"] if item["model_name"] == "premium")
+    assert premium["litellm_params"]["model"] == "github_copilot/gpt-5.6-sol"
+    assert "api_key" not in premium["litellm_params"]
+
+
+def test_personal_copilot_routes_use_models_supported_by_installed_litellm() -> None:
+    router = yaml.safe_load((ROOT / ".config/litellm/personal.yaml").read_text())
+    models = {
+        item["model_name"]: item["litellm_params"]["model"]
+        for item in router["model_list"]
+        if item["model_name"] in {"light", "standard", "premium"}
+    }
+    assert models == {
+        "light": "github_copilot/gpt-5.6-luna",
+        "standard": "github_copilot/gpt-5.6-sol",
+        "premium": "github_copilot/gpt-5.6-sol",
+    }
+
+
 def test_personal_profile_validation_is_offline_and_clean() -> None:
     assert validate(ROOT, None) == []
 
@@ -61,12 +87,16 @@ def test_environment_preserves_home_and_isolates_runtime_state(tmp_path: Path) -
     original_home = str(tmp_path / "home")
     environment = lifecycle(tmp_path).environment_for()
     assert environment["HOME"] == original_home
+    assert environment["LITELLM_LOCAL_MODEL_COST_MAP"] == "True"
     assert environment["XDG_DATA_HOME"].endswith("personal/xdg-data")
     assert environment["GITHUB_COPILOT_TOKEN_DIR"].endswith("personal/copilot")
 
 
-@pytest.mark.parametrize("executable", ["litellm", "/usr/local/bin/litellm"])
-def test_router_ownership_accepts_bare_or_absolute_litellm_command(tmp_path: Path, executable: str) -> None:
+@pytest.mark.parametrize(
+    "executable",
+    ["litellm", "/usr/local/bin/litellm", "/usr/local/bin/python /usr/local/bin/litellm"],
+)
+def test_router_ownership_accepts_litellm_command_shapes(tmp_path: Path, executable: str) -> None:
     command = f"{executable} --config {ROOT / '.config/litellm/personal.yaml'} --host 127.0.0.1 --port 4010"
     profile = lifecycle(
         tmp_path,

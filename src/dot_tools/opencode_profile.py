@@ -7,6 +7,8 @@ import shutil
 import signal
 import socket
 import subprocess
+import sys
+import threading
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -200,6 +202,7 @@ class OpenCodeLifecycle:
                 "OPENCODE_ROUTER_ENDPOINT": self.endpoint,
                 "OPENCODE_CONFIG": str(self.open_code_config),
                 "OPENCODE_CONFIG_CONTENT": self._config_content(tier),
+                "LITELLM_LOCAL_MODEL_COST_MAP": "True",
                 "OPENCODE_CONFIG_DIR": str(self.home / ".config" / "opencode"),
                 "XDG_CONFIG_HOME": str(state_root / "xdg-config"),
                 "XDG_DATA_HOME": str(state_root / "xdg-data"),
@@ -322,10 +325,19 @@ class OpenCodeLifecycle:
         ]
         if not tokens:
             return False
-        executable = Path(tokens[0])
-        if tokens[0] != "litellm" and (not executable.is_absolute() or executable.name != "litellm"):
+        command_start = next((index for index, token in enumerate(tokens) if Path(token).name == "litellm"), None)
+        if command_start is None:
             return False
-        return tokens == [tokens[0], *expected]
+        executable = Path(tokens[command_start])
+        if command_start == 0:
+            if tokens[0] != "litellm" and (not executable.is_absolute() or executable.name != "litellm"):
+                return False
+        elif (
+            Path(tokens[command_start - 1]).name not in {"python", "python3"}
+            or not executable.is_absolute()
+        ):
+            return False
+        return tokens[command_start:] == [tokens[command_start], *expected]
 
     def _router_command(self) -> list[str]:
         command = self._command_path("litellm")
@@ -378,6 +390,12 @@ class OpenCodeLifecycle:
         if self.router_pid_is_ours():
             pid = self._read_pid()
             assert pid is not None
+            print(
+                f"Waiting for the existing {label} LiteLLM router on 127.0.0.1:{self.profile.port}. "
+                f"See {self.log_file} for details.",
+                file=sys.stderr,
+                flush=True,
+            )
             self._wait_for_router(pid, label)
             return
         if self.router_port_is_open():
@@ -386,14 +404,32 @@ class OpenCodeLifecycle:
             )
         command = self._router_command()
         self._ensure_state()
+        print(
+            f"Starting {label} LiteLLM router on 127.0.0.1:{self.profile.port}. "
+            "First-run provider authentication may prompt below.",
+            file=sys.stderr,
+            flush=True,
+        )
         with self.log_file.open("ab") as log_file:
+            log_file.write(b"Starting LiteLLM router; first-run provider authentication may prompt below.\n")
+            log_file.flush()
             process = self._popen(
                 command,
-                stdout=log_file,
+                stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 env=environment,
             )
         self.pid_file.write_text(f"{process.pid}\n")
+        process_stdout = getattr(process, "stdout", None)
+        if process_stdout is not None:
+            def forward_router_output() -> None:
+                with self.log_file.open("ab") as log_file:
+                    for line in iter(process_stdout.readline, b""):
+                        log_file.write(line)
+                        log_file.flush()
+                        os.write(2, line)
+
+            threading.Thread(target=forward_router_output, daemon=True).start()
         self._wait_for_router(process.pid, label, cleanup_on_failure=True)
 
     def validate_work_account(self) -> None:

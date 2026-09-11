@@ -11,7 +11,10 @@ return {
       default = "opencode",
       tools = {
         opencode = {
-          cmd = { "opencode", "--continue" },
+          cmd = { "dt", "opencode", "launch", "--continue" },
+        },
+        work_opencode = {
+          cmd = { "wdt", "opencode", "launch", "--continue" },
         },
       },
       context = {
@@ -24,8 +27,18 @@ return {
   keys = {
     {
       "<leader>aa",
-      function() require("sidekick.cli").toggle({ name = "opencode" }) end,
+      function() require("user.opencode").select() end,
       desc = "Sidekick Toggle CLI",
+    },
+    {
+      "<leader>ad",
+      function() require("user.opencode").toggle({ focus = true }, "opencode") end,
+      desc = "Sidekick Personal OpenCode",
+    },
+    {
+      "<leader>aw",
+      function() require("user.opencode").toggle({ focus = true }, "work_opencode") end,
+      desc = "Sidekick Work OpenCode",
     },
     {
       "<leader>as",
@@ -35,13 +48,8 @@ return {
       desc = "Select CLI",
     },
     {
-      "<leader>ad",
-      function() require("sidekick.cli").close() end,
-      desc = "Detach a CLI Session",
-    },
-    {
       "<leader>at",
-      function() require("sidekick.cli").send({ msg = "{this}" }) end,
+      function() require("user.opencode").send({ msg = "{this}" }) end,
       mode = { "n" },
       desc = "Send This",
     },
@@ -59,13 +67,13 @@ return {
     },
     {
       "<leader>af",
-      function() require("sidekick.cli").send({ msg = "{file}" }) end,
+      function() require("user.opencode").send({ msg = "{file}" }) end,
       desc = "Send File",
     },
     -- Example of a keybinding to open Claude directly
     {
       "<leader>ac",
-      function() require("sidekick.cli").toggle({ name = "opencode", focus = true }) end,
+      function() require("user.opencode").toggle({ focus = true }) end,
       desc = "Sidekick Toggle opencode",
     },
   },
