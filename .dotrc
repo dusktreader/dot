@@ -135,7 +135,6 @@ alias gti='git'
 alias nofail='py.test test* --maxfail=1 -m "not slow"'
 alias nofailall='py.test test --maxfail=1'
 
-alias terraform="terraform1.13"
 alias tfm='terraform'
 
 alias dc='docker compose'

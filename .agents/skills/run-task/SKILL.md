@@ -1,7 +1,7 @@
 # Run Task Skill
 
-Coordinate a bounded task with a human plan gate, focused execution, one final QA pass,
-independent review, and a human approval gate before squash. Use this workflow for small
+Coordinate a bounded task with a human plan gate, focused execution, implementation approval,
+user-directed QA, and a human approval gate before squash. Use this workflow for small
 features, refactors, cleanup, configuration changes, or documentation updates where the scope
 is clear and a full design cycle would be excessive.
 
@@ -60,11 +60,12 @@ Run process step 0 first so `{JIRA-ID}` is known, then create
 
 All artifacts for this task are stored there.
 
-| Artifact             | Description                            |
-| -------------------- | -------------------------------------- |
-| `task-plan.md`       | Minimal plan authored by the principal |
-| `task-journal.md`    | Execution journal                      |
-| `code-review--01.md` | Single lightweight review pass         |
+| Artifact             | Description                                                           |
+| -------------------- | --------------------------------------------------------------------- |
+| `task-plan.md`       | Minimal plan authored by the principal                                |
+| `task-journal.md`    | Execution journal                                                     |
+| `code-review--01.md` | Single lightweight review pass                                        |
+| `qa-journal.md`      | User-directed QA changes, reasons, verification, and final QA summary |
 
 
 ## Git workflow
@@ -82,7 +83,7 @@ Once the normal branch is ready, tell the human to invoke `run-pr`.
 For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
 normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
 
-After human code-review approval and the stale-parent check, squash the agent branch exclusively into the parent branch:
+After human QA approval and the stale-parent check, squash the agent branch exclusively into the parent branch:
 
 ```shell
 git -C {parent-worktree} merge --squash {agent-branch}
@@ -182,52 +183,73 @@ Select the executor profile and tier using the principal's routing policy, then 
 relevant to the task and records results.
 
 
-### 3. Final QA
+### 3. Implementation review
 
-Run final QA exactly once after execution. Use a constrained light executor selected by the
-principal's Model selection policy to fix only straightforward QA issues. Do not repeat final QA
-after those fixes unless the fixes alter acceptance criteria, introduce a new code path, or
-change behavior, an interface, data, security, or tests.
+Run final QA exactly once after execution as the implementation quality gate. Use a constrained light
+executor to fix only straightforward failures. This final QA is distinct from the later user-directed
+QA phase. Do not repeat the quality gate unless a fix changes acceptance criteria, introduces a new
+code path, or changes behavior, an interface, data, security, or tests.
+
+Use an independent reviewer exactly once for the implementation approval. Keep the review diff-first
+and compact. Do not launch adversarial review cycles; re-review only if a critical fix changes
+acceptance criteria, a new code path, behavior, interface, data, security, or tests.
+
+Address critical findings before leaving this phase. Log significant findings as follow-up work
+unless they block the stated task. Apply trivial findings directly.
+
+Before entering QA, ask the human whether they would like to review the changes first. If they opt in, use any
+interactive diff-review capability available in the current runtime, or present a concise diff summary through the
+normal review channel. Incorporate clear feedback before entering QA. If they decline, proceed directly to QA. This
+optional review does not replace the QA approval gate.
+
+Once the independent reviewer approves, continue directly to stage 4. Do not present the code review artifact for
+human approval, do not reconcile the task plan, and do not start another planning cycle.
+
+**Do not squash. Do not create a PR. Proceed directly to stage 4.**
 
 
-### 4. Review
+### 4. QA
 
-Read the journal to collect modified files. Select the reviewer profile and tier using the principal's
-routing policy, then dispatch the shared `engineer-reviewer` role and record the active profile and tier.
-Reviewers start diff-first, expand context only as required, and return compact findings without
-redundant skill loading. Re-review only after acceptance-criteria, new-code-path, behavior,
-interface, data, security, or test changes.
+This phase begins immediately after the independent reviewer approves execution and any optional human diff review is
+complete. The agent must stop, notify the human that the code is ready for QA, and wait for testing feedback. QA is the
+human approval gate for the implementation. It does not authorize a new planning or review cycle.
 
-Address all findings:
-- Apply Trivial findings directly without discussion.
-- Resolve Critical findings before squashing — dispatch an `engineer-executor` to fix them, then re-run the
-  quality gate.
-- Log Significant findings as follow-up work; they do not block the task.
-
-Before presenting the review, use any interactive diff-review capability available in the current runtime to gather
-human feedback on the change. Incorporate clear feedback before the approval gate. If no such capability is available,
-present the review artifact and a concise diff summary through the normal human-review channel. This supplements, and
-does not replace, explicit human approval.
+Tell the human that the implementation is on the agent branch and ready for QA. Ask them to test it and report any
+issues or requested adjustments.
 
 **STOP — end your turn here.**
-Present the review to the human. Wait for the human to ask questions, request revisions, or give approval.
 
-**Do not squash under any circumstances until the human explicitly approves.** This workflow never pushes and never
-creates a PR.
+Before making the first QA change, read `.agents/artifacts/qa-journal/description.md` and render
+`.agents/artifacts/qa-journal/template.md.j2` as `qa-journal.md` in the project directory. Replace all
+placeholder content with the implementation path and real QA details. For every user-directed change,
+append:
 
-Your final output in this turn must include this exact block, filled in:
+- The user's issue or requested adjustment
+- The reason for the change
+- The files changed
+- Verification performed and its result
+
+During QA, agents and subagents MUST NOT modify the task plan, code review, or any other plan or review
+artifact. Do not dispatch plan reviewers, reconcile the implementation against the plan, or start an
+adversarial review loop. Make only the smallest changes needed to address the user's direction.
+
+After each change, run the focused project quality gate and ask the human to verify the result. Wait for
+more user direction or explicit QA approval. Issues reported, silence, or questions are not approval.
+
+When the human approves QA, add a concise summary of all QA changes and their reasons at the top of
+`qa-journal.md`, then proceed to stage 5. QA changes are committed as one approved stage.
 
 ```text
-AWAITING APPROVAL: code review
-Path: {path to code-review--01.md}
+AWAITING APPROVAL: QA
+QA journal: {path to qa-journal.md}
 Unlocks: stage 5 (squash) — nothing else
 ```
 
 When the human responds with approval, your next turn must open with:
 
 ```text
-APPROVED: code review
-Proceeding to: stage 5 (squash)
+APPROVED: QA
+Proceeding to stage 5 (squash)
 ```
 
 

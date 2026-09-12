@@ -66,7 +66,7 @@ the path. All artifacts for this project are stored there.
 | `implementation-review--{N}.md`        | Implementation plan review (N = zero-padded 2 digits: 01, 02, ...)                         |
 | `implementation-journal.md`            | Execution journal                                                                          |
 | `execution-review--{scope-id}--{N}.md` | Execution review (scope-id = task-NN or whole-plan; N = zero-padded 2 digits: 01, 02, ...) |
-| `manual-testing-issue--{N}.md`         | Manual testing issue and fix log (N = zero-padded 2 digits: 01, 02, ...)                   |
+| `qa-journal.md`                        | User-directed QA changes, reasons, verification, and final QA summary                      |
 
 
 ## Git workflow
@@ -106,9 +106,8 @@ The commit message format follows `~/.agents/instructions/git.md`:
 Stage-specific commit types:
 - **After design plan approved**: `docs(<jira-id>): add design plan for {project-name}`
 - **After implementation plan approved**: `docs(<jira-id>): add implementation plan for {project-name}`
-- **After execution approved**: `feat(<jira-id>): implement {project-name}` (or `fix`/`refactor`/`ci`
+- **After QA approval**: `feat(<jira-id>): implement {project-name}` (or `fix`/`refactor`/`ci`
   as appropriate)
-- **After each manual testing fix**: `fix(<jira-id>): {short description of fix}`
 
 The body bullets should summarise what the stage produced — not implementation detail.
 
@@ -118,7 +117,7 @@ remains accessible on the machine.
 
 ### Exclusive squash integration
 
-After the human approves manual testing, perform one exclusive squash integration into the
+After the human approves QA, perform one exclusive squash integration into the
 ready-to-PR parent branch:
 
 1. Immediately before integration, compare the recorded parent worktree, parent branch, and base
@@ -204,14 +203,14 @@ Your final output in this turn must include this exact block, filled in:
 AWAITING APPROVAL: design plan
 Path: {path to design-plan.md}
 Unlocks: stage 2 (implementation plan) — nothing else
-Still requires separate approval before it can proceed: implementation plan, execution, manual testing
+Still requires separate approval before it can proceed: implementation plan, QA
 ```
 
 When the human responds with approval, your next turn must open with:
 
 ```text
 APPROVED: design plan
-NOT YET APPROVED: implementation plan, execution, manual testing
+NOT YET APPROVED: implementation plan, QA
 Proceeding to: stage 2 (create implementation plan)
 ```
 
@@ -250,14 +249,14 @@ Your final output in this turn must include this exact block, filled in:
 AWAITING APPROVAL: implementation plan
 Path: {path to implementation-plan.md}
 Unlocks: stage 3 (execution) — nothing else
-Still requires separate approval before it can proceed: execution, manual testing
+Still requires separate approval before it can proceed: QA
 ```
 
 When the human responds with approval, your next turn must open with:
 
 ```text
 APPROVED: implementation plan
-NOT YET APPROVED: execution, manual testing
+NOT YET APPROVED: QA
 Proceeding to: stage 3 (execute)
 ```
 
@@ -269,13 +268,10 @@ Once approved: commit (see Git workflow — "After implementation plan approved"
 Dispatch the shared `engineer-executor` role with the
 `execute-implementation-plan` skill and the implementation plan path.
 
-
-### Final QA
-
 After the executor completes, the orchestrator runs the project-wide quality gate exactly once. Use a constrained,
 lightweight executor to fix only straightforward QA failures that are clearly within the implementation plan's scope.
-The lightweight executor must not expand the work or make design decisions. Re-run final QA only when such a fix
-changes an acceptance criterion, introduces a new code path, or changes behavior, an interface, data, security, or
+The lightweight executor must not expand the work or make design decisions. Re-run the quality gate only when such a
+fix changes an acceptance criterion, introduces a new code path, or changes behavior, an interface, data, security, or
 tests.
 
 Then dispatch the shared `engineer-reviewer` role with the
@@ -293,76 +289,67 @@ If a `CHANGELOG.md` exists in the repo root, add an entry under `## Unreleased` 
 what was implemented. Use the implementation plan's Goal as the basis. Follow the existing
 entry style in the file.
 
-Before presenting the review, use any interactive diff-review capability available in the current runtime to gather
-human feedback on the change. Incorporate clear feedback before the approval gate. If no such capability is available,
-present the review artifact and a concise diff summary through the normal human-review channel. This supplements, and
-does not replace, explicit human approval.
+Before entering QA, ask the human whether they would like to review the changes first. If they opt in, use any
+interactive diff-review capability available in the current runtime, or present a concise diff summary through the
+normal review channel. Incorporate clear feedback before entering QA. If they decline, proceed directly to QA. This
+optional review does not replace the QA approval gate.
+
+Once the agent reviewer approves, continue directly to stage 4. Do not present the execution review artifact for human
+approval, and do not start another plan or review cycle.
+
+**Do not squash. Do not create a PR. Proceed directly to stage 4.**
+
+
+### 4. QA
+
+This phase begins immediately after the agent reviewer approves execution and any optional human diff review is
+complete.
+
+At this stage, the agent must stop, notify the human that the code is ready for QA, and wait for testing feedback. QA
+is the human approval gate for the implementation. It does not authorize a new planning or review cycle.
+
+Tell the human that the implementation is on the agent branch and ready for QA. Ask them to test it
+and report any issues or requested adjustments.
 
 **STOP — end your turn here.**
-The execution is ready for human review. Present the execution review to the human. Wait for the
-human to ask questions, request revisions, or give approval. Do not proceed until the human
-explicitly approves.
 
-Your final output in this turn must include this exact block, filled in:
+Before making the first QA change, read `.agents/artifacts/qa-journal/description.md` and render
+`.agents/artifacts/qa-journal/template.md.j2` as `qa-journal.md` in the project directory. Replace all
+placeholder content with the implementation path and real QA details. For every user-directed change,
+append an entry recording:
 
-```text
-AWAITING APPROVAL: execution
-Review path: {path to execution-review--whole-plan--NN.md}
-Unlocks: stage 4 (manual testing) — nothing else
-Still requires separate approval before it can proceed: manual testing
-```
+- The user's issue or requested adjustment
+- The reason for the change
+- The files changed
+- Verification performed and its result
 
-When the human responds with approval, your next turn must open with:
+During QA, agents and subagents MUST NOT modify the design plan, implementation plan, execution
+review, or any other plan or review artifact. Do not dispatch plan reviewers, reconcile the
+implementation against the plans, or start an adversarial review loop. Make only the smallest
+changes needed to address the user's direction.
 
-```text
-APPROVED: execution
-NOT YET APPROVED: manual testing
-Proceeding to: stage 4 (manual testing)
-```
+After each change, run the focused project quality gate and ask the human to verify the result.
+Wait for the human to report more work or give explicit QA approval. Issues reported, silence, or
+questions are not approval.
 
-Once approved: commit (see Git workflow — "After execution approved").
+When the human approves QA, add a concise summary of all QA changes and their reasons at the top of
+`qa-journal.md`, then commit the QA changes as one approved stage.
 
-**Do not squash. Do not create a PR. Proceed to stage 4.**
-
-
-### 4. Manual Testing
-
-**STOP — end your turn here.**
-Tell the human that the implementation is on the agent branch and ready for manual
-testing. Ask them to test and report any issues.
-
-Wait for the human to report issues or give approval.
-
-**Do not proceed to stage 5 under any circumstances until the human explicitly approves manual
-testing.** Issues reported, silence, or questions are not approval.
-
-Your final output in this turn must include this exact block:
+Your final output while waiting must include this exact block:
 
 ```text
-AWAITING APPROVAL: manual testing
+AWAITING APPROVAL: QA
 Branch: {agent branch name}
+QA journal: {path to qa-journal.md}
 Unlocks: stage 5 (squash) — nothing else
 ```
 
 When the human responds with approval, your next turn must open with:
 
 ```text
-APPROVED: manual testing
+APPROVED: QA
 Proceeding to: stage 5 (squash)
 ```
-
-For each issue the human reports:
-
-1. Create `manual-testing-issue--{N}.md` in the project work directory. Document:
-   - The issue as described by the human
-   - Root cause (investigate if needed)
-   - The fix applied
-2. Fix the issue on the agent branch.
-3. Run the project quality gate (`make qa` or equivalent) and confirm it passes.
-4. Commit the fix (see Git workflow — "After each manual testing fix").
-5. Tell the human what was fixed and ask them to verify.
-
-Repeat until the human gives explicit manual testing approval.
 
 
 ### 5. Squash and report

@@ -85,16 +85,18 @@ profiles.
 Classify each workflow output before applying a review phase. Do not apply approval gates to an output merely because
 it is a file.
 
-| Artifact class            | Includes                                                      | Agent review | Human approval |
-| ------------------------- | ------------------------------------------------------------- | ------------ | -------------- |
-| Planning artifact         | Design plans, implementation plans, and task plans            | Per workflow | Per workflow   |
-| Execution review artifact | Execution reviews and code reviews                            | Already made | Required       |
-| Supporting record         | Journals, QA evidence, staged manifests, and manual-test logs | No           | No             |
-| Hack record               | Hack journal                                                  | No           | No             |
+| Artifact class            | Includes                                                      | Agent review | Human approval  |
+| ------------------------- | ------------------------------------------------------------- | ------------ | --------------- |
+| Planning artifact         | Design plans, implementation plans, and task plans            | Per workflow | Per workflow    |
+| Execution review artifact | Execution reviews and code reviews                            | Already made | Through QA gate |
+| Supporting record         | Journals, QA evidence, staged manifests, and manual-test logs | No           | No              |
+| Hack record               | Hack journal                                                  | No           | No              |
 
 The selected workflow may impose a stricter requirement. A planning artifact receives agent review and a human gate
-only when its workflow calls for them. An execution review artifact always has its specified human gate before the
-next consequential action. A supporting record or hack record has no standalone gate unless the workflow says so.
+only when its workflow calls for them. Execution review artifacts are agent-reviewed records; in `run-feature` and
+`run-task`, the human approves the implementation through the subsequent QA gate rather than by approving the review
+artifact. A supporting record or hack record has no standalone gate unless the workflow says so. QA journals are
+supporting records and must not trigger plan reconciliation or an independent review cycle.
 
 
 ### Phase 1: Agent review (autonomous)
@@ -123,9 +125,10 @@ outcome, and proceed to the applicable human gate.
 
 ### Phase 2: Human review (mandatory gate)
 
-Once the agent reviewer approves a planning artifact, stop and present it to the human for their own review. For an
-execution gate, present the execution journal to the human. The execution review artifact is an orchestrator record
-used to assess and resolve review findings; do not present it as the human-review document.
+Once the agent reviewer approves a planning artifact, stop and present it to the human for their own review. For
+`run-feature` and `run-task` execution, transition directly into QA after agent review: stop, tell the human the code is
+ready for testing, and use their QA feedback as the implementation approval gate. The execution review artifact is an
+orchestrator record used to assess and resolve review findings; do not present it as the human-review document.
 
 **End your turn. Output nothing further. Wait.**
 
@@ -178,9 +181,10 @@ unless the human explicitly requests published documentation there.
 
 Choose the smallest workflow that preserves the required controls:
 
-- `run-feature`: significant changes requiring design, implementation planning, execution review, and manual-testing
+- `run-feature`: significant changes requiring design, implementation planning, execution review, and user-directed QA
   gates
-- `run-task`: bounded meaningful changes requiring a task plan, final QA, independent code review, and squash gate
+- `run-task`: bounded meaningful changes requiring a task plan, implementation approval, user-directed QA, and squash
+  gate
 - `run-pr`: explicit final publishing workflow for a clean normal feature or task branch
 - `run-hack`: low-risk, current-branch changes requiring only a hack journal, relevant verification, and principal
   diff review
