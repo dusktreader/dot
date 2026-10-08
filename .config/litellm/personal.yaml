@@ -1,13 +1,15 @@
 model_list:
-  - model_name: light
+  - model_name: light-luna
     litellm_params:
-      model: github_copilot/gpt-5.6-luna
+      model: github_copilot/responses/gpt-6-luna
       tags:
         - profile:personal
         - tier:light
         - capability:coding
         - capability:analysis
         - capability:tools
+    model_info:
+      mode: responses
   - model_name: personal-light-zen
     litellm_params:
       model: openai/deepseek-v4-flash
@@ -20,18 +22,50 @@ model_list:
         - capability:analysis
         - capability:tools
         - fallback:zen
-  - model_name: standard
+  - model_name: light-haiku
     litellm_params:
-      model: github_copilot/gpt-5.6-sol
+      model: github_copilot/claude-haiku-5.5
+      tags:
+        - profile:personal
+        - tier:light
+        - capability:coding
+        - capability:analysis
+        - capability:tools
+  - model_name: standard-terra
+    litellm_params:
+      model: github_copilot/responses/gpt-6-terra
       tags:
         - profile:personal
         - tier:standard
         - capability:coding
         - capability:analysis
         - capability:tools
-  - model_name: premium
+    model_info:
+      mode: responses
+  - model_name: standard-sonnet
     litellm_params:
-      model: github_copilot/gpt-5.6-sol
+      model: github_copilot/claude-sonnet-5.5
+      tags:
+        - profile:personal
+        - tier:standard
+        - capability:coding
+        - capability:analysis
+        - capability:tools
+  - model_name: premium-sol
+    litellm_params:
+      model: github_copilot/responses/gpt-6-sol
+      tags:
+        - profile:personal
+        - tier:premium
+        - capability:coding
+        - capability:analysis
+        - capability:tools
+        - capability:large-context
+    model_info:
+      mode: responses
+  - model_name: premium-opus
+    litellm_params:
+      model: github_copilot/claude-opus-5.5
       tags:
         - profile:personal
         - tier:premium
@@ -45,7 +79,7 @@ router_settings:
   tag_filtering_match_any: false
   tag_routing_prefix: "route:"
   fallbacks:
-    - light:
+    - light-luna:
         - personal-light-zen
   retry_policy:
     RateLimitErrorRetries: 0
@@ -58,3 +92,4 @@ general_settings:
 litellm_settings:
   turn_off_message_logging: true
   disable_spend_logs: true
+  drop_params: true

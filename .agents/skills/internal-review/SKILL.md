@@ -1,9 +1,9 @@
 ---
-name: review-code
+name: internal-review
 description: Reviews code changes directly against quality standards. Use when no implementation plan or journal exists.
 ---
 
-# Review Code Skill
+# Internal review skill
 
 Start with the diff, expand context only as required, and produce compact findings. Re-review only after changes to
 acceptance criteria, a new code path, behavior, interface, data, security, or tests.
@@ -20,10 +20,10 @@ to cross-reference — the review is purely against code quality.
 
 This skill is a sub-skill called by orchestrators:
 - `run-hotfix` — lightweight review after a hotfix is applied
-- `review-pr` — code quality review as part of addressing PR review comments
+- `external-review` — code quality review as part of addressing GitHub pull request comments
 
 Do not confuse with `review-implementation-execution`, which reviews code *against an
-implementation plan and journal* for AC coverage and plan alignment. Use `review-code` when
+implementation plan and journal* for AC coverage and plan alignment. Use `internal-review` when
 there is no plan — use `review-implementation-execution` when there is one.
 
 

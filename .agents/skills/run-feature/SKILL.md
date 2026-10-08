@@ -14,11 +14,11 @@ This is a standalone skill triggered directly by humans.
 Do not use when:
 - Fixing a known bug → use `run-bug-fix` (full) or `run-hotfix` (quick) instead
 - Addressing a gap in an already-completed implementation → use `run-fix` instead
-- Addressing PR review comments → use `review-pr` instead
+- Addressing PR review comments → use `external-review` instead
 - The work is exploratory with no clear output → use `run-architecture-audit` instead
 
 This is the only skill that manages the full feature lifecycle from shared worktree creation through
-exclusive squash integration. It never pushes or creates a PR. Post-PR work uses `review-pr` and
+exclusive squash integration. It never pushes or creates a PR. Post-PR work uses `external-review` and
 `run-hotfix`.
 
 
@@ -36,10 +36,9 @@ If not provided, ask before proceeding. Do not guess.
 Before creating any artifact, journal, plan, or code, and before any artifact is emitted:
 
 1. Invoke `create-agent-worktree` with workflow identifier `feature` before any artifact.
-2. Record its resolved agent worktree and agent branch. The agent worktree must be distinct, and the human stays in
-   the parent worktree.
-3. Put every project artifact and code change in the agent worktree. Record the agent worktree
-   path and agent branch in every later gate and handoff.
+2. Record its resolved worktree, selected regular branch, and `worktree_created` value.
+3. Put every project artifact and code change in the selected worktree. Record the worktree path and regular branch in
+   every later gate and handoff.
 
 Do not create a branch without its worktree. Do not emit a plan before setup completes.
 
@@ -77,12 +76,9 @@ exactly.
 
 ### Branch and integration contract
 
-Invoke `create-agent-worktree` with workflow identifier `feature`. It owns branch selection, collision handling,
-local/audit only branch allocation, and worktree creation. This workflow never pushes, creates a pull request, or
-merges into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
-
-For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
-normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
+Invoke `create-agent-worktree` with workflow identifier `feature`. It owns regular branch selection and worktree
+creation. This workflow never pushes, creates a pull request, or merges into `main` or `master`. Once the regular branch
+is ready, tell the human to invoke `run-pr`.
 
 
 ### Commits after each approved stage
@@ -111,33 +107,46 @@ Stage-specific commit types:
 
 The body bullets should summarise what the stage produced — not implementation detail.
 
-The audit branch is **local only**. Do not push it to origin. It is preserved after the squash so the full history
-remains accessible on the machine.
+There is no agent branch, audit branch, squash, or merge step. After QA approval, the selected regular branch is
+ready for `run-pr`. If `worktree_created` is true, invoke `cleanup-agent-worktree` only to remove the temporary
+worktree;
+never delete the regular branch.
 
 
-### Exclusive squash integration
+## Workflow state machine
 
-After the human approves QA, perform one exclusive squash integration into the
-ready-to-PR parent branch:
+This state machine is the workflow contract. Detailed stage instructions define how work in each state is performed.
 
-1. Immediately before integration, compare the recorded parent worktree, parent branch, and base
-   SHA with the current parent. If any differ, stop and present the stale-parent state to the
-   human. Never silently rebase, merge, discard, overwrite, or alter human work.
-2. If the human explicitly approves regeneration, discard the agent worktree and local audit
-   branch as an explicit operation, record the decision, and restart from the updated parent.
-3. Propose a squash commit message to the human and wait for explicit approval.
-4. Once approved:
-   Run the squash from the parent worktree with `git -C {parent-worktree} merge --squash {agent-branch}`, then commit.
-5. After successful integration, invoke `cleanup-agent-worktree` with the creation result and agent worktree. It must
-   remove only the agent worktree and retain the audit branch locally indefinitely only when the creation result says
-   one exists; otherwise it reports that no temporary audit branch was created. Never delete it automatically; only
-   explicit human cleanup may delete it. If integration is declined or the run is abandoned, preserve both until the
-   human explicitly removes them.
+| State                               | Represents                                         | Transitions                                                                                                  |
+| ----------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Branch setup                        | Isolated workspace creation                        | Create worktree → Design authoring                                                                           |
+| Design authoring                    | Initial design-plan drafting and agent revisions   | Design agent review                                                                                          |
+| Design agent review                 | Initial adversarial design review                  | Approved → Design human feedback; findings → Design authoring                                                |
+| Design human feedback               | Collaborative human plan refinement                | Revisions → same state; `feedback complete` → Design final agent review                                      |
+| Design final agent review           | Consolidated adversarial review of human changes   | Approved → Design final human approval; findings → same state                                                |
+| Design final human approval         | Human decision on the reviewed design              | Approved → Implementation authoring; minor revision → final agent review; material revision → human feedback |
+| Implementation authoring            | Initial implementation-plan drafting and revisions | Implementation agent review                                                                                  |
+| Implementation agent review         | Initial adversarial implementation-plan review     | Approved → Implementation human feedback; findings → Implementation authoring                                |
+| Implementation human feedback       | Collaborative human plan refinement                | Revisions → same state; `feedback complete` → Implementation final agent review                              |
+| Implementation final agent review   | Consolidated adversarial review of human changes   | Approved → Implementation final human approval; findings → same state                                        |
+| Implementation final human approval | Human decision on the reviewed implementation plan | Approved → Execution; minor revision → final agent review; material revision → human feedback                |
+| Execution                           | Plan-directed code and test implementation         | Agent execution review                                                                                       |
+| Agent execution review              | Initial adversarial review of implemented code     | Approved → Human code review or QA; findings → Execution                                                     |
+| Human code review                   | Collaborative human review of code changes         | Suggestions → same state; `feedback complete` → Final agent code review; declined → QA                       |
+| Final agent code review             | Consolidated adversarial review of human changes   | Approved → Final human code approval; findings → same state                                                  |
+| Final human code approval           | Human decision on the reviewed code                | Approved → QA; requested changes → Final agent code review                                                   |
+| QA                                  | Human testing and acceptance of the code           | Requested code change → QA after focused verification; approved → Report                                     |
+| Report                              | Workflow closeout and publication handoff          | Report completion and offer `run-pr`                                                                         |
+
+A human-feedback state is collaborative and open-ended. `feedback complete` means the human has finished
+providing feedback, not that they approve the plan. Final approval is a separate, explicit signal. Treat a
+revision as material when it changes scope, requirements, architecture, acceptance criteria, task sequencing, or
+other plan intent. Otherwise it is minor.
 
 
 ## Process
 
-### 0. Branch setup
+### Branch setup
 
 Before any artifact, invoke `create-agent-worktree` with the recorded parent worktree, `{parent-branch}`, immutable
 `{parent-base}`, workflow identifier `feature`, and normal-branch naming data. If the parent is `main` or `master`,
@@ -149,11 +158,11 @@ Extract the Jira ID from the current parent branch name:
 - If the branch contains `NO-TICKET` → use `NO-TICKET` as the Jira ID
 - If neither matches → no Jira ID; omit the parenthetical from commit messages
 
-All commits during stages 1–4 are made on the selected agent branch.
+All commits during stages 1–4 are made on the selected regular branch.
 Continue directly to stage 1 (design) and its approval gate. Do not stop before that gate.
 
 
-### 1. Design
+### Design authoring
 
 Before each dispatch, the principal selects the active profile and tier using the principal's routing policy, records
 both values, and dispatches the generic shared role through that profile's launcher. Never encode the account or model
@@ -162,42 +171,43 @@ in a specialist role name. Ask before selecting `tier:premium`; a difficult task
 Dispatch the shared `architect-planner` role with the `create-design-plan` skill, the
 feature description, and the project directory.
 
+
+### Design agent review
+
 Then dispatch the shared `architect-reviewer` role with the `review-design-plan` skill,
 the design plan path, and iteration `01`.
 
-Address all findings from the review:
-- Apply trivial findings directly without discussion.
-- Apply significant and critical findings using judgment. If a finding is genuinely ambiguous —
-  where the correct resolution depends on information only the human has — flag it inline and
-  note what you need. Do not stop the workflow for findings you can resolve yourself.
-- Record the outcome in each finding's `##### Outcome` subsection.
-- Re-dispatch an `architect-reviewer` at N+1 if changes were substantial. Repeat until the
-  agent reviewer approves.
+Apply trivial findings directly. Apply significant and critical findings using judgment, and flag genuinely ambiguous
+findings inline with the information needed from the human. Re-dispatch an `architect-reviewer` at N+1 when changes are
+substantial. Repeat until the agent reviewer approves. Record each finding's outcome in its `##### Outcome` subsection.
 
-If the design plan contains an **Unknowns** section, every Unknown must be resolved with explicit
-human input before the plan is approved. Present each Unknown to the human **one at a time**, in
-order. Wait for the human's response to each before presenting the next. Do not assume an answer,
-do not infer resolution from a related discussion, and do not resolve multiple Unknowns in a single
-turn. Only after every Unknown has received an explicit human response may the plan be presented
-for final approval.
 
-When an Unknown is resolved, **fold the resolution into the plan body** (as an AC, architecture
-note, or Technical Notes entry as appropriate) and **remove it from the Unknowns section**. Do
-not leave resolved items in Unknowns. If all Unknowns are resolved, remove the Unknowns section
-entirely. The same rule applies to implementation plans.
+### Design human feedback
 
 **STOP — end your turn here.**
-The design plan is ready for human review. Present it to the human. Do not summarize the agent
-findings — the human will read the plan directly. Wait for the human to ask questions, request
-revisions, or give approval.
+The design plan is ready for human feedback. Present it without summarizing the agent findings. The human-feedback
+state is collaborative: address questions and requested revisions, then stop again. Do **not** dispatch a reviewer
+because of a human-directed revision.
 
-**Do not proceed to planning under any circumstances until the human responds with an
-unambiguous approval signal** — a message such as "approved", "looks good", "proceed", or
-similar. Silence, a question, or a request for changes is NOT approval. If the human asks
-a question or requests a revision, address it and stop again. Do not interpret the absence
-of objection as approval.
+If the design plan contains an **Unknowns** section, resolve every Unknown with explicit human input during this
+state. Present Unknowns one at a time, in order, and wait for each response. Fold each resolution into the plan body
+and remove it from Unknowns. Do not infer answers or present more than one Unknown in a turn. Remove the section when
+all Unknowns are resolved. The same rule applies to implementation plans.
 
-Your final output in this turn must include this exact block, filled in:
+
+### Design final agent review
+
+Stay in the human-feedback state until the human explicitly signals that their feedback is complete, for example,
+`feedback complete` or `ready for final review`. This is not approval. When that signal arrives, dispatch an
+`architect-reviewer` for a consolidated review of the current plan and all accumulated revisions. Resolve final-review
+findings as a batch, record outcomes, and re-dispatch only to verify material fixes until the reviewer approves.
+
+
+### Design final human approval
+
+**STOP — end your turn here.**
+Only after the final agent review is approved, present the plan for final human approval. Your final output in this
+turn must include this exact block, filled in:
 
 ```text
 AWAITING APPROVAL: design plan
@@ -205,6 +215,11 @@ Path: {path to design-plan.md}
 Unlocks: stage 2 (implementation plan) — nothing else
 Still requires separate approval before it can proceed: implementation plan, QA
 ```
+
+Do not proceed to planning without an unambiguous approval signal, such as `approved`, `looks good`, or `proceed`.
+Silence, a question, or a request for changes is not approval. For a minor requested revision, remain in the final
+review gate: revise, re-run the agent review cycle, and request approval again. For a material requested revision,
+return to the human-feedback state. Do not infer approval from the absence of an objection.
 
 When the human responds with approval, your next turn must open with:
 
@@ -217,33 +232,43 @@ Proceeding to: stage 2 (create implementation plan)
 Once approved: commit (see Git workflow — "After design plan approved").
 
 
-### 2. Plan
+### Implementation authoring
 
 Dispatch the shared `engineer-planner` role with the `create-implementation-plan` skill
 and the design plan path.
 
+
+### Implementation agent review
+
 Then dispatch the shared `architect-reviewer` role with the
 `review-implementation-plan` skill, the implementation plan path, and iteration `01`.
 
-Address all findings from the review:
-- Apply trivial findings directly without discussion.
-- Apply significant and critical findings using judgment. Flag genuinely ambiguous ones inline.
-- Record the outcome in each finding's `##### Outcome` subsection.
-- Re-dispatch an `architect-reviewer` at N+1 if changes were substantial. Repeat until the
-  agent reviewer approves.
+Apply trivial findings directly. Apply significant and critical findings using judgment, and flag genuinely ambiguous
+findings inline with the information needed from the human. Re-dispatch an `architect-reviewer` at N+1 when changes are
+substantial. Repeat until the agent reviewer approves. Record each finding's outcome in its `##### Outcome` subsection.
+
+
+### Implementation human feedback
 
 **STOP — end your turn here.**
-The implementation plan is ready for human review. Present it to the human. Do not summarize the
-agent findings — the human will read the plan directly. Wait for the human to ask questions,
-request revisions, or give approval.
+The implementation plan is ready for human feedback. Present it without summarizing the agent findings. The
+human-feedback state is collaborative: address questions and requested revisions, then stop again. Do **not** dispatch
+a reviewer because of a human-directed revision.
 
-**Do not proceed to execution under any circumstances until the human responds with an
-unambiguous approval signal** — a message such as "approved", "looks good", "proceed", or
-similar. Silence, a question, or a request for changes is NOT approval. If the human asks
-a question or requests a revision, address it and stop again. Do not interpret the absence
-of objection as approval.
 
-Your final output in this turn must include this exact block, filled in:
+### Implementation final agent review
+
+Stay in the human-feedback state until the human explicitly signals that their feedback is complete, for example,
+`feedback complete` or `ready for final review`. This is not approval. When that signal arrives, dispatch an
+`architect-reviewer` for a consolidated review of the current plan and all accumulated revisions. Resolve final-review
+findings as a batch, record outcomes, and re-dispatch only to verify material fixes until the reviewer approves.
+
+
+### Implementation final human approval
+
+**STOP — end your turn here.**
+Only after the final agent review is approved, present the plan for final human approval. Your final output in this
+turn must include this exact block, filled in:
 
 ```text
 AWAITING APPROVAL: implementation plan
@@ -251,6 +276,11 @@ Path: {path to implementation-plan.md}
 Unlocks: stage 3 (execution) — nothing else
 Still requires separate approval before it can proceed: QA
 ```
+
+Do not proceed to execution without an unambiguous approval signal, such as `approved`, `looks good`, or `proceed`.
+Silence, a question, or a request for changes is not approval. For a minor requested revision, remain in the final
+review gate: revise, re-run the agent review cycle, and request approval again. For a material requested revision,
+return to the human-feedback state. Do not infer approval from the absence of an objection.
 
 When the human responds with approval, your next turn must open with:
 
@@ -263,7 +293,7 @@ Proceeding to: stage 3 (execute)
 Once approved: commit (see Git workflow — "After implementation plan approved").
 
 
-### 3. Execute
+### Execution
 
 Dispatch the shared `engineer-executor` role with the
 `execute-implementation-plan` skill and the implementation plan path.
@@ -273,6 +303,9 @@ lightweight executor to fix only straightforward QA failures that are clearly wi
 The lightweight executor must not expand the work or make design decisions. Re-run the quality gate only when such a
 fix changes an acceptance criterion, introduces a new code path, or changes behavior, an interface, data, security, or
 tests.
+
+
+### Agent execution review
 
 Then dispatch the shared `engineer-reviewer` role with the
 `review-implementation-execution` skill, the journal path, scope `whole-plan`, and iteration `01`.
@@ -289,26 +322,45 @@ If a `CHANGELOG.md` exists in the repo root, add an entry under `## Unreleased` 
 what was implemented. Use the implementation plan's Goal as the basis. Follow the existing
 entry style in the file.
 
-Before entering QA, ask the human whether they would like to review the changes first. If they opt in, use any
-interactive diff-review capability available in the current runtime, or present a concise diff summary through the
-normal review channel. Incorporate clear feedback before entering QA. If they decline, proceed directly to QA. This
-optional review does not replace the QA approval gate.
 
-Once the agent reviewer approves, continue directly to stage 4. Do not present the execution review artifact for human
-approval, and do not start another plan or review cycle.
+### Human code review
 
-**Do not squash. Do not create a PR. Proceed directly to stage 4.**
+After the initial agent execution review is approved, ask the human whether they would like to review the changes. If
+they decline, proceed directly to QA. If they opt in, use any interactive diff-review capability available in the
+current runtime, or present a concise diff summary through the normal review channel.
+
+For every human suggestion, dispatch an `engineer-executor` to implement the requested code change, run the focused
+quality gate, and return to this state. Do not modify plan or review artifacts, or dispatch an adversarial reviewer,
+while the human continues to provide feedback.
+
+Stay in this state until the human explicitly signals that their feedback is complete, for example, `feedback complete`
+or `ready for final review`. This is not approval.
 
 
-### 4. QA
+### Final agent code review
 
-This phase begins immediately after the agent reviewer approves execution and any optional human diff review is
-complete.
+After the human completes feedback, dispatch an `engineer-reviewer` with `review-implementation-execution` at N+1.
+Resolve its findings, record each outcome, and re-dispatch the reviewer only to verify substantial fixes until it
+approves.
+
+
+### Final human code approval
+
+Only after the final agent code review is approved, present the code changes for final human approval. Do not proceed to
+QA without an unambiguous approval signal. If the human requests changes, dispatch an `engineer-executor` to implement
+them, run the focused quality gate, return to final agent code review, and then request final approval again.
+
+**Do not squash. Do not create a PR. Proceed directly to QA after final code approval.**
+
+
+### QA
+
+This phase begins after the human declines code review or grants final human code approval.
 
 At this stage, the agent must stop, notify the human that the code is ready for QA, and wait for testing feedback. QA
 is the human approval gate for the implementation. It does not authorize a new planning or review cycle.
 
-Tell the human that the implementation is on the agent branch and ready for QA. Ask them to test it
+Tell the human that the implementation is on the selected regular branch and ready for QA. Ask them to test it
 and report any issues or requested adjustments.
 
 **STOP — end your turn here.**
@@ -339,9 +391,9 @@ Your final output while waiting must include this exact block:
 
 ```text
 AWAITING APPROVAL: QA
-Branch: {agent branch name}
+Branch: {regular branch name}
 QA journal: {path to qa-journal.md}
-Unlocks: stage 5 (squash) — nothing else
+Unlocks: publication with `run-pr` — nothing else
 ```
 
 When the human responds with approval, your next turn must open with:
@@ -352,14 +404,14 @@ Proceeding to: stage 5 (squash)
 ```
 
 
-### 5. Squash and report
+### Report
 
-Perform the squash. Once the normal branch is ready, tell the human to invoke `run-pr`.
+The selected regular branch is ready for `run-pr`. If `worktree_created` is true, invoke `cleanup-agent-worktree` only
+to remove the temporary worktree.
 
 **STOP — end your turn here.**
 Report completion to the human with:
 - The project directory path
-- The agent worktree path
+- The selected worktree path
 - The final status of each artifact
-- The agent branch name
-- The squash commit SHA on the parent branch
+- The regular branch name

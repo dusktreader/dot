@@ -17,7 +17,7 @@ This is a standalone skill triggered directly by humans. It always operates with
 project directory created by `run-feature`.
 
 Do not use when:
-- The gap is discovered during a PR review → use `review-pr` instead
+- The gap is discovered during a PR review → use `external-review` instead
 - The bug is unrelated to an existing implementation project → use `run-bug-fix` or
   `run-hotfix` instead
 - The change is a new feature rather than a fix → start a new `run-feature` project
@@ -79,21 +79,15 @@ For investigator, planner, executor, constrained QA-fix, and reviewer handoffs, 
 active `profile:*` and `tier:*` routing metadata. Dispatch the shared specialist role through the active launcher.
 Record the profile, tier, project class, and handoff purpose in the fix journal or review context.
 
-Run final QA once, obtain independent review, and wait for explicit approval. Immediately before
-exclusive squash integration, compare the recorded parent worktree, branch, and base with current
-parent state. A stale parent stops the run and requires an explicit human reconciliation decision.
-Never silently rebase, merge, discard, overwrite, or mutate human work. After a successful squash, invoke
-`cleanup-agent-worktree` with the creation result and agent worktree. It must remove only the agent worktree and retain
-the audit branch locally indefinitely only when the creation result says one exists; otherwise it reports that no
-temporary audit branch was created. Never delete it automatically; only explicit human cleanup may delete it.
-Declined or abandoned runs preserve both until explicit human cleanup. Never push or create a pull
-request.
+Run final QA once, obtain independent review, and wait for explicit approval. The selected regular branch remains the
+working and publishing branch. There is no agent branch, audit branch, squash, or merge step. If `worktree_created` is
+true, invoke `cleanup-agent-worktree` only to remove the temporary worktree. Never push or create a pull request.
 
 
 ## Git workflow
 
-This skill manages its own git commits throughout the workflow. It always creates a fresh agent
-branch and worktree; do not reuse an original `run-feature` agent branch.
+This skill manages its own git commits throughout the workflow on the selected regular branch. It does not create a
+separate agent branch or worktree.
 
 
 ### Branch and integration contract
@@ -128,19 +122,11 @@ Stage-specific commit types:
 - **After fix execution approved**: `fix(<jira-id>): apply fix-{N} for {project-name}`
 
 
-### Final squash onto parent branch
+### Completion on the regular branch
 
-After the human approves the fix execution and the CHANGELOG is updated, squash all new audit commits onto the parent
-branch:
-
-1. Propose a squash commit message to the human. **Wait for explicit approval.**
-2. Once approved:
-   ```shell
-    git -C {parent-worktree} merge --squash {agent-branch}
-    git -C {parent-worktree} commit -m "<approved message>"
-   ```
-3. Invoke `cleanup-agent-worktree` only after successful integration; it preserves the audit branch.
-4. Do NOT push the parent branch — that is the human's decision.
+After the human approves the fix execution and the CHANGELOG is updated, the selected regular branch is ready for
+`run-pr`. If `worktree_created` is true, invoke `cleanup-agent-worktree` only to remove the temporary worktree. Do NOT
+push the branch — that is the human's decision.
 
 
 ## Process

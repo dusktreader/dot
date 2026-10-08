@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -30,8 +31,8 @@ def lifecycle(tmp_path: Path, **kwargs: Any) -> OpenCodeLifecycle:
 def test_personal_profile_has_aliases_and_only_personal_zen_fallback() -> None:
     router = yaml.safe_load((ROOT / ".config/litellm/personal.yaml").read_text())
     names = [item["model_name"] for item in router["model_list"]]
-    assert {"light", "standard", "premium", "personal-light-zen"}.issubset(names)
-    assert router["router_settings"]["fallbacks"] == [{"light": ["personal-light-zen"]}]
+    assert {"light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus", "personal-light-zen"} == set(names)
+    assert router["router_settings"]["fallbacks"] == [{"light-luna": ["personal-light-zen"]}]
     assert "os.environ/OPENCODE_ZEN_API_KEY" in (ROOT / ".config/litellm/personal.yaml").read_text()
 
 
@@ -42,8 +43,8 @@ def test_personal_overlay_uses_responses_transport_for_gpt_5_6() -> None:
 
 def test_personal_premium_route_uses_github_copilot_provider() -> None:
     router = yaml.safe_load((ROOT / ".config/litellm/personal.yaml").read_text())
-    premium = next(item for item in router["model_list"] if item["model_name"] == "premium")
-    assert premium["litellm_params"]["model"] == "github_copilot/gpt-5.6-sol"
+    premium = next(item for item in router["model_list"] if item["model_name"] == "premium-sol")
+    assert premium["litellm_params"]["model"] == "github_copilot/responses/gpt-6-sol"
     assert "api_key" not in premium["litellm_params"]
 
 
@@ -52,12 +53,12 @@ def test_personal_copilot_routes_use_models_supported_by_installed_litellm() -> 
     models = {
         item["model_name"]: item["litellm_params"]["model"]
         for item in router["model_list"]
-        if item["model_name"] in {"light", "standard", "premium"}
+        if item["model_name"] in {"light-luna", "standard-terra", "premium-sol"}
     }
     assert models == {
-        "light": "github_copilot/gpt-5.6-luna",
-        "standard": "github_copilot/gpt-5.6-sol",
-        "premium": "github_copilot/gpt-5.6-sol",
+        "light-luna": "github_copilot/responses/gpt-6-luna",
+        "standard-terra": "github_copilot/responses/gpt-6-terra",
+        "premium-sol": "github_copilot/responses/gpt-6-sol",
     }
 
 
@@ -65,22 +66,25 @@ def test_personal_profile_validation_is_offline_and_clean() -> None:
     assert validate(ROOT, None) == []
 
 
-def test_personal_overlay_defaults_to_light_and_keeps_standard_alias() -> None:
+def test_personal_overlay_defaults_to_light_luna_alias() -> None:
     overlay = json.loads((ROOT / ".config/opencode/profiles/personal.json").read_text())
-    assert overlay["model"] == "personal/light"
-    assert overlay["provider"]["personal"]["models"]["standard"]["name"] == "Standard"
+    assert overlay["model"] == "personal/light-luna"
+    assert set(overlay["provider"]["personal"]["models"]) == {
+        "light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus"
+    }
 
 
-@pytest.mark.parametrize("tier", ["light", "standard", "premium"])
-def test_environment_selects_each_tier_without_provider_contact(tmp_path: Path, tier: str) -> None:
-    environment = lifecycle(tmp_path).environment_for(tier, explicit_cli_premium=tier == "premium")
+@pytest.mark.parametrize("model", ["light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus"])
+def test_environment_selects_each_model_without_provider_contact(tmp_path: Path, model: str) -> None:
+    environment = lifecycle(tmp_path).environment_for(model)
     assert environment["OPENCODE_ROUTING_PROFILE"] == "profile:personal"
-    assert environment["OPENCODE_ROUTING_TIER"] == tier
+    assert environment["OPENCODE_ROUTING_TIER"] == model.split("-", 1)[0]
     config = json.loads(environment["OPENCODE_CONFIG_CONTENT"])
     assert config["default_agent"] == "principal"
-    assert config["model"] == f"personal/{tier}"
+    assert config["model"] == f"personal/{model}"
     assert config["agent"]["principal"]["variant"] == "xhigh"
-    assert environment.get("OPENCODE_CLI_PREMIUM_AUTHORIZED") == ("1" if tier == "premium" else None)
+    assert environment["DOT_STATE_HOME"] == str(Path(environment["HOME"]) / ".local" / "state")
+    assert environment.get("OPENCODE_CLI_PREMIUM_AUTHORIZED") == ("1" if model.startswith("premium-") else None)
 
 
 def test_environment_preserves_home_and_isolates_runtime_state(tmp_path: Path) -> None:
@@ -90,6 +94,25 @@ def test_environment_preserves_home_and_isolates_runtime_state(tmp_path: Path) -
     assert environment["LITELLM_LOCAL_MODEL_COST_MAP"] == "True"
     assert environment["XDG_DATA_HOME"].endswith("personal/xdg-data")
     assert environment["GITHUB_COPILOT_TOKEN_DIR"].endswith("personal/copilot")
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        ({"expires_at": time.time() - 1}, "expired"),
+        ({"expires_at": time.time() + 3600}, "valid"),
+        ({"expires_at": "tomorrow"}, "malformed"),
+    ],
+)
+def test_copilot_credential_status(tmp_path: Path, payload: dict[str, object], expected: str) -> None:
+    profile = lifecycle(tmp_path)
+    profile.copilot_api_key_file.parent.mkdir(parents=True)
+    profile.copilot_api_key_file.write_text(json.dumps(payload))
+    assert profile.copilot_credential_status() == expected
+
+
+def test_copilot_credential_status_reports_missing(tmp_path: Path) -> None:
+    assert lifecycle(tmp_path).copilot_credential_status() == "missing"
 
 
 @pytest.mark.parametrize(
@@ -125,8 +148,8 @@ def test_router_ownership_rejects_wrapper_with_later_litellm_token(tmp_path: Pat
     assert not profile.router_pid_is_ours()
 
 
-def test_invalid_tier_is_rejected_before_router_start(tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="Invalid routing tier"):
+def test_invalid_model_is_rejected_before_router_start(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="Invalid model"):
         lifecycle(tmp_path).environment_for("opus")
 
 
@@ -145,11 +168,32 @@ def test_launch_uses_execvpe_and_passes_arguments(tmp_path: Path) -> None:
     )
     profile.state_root.mkdir(parents=True)
     profile.pid_file.write_text("42\n")
-    profile.launch(["--session", "abc"], "standard")
+    with patch.object(profile, "authenticate") as authenticate:
+        profile.launch(["--session", "abc"], "standard-terra")
 
+    authenticate.assert_called_once_with()
     assert captured["program"] == "opencode"
     assert captured["arguments"] == ["opencode", "--session", "abc"]
     assert captured["environment"]["OPENCODE_ROUTING_TIER"] == "standard"  # type: ignore[index]
+
+
+def test_launch_authenticates_expired_copilot_credentials(tmp_path: Path) -> None:
+    profile = lifecycle(
+        tmp_path,
+        health_probe=lambda: True,
+        process_alive=lambda _: True,
+        process_command=lambda _: f"litellm --config {ROOT / '.config/litellm/personal.yaml'} --host 127.0.0.1 --port 4010",
+        execvpe=lambda *_: None,
+    )
+    profile.state_root.mkdir(parents=True)
+    profile.copilot_api_key_file.parent.mkdir()
+    profile.copilot_api_key_file.write_text(json.dumps({"expires_at": 1}))
+    profile.pid_file.write_text("42\n")
+
+    with patch.object(profile, "authenticate") as authenticate:
+        profile.launch([], "light-luna")
+
+    authenticate.assert_called_once_with()
 
 
 def test_launch_starts_router_with_list_subprocess_and_generates_private_key(tmp_path: Path) -> None:
@@ -168,7 +212,8 @@ def test_launch_starts_router_with_list_subprocess_and_generates_private_key(tmp
         execvpe=lambda *_: None,
         command_path=lambda _: "/usr/local/bin/litellm",
     )
-    profile.launch([], "light")
+    with patch.object(profile, "authenticate"):
+        profile.launch([], "light-luna")
 
     assert calls[0][0] == [
         "/usr/local/bin/litellm",
@@ -280,26 +325,41 @@ def test_status_does_not_print_router_key(tmp_path: Path, capsys: pytest.Capture
     assert "router.key" not in output
 
 
-def test_cli_launch_parses_only_its_tier_and_forwards_extra_args(tmp_path: Path) -> None:
+def test_cli_launch_parses_only_its_model_and_forwards_extra_args(tmp_path: Path) -> None:
     runner = CliRunner()
     with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
-        result = runner.invoke(cli, ["opencode", "launch", "--tier", "standard", "--session", "abc"])
+        result = runner.invoke(cli, ["opencode", "launch", "--model", "standard-terra", "--session", "abc"])
     assert result.exit_code == 0
-    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "standard", explicit_cli_premium=False)
+    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "standard-terra")
 
 
-def test_cli_premium_does_not_require_approval_marker(tmp_path: Path) -> None:
+def test_cli_premium_model_forwards_without_approval_marker(tmp_path: Path) -> None:
     runner = CliRunner()
     with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
-        result = runner.invoke(cli, ["opencode", "launch", "--tier", "premium"])
+        result = runner.invoke(cli, ["opencode", "launch", "--model", "premium-sol"])
     assert result.exit_code == 0
-    factory.return_value.launch.assert_called_once_with([], "premium", explicit_cli_premium=True)
+    factory.return_value.launch.assert_called_once_with([], "premium-sol")
 
 
-def test_cli_rejects_invalid_tier() -> None:
-    result = CliRunner().invoke(cli, ["opencode", "launch", "--tier", "opus"])
+def test_cli_prompt_forwards_run_arguments() -> None:
+    runner = CliRunner()
+    with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
+        result = runner.invoke(cli, ["opencode", "prompt", "Say OK", "--model", "standard-terra"])
+    assert result.exit_code == 0
+    factory.return_value.launch.assert_called_once_with(["run", "Say OK"], "standard-terra")
+
+
+def test_cli_models_lists_aliases() -> None:
+    result = CliRunner().invoke(cli, ["opencode", "models"])
+    assert result.exit_code == 0
+    assert "light-luna" in result.output
+    assert "premium-opus" in result.output
+
+
+def test_cli_rejects_invalid_model() -> None:
+    result = CliRunner().invoke(cli, ["opencode", "launch", "--model", "opus"])
     assert result.exit_code == 2
-    assert "Invalid routing tier" in result.output
+    assert "Invalid model" in result.output
 
 
 def test_cli_status_and_stop_delegate_to_personal_lifecycle() -> None:

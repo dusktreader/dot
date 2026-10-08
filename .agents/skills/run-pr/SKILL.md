@@ -11,9 +11,8 @@ workflow that pushes a branch or creates a pull request.
 
 ## Preconditions
 
-Operate only from a clean normal feature or task branch. Reject `main`, `master`, and any branch whose name contains
-`--agents`: these are not publishable branches. Stop if the worktree is dirty, the branch is detached, or the normal
-branch cannot be identified.
+Operate only from a clean regular feature or task branch. Reject `main` and `master`. Stop if the worktree is dirty,
+the branch is detached, or the regular branch cannot be identified.
 
 Read `~/.agents/instructions/github.md` before using `gh`. Confirm the authenticated `gh` account as required there,
 confirm the intended remote, and determine the target base. If the base branch or whether the normal branch must be
@@ -32,5 +31,5 @@ rebased is ambiguous, ask the human and wait. Never infer either decision.
 
 ## Restrictions
 
-Never force-push. Never publish a temporary `--agents` branch. Do not merge into `main` or `master`. Do not push or
-create a pull request unless the human explicitly invoked `run-pr` in the current request.
+Never force-push. Do not merge into `main` or `master`. Do not push or create a pull request unless the human
+explicitly invoked `run-pr` in the current request.

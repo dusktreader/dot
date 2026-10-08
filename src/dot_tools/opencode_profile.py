@@ -14,10 +14,18 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, TypedDict
-from urllib.error import URLError
-from urllib.request import ProxyHandler, build_opener
+from urllib.error import HTTPError, URLError
+from urllib.request import ProxyHandler, Request, build_opener, urlopen
 
-TIERS = frozenset(("light", "standard", "premium"))
+MODEL_ALIASES = frozenset(
+    ("light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus")
+)
+GITHUB_COPILOT_CLIENT_ID = "Iv1.b507a08c87ecfe98"
+GITHUB_DEVICE_CODE_URL = "https://github.com/login/device/code"
+GITHUB_ACCESS_TOKEN_URL = "https://github.com/login/oauth/access_token"
+GITHUB_COPILOT_API_KEY_URL = "https://api.github.com/copilot_internal/v2/token"
+GITHUB_DEVICE_AUTH_POLL_ATTEMPTS = 36
+GITHUB_DEVICE_AUTH_POLL_INTERVAL = 5
 
 PERSONAL_PROVIDER_ENV_VARS = frozenset(
     {
@@ -78,11 +86,16 @@ PERSONAL_PROFILE = ProfileSpec(
 )
 
 
-def validate_tier(tier: str) -> str:
-    """Validate and return a supported routing tier."""
-    if tier not in TIERS:
-        raise ValueError(f"Invalid routing tier {tier!r}. Use light, standard, or premium.")
-    return tier
+def validate_model(model: str) -> str:
+    """Validate and return a supported model alias."""
+    if model not in MODEL_ALIASES:
+        raise ValueError(f"Invalid model {model!r}. Use one of: {', '.join(sorted(MODEL_ALIASES))}.")
+    return model
+
+
+def routing_tier(model: str) -> str:
+    validate_model(model)
+    return model.split("-", 1)[0]
 
 
 class OpenCodeLifecycle:
@@ -149,6 +162,23 @@ class OpenCodeLifecycle:
         return self.state_root / "router.key"
 
     @property
+    def copilot_api_key_file(self) -> Path:
+        """Return the profile-owned GitHub Copilot API key file."""
+        return self.state_root / "copilot" / "api-key.json"
+
+    def copilot_credential_status(self) -> str:
+        """Return the cached GitHub Copilot credential state."""
+        try:
+            payload = json.loads(self.copilot_api_key_file.read_text())
+        except FileNotFoundError:
+            return "missing"
+        except (OSError, json.JSONDecodeError):
+            return "malformed"
+        if not isinstance(payload, dict) or not isinstance(payload.get("expires_at"), (int, float)):
+            return "malformed"
+        return "valid" if payload["expires_at"] > time.time() else "expired"
+
+    @property
     def endpoint(self) -> str:
         """Return the loopback OpenAI-compatible endpoint."""
         return f"http://127.0.0.1:{self.profile.port}/v1"
@@ -161,8 +191,9 @@ class OpenCodeLifecycle:
             return self.home / "src" / "mhe" / "work-dot"
         return Path(__file__).resolve().parents[2]
 
-    def _config_content(self, tier: str) -> str:
-        model = f"{self.profile.router_name}/{tier}"
+    def _config_content(self, model_alias: str) -> str:
+        validate_model(model_alias)
+        model = f"{self.profile.router_name}/{model_alias}"
         agents = {
             agent: {"model": model}
             for agent in (
@@ -186,9 +217,10 @@ class OpenCodeLifecycle:
             separators=(",", ":"),
         )
 
-    def environment_for(self, tier: str = "light", *, explicit_cli_premium: bool = False) -> dict[str, str]:
+    def environment_for(self, model_alias: str = "light-luna") -> dict[str, str]:
         """Build the isolated OpenCode and router environment for one invocation."""
-        validate_tier(tier)
+        validate_model(model_alias)
+        tier = routing_tier(model_alias)
         state_root = self.state_root
         environment = dict(self.base_environment)
         if self.profile.requires_work_account:
@@ -201,9 +233,10 @@ class OpenCodeLifecycle:
                 "OPENCODE_ROUTING_TIER": tier,
                 "OPENCODE_ROUTER_ENDPOINT": self.endpoint,
                 "OPENCODE_CONFIG": str(self.open_code_config),
-                "OPENCODE_CONFIG_CONTENT": self._config_content(tier),
+                "OPENCODE_CONFIG_CONTENT": self._config_content(model_alias),
                 "LITELLM_LOCAL_MODEL_COST_MAP": "True",
                 "OPENCODE_CONFIG_DIR": str(self.home / ".config" / "opencode"),
+                "DOT_STATE_HOME": str(self.home / ".local" / "state"),
                 "XDG_CONFIG_HOME": str(state_root / "xdg-config"),
                 "XDG_DATA_HOME": str(state_root / "xdg-data"),
                 "XDG_STATE_HOME": str(state_root / "xdg-state"),
@@ -218,7 +251,7 @@ class OpenCodeLifecycle:
         environment["NO_PROXY"] = f"{loopback},{no_proxy}" if no_proxy else loopback
         environment["no_proxy"] = environment["NO_PROXY"]
         environment.pop("OPENCODE_CLI_PREMIUM_AUTHORIZED", None)
-        if explicit_cli_premium and tier == "premium":
+        if routing_tier(model_alias) == "premium":
             environment["OPENCODE_CLI_PREMIUM_AUTHORIZED"] = "1"
         return environment
 
@@ -250,6 +283,80 @@ class OpenCodeLifecycle:
         if not key:
             raise OpenCodeProfileError(f"Router key is empty: {self.key_file}")
         return key
+
+    def authenticate(self) -> None:
+        """Complete GitHub Copilot device authentication for this profile."""
+        self._ensure_state()
+        token_dir = self.state_root / "copilot"
+        access_token_file = token_dir / "access-token"
+        api_key_file = token_dir / "api-key.json"
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "editor-version": "vscode/1.85.1",
+            "editor-plugin-version": "copilot/1.155.0",
+            "user-agent": "GithubCopilot/1.155.0",
+        }
+
+        def request(url: str, method: str, body: dict[str, str] | None = None, token: str | None = None) -> tuple[int, dict[str, Any]]:
+            request_headers = dict(headers)
+            if token:
+                request_headers["authorization"] = f"token {token}"
+            request_body = json.dumps(body).encode() if body is not None else None
+            request_object = Request(url, data=request_body, headers=request_headers, method=method)
+            try:
+                with urlopen(request_object, timeout=30) as response:
+                    return response.status, json.loads(response.read())
+            except HTTPError as error:
+                return error.code, {}
+            except (OSError, URLError) as error:
+                raise OpenCodeProfileError("GitHub Copilot authentication request failed.") from error
+
+        access_token = access_token_file.read_text().strip() if access_token_file.exists() else None
+        if access_token:
+            status, api_key = request(GITHUB_COPILOT_API_KEY_URL, "GET", token=access_token)
+            if status == 200 and api_key.get("token"):
+                api_key_file.write_text(json.dumps(api_key))
+                api_key_file.chmod(0o600)
+                return
+            if status == 401:
+                access_token_file.unlink(missing_ok=True)
+                access_token = None
+
+        status, device = request(
+            GITHUB_DEVICE_CODE_URL,
+            "POST",
+            {"client_id": GITHUB_COPILOT_CLIENT_ID, "scope": "read:user"},
+        )
+        if status != 200 or not all(device.get(key) for key in ("device_code", "user_code", "verification_uri")):
+            raise OpenCodeProfileError("GitHub Copilot device authentication could not start.")
+        print(f"Please visit {device['verification_uri']} and enter code {device['user_code']} to authenticate.", flush=True)
+        for _ in range(GITHUB_DEVICE_AUTH_POLL_ATTEMPTS):
+            time.sleep(GITHUB_DEVICE_AUTH_POLL_INTERVAL)
+            status, token_response = request(
+                GITHUB_ACCESS_TOKEN_URL,
+                "POST",
+                {
+                    "client_id": GITHUB_COPILOT_CLIENT_ID,
+                    "device_code": device["device_code"],
+                    "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                },
+            )
+            access_token = token_response.get("access_token")
+            if status == 200 and access_token:
+                access_token_file.write_text(access_token)
+                access_token_file.chmod(0o600)
+                break
+            if token_response.get("error") != "authorization_pending":
+                raise OpenCodeProfileError("GitHub Copilot device authentication failed.")
+        else:
+            raise OpenCodeProfileError("Timed out waiting for GitHub Copilot device authentication.")
+
+        status, api_key = request(GITHUB_COPILOT_API_KEY_URL, "GET", token=access_token)
+        if status != 200 or not api_key.get("token"):
+            raise OpenCodeProfileError("GitHub Copilot API key request failed after authentication.")
+        api_key_file.write_text(json.dumps(api_key))
+        api_key_file.chmod(0o600)
 
     def _health_url(self) -> str:
         return f"http://127.0.0.1:{self.profile.port}/health/liveliness"
@@ -455,14 +562,22 @@ class OpenCodeLifecycle:
                 f"Work Copilot account marker is missing or mismatched. Set {marker} to TuckerBeck_mcgraw after work authentication."
             )
 
-    def launch(self, arguments: Sequence[str], tier: str = "light", *, explicit_cli_premium: bool = False) -> None:
+    def launch(self, arguments: Sequence[str], model_alias: str = "light-luna") -> None:
         """Start the profile router and replace this process with OpenCode."""
-        validate_tier(tier)
+        validate_model(model_alias)
         self._ensure_state()
         if self.profile.requires_work_account:
             self.validate_work_account()
-        environment = self.environment_for(tier, explicit_cli_premium=explicit_cli_premium)
+        environment = self.environment_for(model_alias)
         environment["OPENCODE_ROUTER_KEY"] = self._router_key()
+        credential_status = self.copilot_credential_status()
+        if credential_status != "valid":
+            print(
+                f"GitHub Copilot credentials are {credential_status}; starting authentication.",
+                file=sys.stderr,
+                flush=True,
+            )
+            self.authenticate()
         self.start_router(environment)
         argv = ["opencode", *arguments]
         self._execvpe("opencode", argv, environment)
@@ -473,7 +588,8 @@ class OpenCodeLifecycle:
             f"profile: {self.profile.name}\n"
             f"endpoint: {self.endpoint}\n"
             f"config: {self.open_code_config}\n"
-            f"state: {self.state_root}"
+            f"state: {self.state_root}\n"
+            f"copilot: {self.copilot_credential_status()}"
         )
         if self.router_healthy() and self.router_pid_is_ours():
             print("router: healthy")

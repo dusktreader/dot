@@ -4,9 +4,8 @@ from typing import Annotated, cast
 import typer
 from loguru import logger
 from pydantic import SecretStr
-from typerdrive import SettingsManager
-
 from dot_tools.settings import Settings
+from dot_tools.settings_manager import dot_settings_manager
 
 
 cli = typer.Typer(help="Manage personal credentials via fetch and set", invoke_without_command=True)
@@ -46,7 +45,7 @@ def fetch(
     Use only in secure environments and scripts.
     """
     try:
-        sm = SettingsManager(Settings)
+        sm = dot_settings_manager()
         settings = cast(Settings, sm.settings_instance)
         
         # Access nested credentials sub-model
@@ -86,7 +85,7 @@ def set(
     transcript leaks.
     """
     try:
-        sm = SettingsManager(Settings)
+        sm = dot_settings_manager()
         
         # Validate that the key exists in credentials sub-model
         credentials_fields = Settings.model_fields.get("credentials")

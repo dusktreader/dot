@@ -30,7 +30,7 @@ const PRIVATE_ROUTING_OPTIONS = new Set([
   "litellmTags"
 ])
 
-function routeForAgent(agent, configuredAgents = {}) {
+function routeForAgent(agent, configuredAgents = {}, selectedModel) {
   const route = configuredAgents[agent]?.options?.routing
   const capability = route?.capability ?? DEFAULT_ROUTES[agent]?.capability ?? "analysis"
   const configuredTier = route?.tier ?? DEFAULT_ROUTES[agent]?.tier ?? "light"
@@ -42,12 +42,16 @@ function routeForAgent(agent, configuredAgents = {}) {
   }
   return {
     capability,
-    tier: selectedTier(configuredTier)
+    tier: selectedTier(configuredTier, selectedModel)
   }
 }
 
-function selectedTier(defaultTier) {
-  const tier = process.env.OPENCODE_ROUTING_TIER || defaultTier
+function selectedTier(defaultTier, selectedModel) {
+  const modelID = selectedModel?.id
+  const modelTier = TIERS.has(modelID)
+    ? modelID
+    : [...TIERS].find((candidate) => modelID?.startsWith(`${candidate}-`))
+  const tier = modelTier || process.env.OPENCODE_ROUTING_TIER || defaultTier
   if (!TIERS.has(tier)) {
     throw new Error("OPENCODE_ROUTING_TIER must be light, standard, or premium")
   }
@@ -67,8 +71,8 @@ function profileTag() {
   return profile
 }
 
-export function routingTags(agent, configuredAgents = {}) {
-  const route = routeForAgent(agent || "principal", configuredAgents)
+export function routingTags(agent, configuredAgents = {}, selectedModel) {
+  const route = routeForAgent(agent || "principal", configuredAgents, selectedModel)
   return [`&${profileTag()}`, `&capability:${route.capability}`, `&tier:${route.tier}`]
 }
 
@@ -84,7 +88,7 @@ export default async function RouterMetadataPlugin() {
       configuredAgents = config.agent ?? {}
     },
     "chat.headers": async (input, output) => {
-      output.headers["x-litellm-tags"] = routingTags(input.agent, configuredAgents).join(",")
+      output.headers["x-litellm-tags"] = routingTags(input.agent, configuredAgents, input.model).join(",")
     },
     "chat.params": async (_input, output) => {
       stripPrivateRoutingOptions(output.options)

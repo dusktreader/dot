@@ -37,7 +37,7 @@ task plan without needing an architecture section, use this skill.
 
 - Fixing a confirmed bug → `run-bug-fix` or `run-hotfix`
 - Addressing a gap in an existing implementation project → `run-fix`
-- Addressing PR review comments → `review-pr`
+- Addressing PR review comments → `external-review`
 
 
 ## Prerequisites
@@ -80,19 +80,12 @@ branch allocation, collision handling, and agent worktree creation. This workflo
 or merges into `main` or `master`.
 Once the normal branch is ready, tell the human to invoke `run-pr`.
 
-For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
-normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
+When starting from `main` or `master`, the created regular branch is the work and publishing branch. Do not merge it
+back into the base branch; use `run-pr` when the workflow is complete.
 
-After human QA approval and the stale-parent check, squash the agent branch exclusively into the parent branch:
-
-```shell
-git -C {parent-worktree} merge --squash {agent-branch}
-git commit -m "<message>"
-```
-
-The audit branch is **local only**. Do not push it to origin. Retain it locally indefinitely for audit and recovery;
-never delete it automatically. Only explicit human cleanup may delete it. After successful squash, invoke
-`cleanup-agent-worktree` to remove only the agent worktree.
+After human QA approval, the selected regular branch is ready for `run-pr`. There is no squash, merge, audit branch,
+or separate agent worktree when the parent is already a regular branch. If `worktree_created` is true, invoke
+`cleanup-agent-worktree` only to remove that temporary worktree.
 
 Do NOT push the parent branch and do NOT create a PR — that is the human's decision.
 
@@ -253,27 +246,14 @@ Proceeding to stage 5 (squash)
 ```
 
 
-### 5. Squash and report
+### 5. Report
 
-Immediately before integration, compare the recorded parent worktree, branch, and base with
-current parent state. A mismatch is a stale-parent stop requiring an explicit human decision.
-Never silently rebase, merge, discard, overwrite, or alter human work. If regeneration is
-approved, explicitly discard the agent worktree and audit branch, record the decision, and
-restart from the updated parent.
-
-After successful exclusive squash integration, invoke `cleanup-agent-worktree` with the creation result and agent
-worktree. It must remove only the agent worktree and retain the audit branch locally indefinitely only when the
-creation result says one exists; otherwise it reports that no temporary audit branch was created. Never delete it
-automatically; preserve both until the human explicitly removes them.
-
-Successful cleanup preserves the local agent branch.
-
-Perform the squash onto the parent branch (see Git workflow above).
+The selected regular branch is ready for `run-pr`. If `worktree_created` is true, invoke `cleanup-agent-worktree`
+only to remove the temporary worktree.
 
 Report completion to the human with:
 - The project directory path
-- The squash commit SHA on the parent branch
-- The audit branch name (preserved for history)
+- The regular branch name
 - Any Significant findings deferred as follow-up work
 
-Once the normal branch is ready, tell the human to invoke `run-pr`.
+Tell the human to invoke `run-pr`.

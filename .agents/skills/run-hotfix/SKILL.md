@@ -14,7 +14,7 @@ CI failures or code review comments from the PR thread.
 This is a standalone skill triggered directly by humans.
 
 Do not use when:
-- Addressing PR *review comments* that require triage and human decisions → use `review-pr`
+- Addressing PR *review comments* that require triage and human decisions → use `external-review`
   instead (which calls this skill internally for the actual fixes)
 - The bug requires thorough investigation and a full plan → use `run-bug-fix` instead
 - The fix is a gap in an existing implementation project → use `run-fix` instead
@@ -60,16 +60,11 @@ Select the active profile and tier before every applicable handoff: use `enginee
 tier, project class, and handoff purpose in the hotfix journal or review context. Do not add an engineer-planner
 handoff unless the principal explicitly changes the workflow class.
 
-Preserve the streamlined gates: brief investigation, principal-authored minimal plan, direct execution,
-one lightweight review, and the existing approval thresholds. Do not add task-style plan approval,
-independent review, or any additional human approval gate solely because isolation was added. Immediately before
-exclusive squash integration, compare the recorded parent worktree, branch, and base with current
-parent state. A stale parent stops the run and requires an explicit human reconciliation decision.
-Never silently rebase, merge, discard, overwrite, or mutate human work. After a successful squash, invoke
-`cleanup-agent-worktree` with the creation result and agent worktree. It must remove only the agent worktree and retain
-the audit branch locally indefinitely only when the creation result says one exists; otherwise it reports that no
-temporary audit branch was created. Never delete it automatically; only explicit human cleanup may delete it. Declined
-or abandoned runs preserve both until the human explicitly requests cleanup. Never push or create a pull request.
+Preserve the streamlined gates: brief investigation, principal-authored minimal plan, direct execution, one lightweight
+review, and the existing approval thresholds. Do not add task-style plan approval, independent review, or any additional
+human approval gate solely because isolation was added. The selected regular branch remains the working and publishing
+branch. There is no agent branch, audit branch, squash, or merge step. If `worktree_created` is true, invoke
+`cleanup-agent-worktree` only to remove the temporary worktree. Never push or create a pull request.
 
 
 ## Git workflow
@@ -96,11 +91,8 @@ existing lightweight review approval gate. Do not stop before that gate.
 
 After the review is approved, squash onto the parent branch:
 
-Run the squash from the parent worktree with `git -C {parent-worktree} merge --squash {agent-branch}`, then commit.
-
-The audit branch is **local only**. Do not push it to origin. It is preserved after the squash.
-
-After successful squash, invoke `cleanup-agent-worktree` with the creation result and agent worktree.
+There is no squash or merge step. The selected regular branch is ready for `run-pr` after review. If `worktree_created`
+is true, invoke `cleanup-agent-worktree` only to remove the temporary worktree.
 
 Do NOT push the parent branch — that is the human's decision.
 
@@ -142,7 +134,7 @@ same role for a constrained QA-fix handoff and record that purpose.
 
 Read the journal to collect the list of modified files. Dispatch the shared `engineer-reviewer` role through the
 selected
-profile launcher with the `review-code` skill, passing the list of modified files and the project directory. Record the
+profile launcher with the `internal-review` skill, passing the list of modified files and the project directory. Record the
 selected profile, tier, and project class in the hotfix review context.
 
 Before presenting the review, use any interactive diff-review capability available in the current runtime to gather

@@ -40,8 +40,8 @@ The only exception is if the user issues an explicit, unambiguous instruction in
 the current message — for example "push this branch now" or "go ahead and push".
 A prior session's permission does not carry over.
 
-Before running any `git push`, check the current branch with `git branch --show-current`.
-If the branch does not end in `--agents`, do not push — stop and ask the human.
+Before running any `git push`, check the current branch with `git branch --show-current` and confirm the human explicitly
+requested publication in the current request.
 
 
 ## Never force-push

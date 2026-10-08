@@ -8,7 +8,8 @@ import re
 from pathlib import Path
 import yaml
 
-ALIASES = {"light", "standard", "premium"}
+ALIASES = {"light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus"}
+LEGACY_ALIASES = {"light", "standard", "premium"}
 CAPABILITIES = {"coding", "analysis", "tools", "large-context"}
 TIERS = {"light", "standard", "premium"}
 PROFILES = {"personal": "profile:personal", "work": "profile:work"}
@@ -29,8 +30,12 @@ def _validate_profile(root: Path, profile: str) -> list[str]:
     overlay = json.loads(overlay_path.read_text())
     models = router.get("model_list", [])
     model_names = {item.get("model_name") for item in models if isinstance(item, dict)}
-    if not ALIASES.issubset(model_names):
-        failures.append(f"{profile}: missing logical aliases {sorted(ALIASES - model_names)}")
+    missing_aliases = ALIASES - model_names
+    legacy_aliases = LEGACY_ALIASES & model_names
+    if missing_aliases:
+        failures.append(f"{profile}: missing logical aliases {sorted(missing_aliases)}")
+    if legacy_aliases:
+        failures.append(f"{profile}: legacy aliases remain {sorted(legacy_aliases)}")
     if profile == "personal" and "personal-light-zen" not in model_names:
         failures.append("personal: missing approved Zen light fallback deployment")
     settings = router.get("router_settings", {})
@@ -64,6 +69,13 @@ def _validate_profile(root: Path, profile: str) -> list[str]:
         if "fallbacks:" in text:
             failures.append("work: work router must not configure fallbacks")
     provider = overlay.get("provider", {}).get(profile, {})
+    overlay_models = set(provider.get("models", {}))
+    missing_overlay_aliases = ALIASES - overlay_models
+    legacy_overlay_aliases = LEGACY_ALIASES & overlay_models
+    if missing_overlay_aliases:
+        failures.append(f"{profile}: overlay missing logical aliases {sorted(missing_overlay_aliases)}")
+    if legacy_overlay_aliases:
+        failures.append(f"{profile}: overlay legacy aliases remain {sorted(legacy_overlay_aliases)}")
     if provider.get("options", {}).get("baseURL") != "{env:OPENCODE_ROUTER_ENDPOINT}":
         failures.append(f"{profile}: overlay must use launcher-provided router endpoint")
     if SECRET_PATTERN.search(router_path.read_text()) or SECRET_PATTERN.search(overlay_path.read_text()):

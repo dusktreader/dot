@@ -22,8 +22,7 @@ resolution.
 - **PR**: the URL of the pull request
 - **Cycle**: the review cycle number (1 for the first review, incrementing for each
   subsequent cycle)
-- **Branch**: the agents-review branch used for this cycle
-  (`{parent-branch}--agents-review-{N}`)
+- **Branch**: the regular parent branch used for this cycle
 
 
 ### Triage

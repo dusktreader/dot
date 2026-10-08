@@ -21,9 +21,9 @@ This skill is a sub-skill called by orchestrators:
 - `run-bug-fix` — after the fix is executed
 - `run-fix` — after the scoped fix is executed
 
-Do not confuse with `review-code`, which reviews files against quality standards without a
+Do not confuse with `internal-review`, which reviews files against quality standards without a
 plan or journal. Use `review-implementation-execution` when a plan exists to verify against —
-use `review-code` when there is no plan.
+use `internal-review` when there is no plan.
 
 
 ## Prerequisites

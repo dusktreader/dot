@@ -14,7 +14,7 @@ This is a standalone skill triggered directly by humans.
 Do not use when:
 - Speed is critical and the fix is obvious → use `run-hotfix` instead
 - The bug is a gap in an already-implemented feature → use `run-fix` instead
-- The PR is already open and the fix is in response to a review comment → use `review-pr`
+- The PR is already open and the fix is in response to a review comment → use `external-review`
 
 Compared to `run-hotfix`: `run-bug-fix` includes investigation, a full implementation plan,
 and a plan review. `run-hotfix` skips those and goes straight to execution.
@@ -60,18 +60,10 @@ investigation, `engineer-planner` for planning, `engineer-executor` for executio
 `engineer-reviewer` for review. Record the profile, tier, project class, and handoff purpose in the implementation
 journal or review context.
 
-Perform final QA exactly once before independent review. QA-fix is a constrained executor handoff,
-not a second QA owner. Review approval remains an explicit human gate. Immediately before exclusive
-squash integration into the ready-to-PR parent branch, compare the current parent worktree, branch,
-and base with the recorded values. A stale-parent result stops the run and offers only an explicit
-human reconciliation decision. Never silently rebase, merge, discard, overwrite, or mutate human work.
-
-After successful squash, invoke `cleanup-agent-worktree` with the creation result and agent worktree. It must remove
-only the agent worktree and retain the audit branch locally indefinitely only when the creation result says one exists;
-otherwise it reports that no temporary audit branch was created. Never delete it automatically; only explicit human
-cleanup may delete it.
-If integration is declined or the run is abandoned, preserve both worktree and branch until the human explicitly
-requests cleanup. The workflow never pushes or creates a pull request.
+Perform final QA exactly once before independent review. QA-fix is a constrained executor handoff, not a second QA
+owner. Review approval remains an explicit human gate. The selected regular branch remains the working and publishing
+branch. There is no agent branch, audit branch, squash, or merge step. If `worktree_created` is true, invoke
+`cleanup-agent-worktree` only to remove the temporary worktree. The workflow never pushes or creates a pull request.
 
 
 ## Git workflow
@@ -129,25 +121,14 @@ Stage-specific commit types:
 
 The body bullets should summarise what the stage produced — not implementation detail.
 
-The audit branch is **local only**. Do not push it to origin. It is preserved after the squash so the full history
-remains accessible on the machine.
+The selected regular branch is the working and publishing branch. There is no audit branch or squash step.
 
 
-### Squash onto the feature branch
+### Completion on the regular branch
 
-After the execution is approved by both the agent reviewer and the human, squash the audit branch onto the parent
-feature branch:
-
-1. Propose a squash commit message to the human following the same format. **Wait for explicit
-   approval before proceeding.**
-2. Once approved:
-   ```shell
-    git -C {parent-worktree} merge --squash {agent-branch}
-    git -C {parent-worktree} commit -m "<approved message>"
-   ```
-3. Invoke `cleanup-agent-worktree` only after the successful squash. It preserves the audit branch locally as the full
-   commit history.
-4. Do NOT push the parent branch — that is the human's decision.
+After the execution is approved by both the agent reviewer and the human, the selected regular branch is ready for
+`run-pr`. If `worktree_created` is true, invoke `cleanup-agent-worktree` only to remove the temporary worktree. Do NOT
+push the branch — that is the human's decision.
 
 
 ## Process

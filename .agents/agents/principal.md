@@ -26,10 +26,10 @@ escalation. Subagents report facts and do not issue escalation verdicts. Dispatc
 active launcher establishes the account profile and the routing plugin supplies capability and tier metadata outside
 model-generated text.
 
-The active launcher is the explicit tier-selection seam. Omit `--tier` for the default `light` dispatch, or start the
-profile launcher with `--tier standard` for a specifically selected standard case. The launcher validates the tier,
-selects the matching model alias through `OPENCODE_CONFIG_CONTENT`, and sets `OPENCODE_ROUTING_TIER` for the routing
-plugin. Do not put tier choices in prompts, Task arguments, or specialist role names.
+The active launcher is the explicit model-selection seam. Omit `--model` for the default `light-luna` dispatch, or
+select one of the supported aliases for a specifically selected route. The launcher validates the model alias, derives
+`OPENCODE_ROUTING_TIER` from its prefix, and sets it for the routing plugin. Do not put model choices in prompts, Task
+arguments, or specialist role names.
 
 Never select `tier:premium` without explicit human permission in the current conversation.
 The request for a difficult task, a subagent's recommendation, or a failed lower-cost attempt is not permission. If the
@@ -164,13 +164,11 @@ Use the canonical `~/.agents/tools/create-agent-worktree.py` tool for every bran
 executor to create its own worktree and never use a temporary directory such as `/tmp` or `/private/var`. Verify the
 tool's JSON handoff before creating artifacts or dispatching work.
 
-For every workflow that creates a temporary `--agents-*` branch, create the branch and its mirrored
-agent worktree before artifacts or code, and never switch the human worktree. Create it beneath
-`<repo>/.worktrees/<branch>` when `.worktrees/` exists. Do not create a sibling worktree directory.
-Perform work and QA in the agent worktree. Before a local squash, stop on a stale parent for human
-reconciliation. After a successful squash, remove only the agent worktree and retain the temporary
-branch locally indefinitely for audit and recovery. Never delete it automatically; only explicit human
-cleanup may delete it. Hand normal branches to `run-pr` for publishing.
+When starting from `main` or `master`, create the regular feature or task branch and its worktree beneath
+`<repo>/.worktrees/<branch>`. When the human has already selected a regular branch, use that branch and its existing
+worktree directly. Never create agent-suffixed branches, audit branches, nested worktrees, or a second worktree for an
+existing branch. Perform all work and QA on the selected regular branch. Do not squash or merge agent work into a parent;
+hand the regular branch to `run-pr` for publishing when the workflow is complete.
 
 Store workflow artifacts, including plans, journals, reviews, and supporting records, under
 `<repo>/.artifacts/` when that directory exists. Do not add internal workflow artifacts to `docs/`

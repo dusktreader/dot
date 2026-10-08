@@ -24,6 +24,28 @@ test("routingTags uses a validated explicit standard tier", () => {
   delete process.env.OPENCODE_ROUTING_TIER
 })
 
+test("routingTags follows the selected model over the launch-time tier", () => {
+  process.env.OPENCODE_ROUTING_PROFILE = "profile:work"
+  process.env.OPENCODE_ROUTING_TIER = "light"
+  assert.deepEqual(routingTags("principal", {}, { providerID: "work", id: "standard" }), [
+    "&profile:work",
+    "&capability:tools",
+    "&tier:standard"
+  ])
+  delete process.env.OPENCODE_ROUTING_TIER
+})
+
+test("routingTags derives the tier from a model alias", () => {
+  process.env.OPENCODE_ROUTING_PROFILE = "profile:work"
+  process.env.OPENCODE_ROUTING_TIER = "light"
+  assert.deepEqual(routingTags("principal", {}, { providerID: "work", id: "standard-sonnet" }), [
+    "&profile:work",
+    "&capability:tools",
+    "&tier:standard"
+  ])
+  delete process.env.OPENCODE_ROUTING_TIER
+})
+
 test("routingTags defaults unknown agents to light and rejects invalid tiers", () => {
   process.env.OPENCODE_ROUTING_PROFILE = "profile:personal"
   delete process.env.OPENCODE_ROUTING_TIER

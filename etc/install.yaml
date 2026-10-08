@@ -367,8 +367,7 @@ tools:
       linux: |
         sudo snap install terraform --classic
       darwin: |
-        sudo port -N install terraform-1.13
-        sudo port select --set terraform terraform1.13
+        sudo port -N install terraform
 settings:
   - name: passwordless sudo
     check: '"$DOT_ROOT/tools/configure-sudoers.py" --check'

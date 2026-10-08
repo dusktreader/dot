@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create a repository-local agent branch and worktree."""
+"""Create a repository-local regular branch and worktree."""
 
 from __future__ import annotations
 
@@ -77,13 +77,26 @@ def main() -> None:
     if not local_worktrees.is_dir():
         raise SystemExit(f"Worktree path is not a directory: {local_worktrees}")
 
-    if args.parent_branch in {"main", "master"}:
-        requested_branch = f"{args.branch_type}/{args.task_id}--{args.slug}"
-        audit_branch = False
-    else:
-        requested_branch = f"{args.parent_branch}--agents-{args.workflow}"
-        audit_branch = True
+    if args.parent_branch not in {"main", "master"}:
+        print(
+            json.dumps(
+                {
+                    "repository": str(repository),
+                    "parent_worktree": str(parent_worktree),
+                    "parent_branch": args.parent_branch,
+                    "parent_base": args.parent_base,
+                    "workflow": args.workflow,
+                    "agent_branch": args.parent_branch,
+                    "agent_worktree": str(parent_worktree),
+                    "worktree_created": False,
+                    "audit_branch": False,
+                },
+                sort_keys=True,
+            )
+        )
+        return
 
+    requested_branch = f"{args.branch_type}/{args.task_id}--{args.slug}"
     agent_branch = next_branch(repository, requested_branch)
     agent_path = (local_worktrees / agent_branch).resolve()
     if agent_path in worktree_paths(repository) or agent_path.exists():
@@ -106,7 +119,8 @@ def main() -> None:
                 "workflow": args.workflow,
                 "agent_branch": agent_branch,
                 "agent_worktree": str(agent_path),
-                "audit_branch": audit_branch,
+                "worktree_created": True,
+                "audit_branch": False,
             },
             sort_keys=True,
         )

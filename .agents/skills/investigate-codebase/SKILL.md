@@ -19,7 +19,7 @@ This skill is a sub-skill called by orchestrators. It is used by:
 - `run-architecture-audit` — to gather raw findings before synthesis
 - `run-feature` — when the principal needs targeted codebase context
 
-Do not confuse with `review-code`, which reviews code quality rather than answering a question.
+Do not confuse with `internal-review`, which reviews code quality rather than answering a question.
 
 
 ## Prerequisites

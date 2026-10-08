@@ -12,7 +12,7 @@ from typerdrive import handle_errors, log_error
 
 from dot_tools.exceptions import OpenCodeError
 from dot_tools.opencode_costs import REPORT_COLUMNS, OpenCodeSessionStore, Report, fields
-from dot_tools.opencode_profile import OpenCodeProfileError, personal_lifecycle, validate_tier
+from dot_tools.opencode_profile import MODEL_ALIASES, OpenCodeProfileError, personal_lifecycle, routing_tier, validate_model
 from dot_tools.opencode_staleness_guard import check_before_edit, record_read
 from dot_tools.opencode_trends import DEFAULT_MAX_MODELS, aggregate_daily_model_costs, render_trends
 
@@ -33,14 +33,13 @@ class OutputFormat(AutoNameEnum):
 )
 def launch(
     ctx: typer.Context,
-    tier: Annotated[str, typer.Option("--tier", help="Routing tier: light, standard, or premium")] = "light",
+    model: Annotated[str, typer.Option("--model", help="Model alias: light-luna, light-haiku, standard-terra, standard-sonnet, premium-sol, or premium-opus")] = "light-luna",
 ) -> None:
     """
     Launch OpenCode through the personal LiteLLM router.
 
-    The default `light` tier uses the tool-capable Luna route. Select `standard` for a specific higher-capability case
-    with `--tier standard`. Explicit `--tier premium` is user authorization and does not require an approval
-    environment variable. Invalid tiers fail before router startup.
+    The default `light-luna` model uses the tool-capable Luna route. Select one of the supported aliases with
+    `--model`; premium authorization derives from the `premium-` model prefix. Invalid models fail before router startup.
 
     OpenCode arguments are passed through unchanged. The personal router listens only on `127.0.0.1:4010` and keeps
     OpenCode, Copilot, XDG, PID, log, and cache state under `~/.local/state/personal`. `HOME` remains unchanged so
@@ -51,11 +50,45 @@ def launch(
     capability, and tier metadata come from the launcher and plugin, not model-generated text.
     """
     try:
-        validate_tier(tier)
-        personal_lifecycle().launch(ctx.args, tier, explicit_cli_premium=tier == "premium")
+        validate_model(model)
+        personal_lifecycle().launch(ctx.args, model)
     except ValueError as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=2) from error
+    except OpenCodeProfileError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from error
+
+
+@cli.command("prompt")
+def prompt(
+    prompt_text: Annotated[str, typer.Argument(help="Prompt to send to OpenCode")],
+    model: Annotated[str, typer.Option("--model", help="Model alias: light-luna, light-haiku, standard-terra, standard-sonnet, premium-sol, or premium-opus")] = "light-luna",
+) -> None:
+    """Run a single prompt through the personal LiteLLM router."""
+    try:
+        validate_model(model)
+        personal_lifecycle().launch(["run", prompt_text], model)
+    except ValueError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=2) from error
+    except OpenCodeProfileError as error:
+        typer.echo(str(error), err=True)
+        raise typer.Exit(code=1) from error
+
+
+@cli.command("models")
+def models() -> None:
+    """List model aliases available through the personal LiteLLM router."""
+    for model in sorted(MODEL_ALIASES):
+        typer.echo(f"{model}\t{routing_tier(model)}")
+
+
+@cli.command("auth")
+def auth() -> None:
+    """Authenticate the personal GitHub Copilot provider."""
+    try:
+        personal_lifecycle().authenticate()
     except OpenCodeProfileError as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from error
