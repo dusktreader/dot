@@ -157,6 +157,11 @@ class OpenCodeLifecycle:
         return self.state_root / "router.log"
 
     @property
+    def open_code_log_file(self) -> Path:
+        """Return the profile-owned OpenCode application log file."""
+        return self.state_root / "xdg-data" / "opencode" / "log" / "opencode.log"
+
+    @property
     def key_file(self) -> Path:
         """Return the profile-owned router key file."""
         return self.state_root / "router.key"

@@ -59,6 +59,7 @@ minimal stub — headings and `{{ variable }}` slots — suitable for programmat
 | `implementation-plan/`    | HOW: step-by-step execution tasks with AC and steps       |
 | `implementation-review/`  | Structured critique of an implementation plan             |
 | `investigation-report/`   | Structured answer to a specific codebase question         |
+| `plan-deviations/`        | Human-directed changes that diverge from approved plans   |
 | `pr-review/`              | PR comment triage and resolution log                      |
 | `task-plan/`              | Focused plan for a minor engineering task                 |
 

@@ -64,6 +64,7 @@ the path. All artifacts for this project are stored there.
 | `implementation-plan.md`               | Implementation plan                                                                        |
 | `implementation-review--{N}.md`        | Implementation plan review (N = zero-padded 2 digits: 01, 02, ...)                         |
 | `implementation-journal.md`            | Execution journal                                                                          |
+| `plan-deviations.md`                   | Human-directed implementation changes that depart from the approved plans                  |
 | `execution-review--{scope-id}--{N}.md` | Execution review (scope-id = task-NN or whole-plan; N = zero-padded 2 digits: 01, 02, ...) |
 | `qa-journal.md`                        | User-directed QA changes, reasons, verification, and final QA summary                      |
 
@@ -83,7 +84,8 @@ is ready, tell the human to invoke `run-pr`.
 
 ### Commits after each approved stage
 
-After the human approves each stage, commit everything staged at that point:
+After the human approves a plan and its final agent review passes, commit everything staged at that point. After QA
+approval, commit the QA changes:
 
 ```shell
 git add -A
@@ -117,31 +119,28 @@ never delete the regular branch.
 
 This state machine is the workflow contract. Detailed stage instructions define how work in each state is performed.
 
-| State                               | Represents                                         | Transitions                                                                                                  |
-| ----------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Branch setup                        | Isolated workspace creation                        | Create worktree → Design authoring                                                                           |
-| Design authoring                    | Initial design-plan drafting and agent revisions   | Design agent review                                                                                          |
-| Design agent review                 | Initial adversarial design review                  | Approved → Design human feedback; findings → Design authoring                                                |
-| Design human feedback               | Collaborative human plan refinement                | Revisions → same state; `feedback complete` → Design final agent review                                      |
-| Design final agent review           | Consolidated adversarial review of human changes   | Approved → Design final human approval; findings → same state                                                |
-| Design final human approval         | Human decision on the reviewed design              | Approved → Implementation authoring; minor revision → final agent review; material revision → human feedback |
-| Implementation authoring            | Initial implementation-plan drafting and revisions | Implementation agent review                                                                                  |
-| Implementation agent review         | Initial adversarial implementation-plan review     | Approved → Implementation human feedback; findings → Implementation authoring                                |
-| Implementation human feedback       | Collaborative human plan refinement                | Revisions → same state; `feedback complete` → Implementation final agent review                              |
-| Implementation final agent review   | Consolidated adversarial review of human changes   | Approved → Implementation final human approval; findings → same state                                        |
-| Implementation final human approval | Human decision on the reviewed implementation plan | Approved → Execution; minor revision → final agent review; material revision → human feedback                |
-| Execution                           | Plan-directed code and test implementation         | Agent execution review                                                                                       |
-| Agent execution review              | Initial adversarial review of implemented code     | Approved → Human code review or QA; findings → Execution                                                     |
-| Human code review                   | Collaborative human review of code changes         | Suggestions → same state; `feedback complete` → Final agent code review; declined → QA                       |
-| Final agent code review             | Consolidated adversarial review of human changes   | Approved → Final human code approval; findings → same state                                                  |
-| Final human code approval           | Human decision on the reviewed code                | Approved → QA; requested changes → Final agent code review                                                   |
-| QA                                  | Human testing and acceptance of the code           | Requested code change → QA after focused verification; approved → Report                                     |
-| Report                              | Workflow closeout and publication handoff          | Report completion and offer `run-pr`                                                                         |
+| State                             | Represents                                           | Transitions                                                                                              |
+| --------------------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Branch setup                      | Isolated workspace creation                          | Create worktree → Design authoring                                                                       |
+| Design authoring                  | Initial design-plan drafting and agent revisions     | Design agent review                                                                                      |
+| Design agent review               | Initial adversarial design review                    | Approved → Design human feedback; findings → Design authoring                                            |
+| Design human feedback             | Collaborative human plan refinement and approval     | Revisions → same state; human approval → Design final agent review                                       |
+| Design final agent review         | Consolidated adversarial review of the approved plan | Approved → Implementation authoring; findings → same state; material plan change → Design human feedback |
+| Implementation authoring          | Initial implementation-plan drafting and revisions   | Implementation agent review                                                                              |
+| Implementation agent review       | Initial adversarial implementation-plan review       | Approved → Implementation human feedback; findings → Implementation authoring                            |
+| Implementation human feedback     | Collaborative human plan refinement and approval     | Revisions → same state; human approval → Implementation final agent review                               |
+| Implementation final agent review | Consolidated adversarial review of the approved plan | Approved → Execution; findings → same state; material plan change → Implementation human feedback        |
+| Execution                         | Plan-directed code and test implementation           | Agent execution review                                                                                   |
+| Agent execution review            | Initial adversarial review of implemented code       | Approved → Human code review or QA; findings → Execution                                                 |
+| Human code review                 | Collaborative human review of code changes           | Suggestions → same state; `feedback complete` → Final agent code review; declined → QA                   |
+| Final agent code review           | Consolidated adversarial review of human changes     | Approved → QA; findings → same state                                                                     |
+| QA                                | Human testing and acceptance of the code             | Requested code change → QA after focused verification; approved → Report                                 |
+| Report                            | Workflow closeout and publication handoff            | Report completion and offer `run-pr`                                                                     |
 
-A human-feedback state is collaborative and open-ended. `feedback complete` means the human has finished
-providing feedback, not that they approve the plan. Final approval is a separate, explicit signal. Treat a
-revision as material when it changes scope, requirements, architecture, acceptance criteria, task sequencing, or
-other plan intent. Otherwise it is minor.
+Plan feedback remains collaborative and open-ended. The human must explicitly approve the plan before final agent
+review; `feedback complete` alone is not approval. After final agent review approves the human-approved plan, proceed
+to the next stage without another human approval. If review findings require a material change to scope, requirements,
+architecture, acceptance criteria, task sequencing, or other plan intent, return to human feedback for renewed approval.
 
 
 ## Process
@@ -194,42 +193,27 @@ state. Present Unknowns one at a time, in order, and wait for each response. Fol
 and remove it from Unknowns. Do not infer answers or present more than one Unknown in a turn. Remove the section when
 all Unknowns are resolved. The same rule applies to implementation plans.
 
-
-### Design final agent review
-
-Stay in the human-feedback state until the human explicitly signals that their feedback is complete, for example,
-`feedback complete` or `ready for final review`. This is not approval. When that signal arrives, dispatch an
-`architect-reviewer` for a consolidated review of the current plan and all accumulated revisions. Resolve final-review
-findings as a batch, record outcomes, and re-dispatch only to verify material fixes until the reviewer approves.
-
-
-### Design final human approval
-
-**STOP — end your turn here.**
-Only after the final agent review is approved, present the plan for final human approval. Your final output in this
-turn must include this exact block, filled in:
+After feedback and Unknowns are resolved, request explicit human approval. `feedback complete` or `ready for final
+review` alone is not approval. Your final output while awaiting approval must include this block:
 
 ```text
 AWAITING APPROVAL: design plan
 Path: {path to design-plan.md}
-Unlocks: stage 2 (implementation plan) — nothing else
+Unlocks: final agent review; stage 2 begins if review approves
 Still requires separate approval before it can proceed: implementation plan, QA
 ```
 
-Do not proceed to planning without an unambiguous approval signal, such as `approved`, `looks good`, or `proceed`.
-Silence, a question, or a request for changes is not approval. For a minor requested revision, remain in the final
-review gate: revise, re-run the agent review cycle, and request approval again. For a material requested revision,
-return to the human-feedback state. Do not infer approval from the absence of an objection.
+Silence, a question, or a request for changes is not approval. Treat a revision as material when it changes scope,
+requirements, architecture, acceptance criteria, task sequencing, or other plan intent. Otherwise it is minor.
 
-When the human responds with approval, your next turn must open with:
 
-```text
-APPROVED: design plan
-NOT YET APPROVED: implementation plan, QA
-Proceeding to: stage 2 (create implementation plan)
-```
+### Design final agent review
 
-Once approved: commit (see Git workflow — "After design plan approved").
+After explicit human approval, dispatch an `architect-reviewer` for a consolidated review of the approved plan and all
+accumulated revisions. Resolve final-review findings as a batch, record outcomes, and re-dispatch only to verify
+material fixes until the reviewer approves. If resolving findings requires a material plan change, return to human
+feedback for renewed approval. Once the reviewer approves, commit the design plan and proceed directly to stage 2
+(implementation plan). Do not request another human approval.
 
 
 ### Implementation authoring
@@ -255,45 +239,43 @@ The implementation plan is ready for human feedback. Present it without summariz
 human-feedback state is collaborative: address questions and requested revisions, then stop again. Do **not** dispatch
 a reviewer because of a human-directed revision.
 
-
-### Implementation final agent review
-
-Stay in the human-feedback state until the human explicitly signals that their feedback is complete, for example,
-`feedback complete` or `ready for final review`. This is not approval. When that signal arrives, dispatch an
-`architect-reviewer` for a consolidated review of the current plan and all accumulated revisions. Resolve final-review
-findings as a batch, record outcomes, and re-dispatch only to verify material fixes until the reviewer approves.
-
-
-### Implementation final human approval
-
-**STOP — end your turn here.**
-Only after the final agent review is approved, present the plan for final human approval. Your final output in this
-turn must include this exact block, filled in:
+After feedback is complete, request explicit human approval. `feedback complete` or `ready for final review` alone is
+not approval. Your final output while awaiting approval must include this block:
 
 ```text
 AWAITING APPROVAL: implementation plan
 Path: {path to implementation-plan.md}
-Unlocks: stage 3 (execution) — nothing else
+Unlocks: final agent review; stage 3 begins if review approves
 Still requires separate approval before it can proceed: QA
 ```
 
-Do not proceed to execution without an unambiguous approval signal, such as `approved`, `looks good`, or `proceed`.
-Silence, a question, or a request for changes is not approval. For a minor requested revision, remain in the final
-review gate: revise, re-run the agent review cycle, and request approval again. For a material requested revision,
-return to the human-feedback state. Do not infer approval from the absence of an objection.
+Silence, a question, or a request for changes is not approval. Treat a revision as material when it changes scope,
+requirements, architecture, acceptance criteria, task sequencing, or other plan intent. Otherwise it is minor.
 
-When the human responds with approval, your next turn must open with:
 
-```text
-APPROVED: implementation plan
-NOT YET APPROVED: QA
-Proceeding to: stage 3 (execute)
-```
+### Implementation final agent review
 
-Once approved: commit (see Git workflow — "After implementation plan approved").
+After explicit human approval, dispatch an `architect-reviewer` for a consolidated review of the approved plan and all
+accumulated revisions. Resolve final-review findings as a batch, record outcomes, and re-dispatch only to verify
+material fixes until the reviewer approves. If resolving findings requires a material plan change, return to human
+feedback for renewed approval. Once the reviewer approves, commit the implementation plan and proceed directly to stage
+3 (execution). Do not request another human approval.
 
 
 ### Execution
+
+On entry to this state, read `.agents/artifacts/plan-deviations/description.md` and render
+`.agents/artifacts/plan-deviations/template.md.j2` as `plan-deviations.md` in the project directory. Replace the
+source plan path placeholders and retain `No deviations recorded.` until a deviation is added.
+
+From this point onward, treat `design-plan.md` and `implementation-plan.md` as immutable records of the approved
+pre-execution plan. Do not update them during execution, human code review, or QA, including in response to human
+feedback.
+
+For every human-directed implementation change after execution begins that departs from either approved plan, record
+the deviation in `plan-deviations.md`. Include the request, affected plan section, resulting change, reason if provided,
+and verification. Update the record as the change is implemented and verified. Do not record requests that are declined
+or changes already covered by the approved plans.
 
 Dispatch the shared `engineer-executor` role with the
 `execute-implementation-plan` skill and the implementation plan path.
@@ -330,8 +312,9 @@ they decline, proceed directly to QA. If they opt in, use any interactive diff-r
 current runtime, or present a concise diff summary through the normal review channel.
 
 For every human suggestion, dispatch an `engineer-executor` to implement the requested code change, run the focused
-quality gate, and return to this state. Do not modify plan or review artifacts, or dispatch an adversarial reviewer,
-while the human continues to provide feedback.
+quality gate, and return to this state. Keep `design-plan.md` and `implementation-plan.md` unchanged. Record departures
+from either approved plan in `plan-deviations.md`. Do not dispatch an adversarial reviewer while the human continues to
+provide feedback.
 
 Stay in this state until the human explicitly signals that their feedback is complete, for example, `feedback complete`
 or `ready for final review`. This is not approval.
@@ -341,21 +324,14 @@ or `ready for final review`. This is not approval.
 
 After the human completes feedback, dispatch an `engineer-reviewer` with `review-implementation-execution` at N+1.
 Resolve its findings, record each outcome, and re-dispatch the reviewer only to verify substantial fixes until it
-approves.
+approves. Once the final agent code review approves, proceed directly to QA without another human approval.
 
-
-### Final human code approval
-
-Only after the final agent code review is approved, present the code changes for final human approval. Do not proceed to
-QA without an unambiguous approval signal. If the human requests changes, dispatch an `engineer-executor` to implement
-them, run the focused quality gate, return to final agent code review, and then request final approval again.
-
-**Do not squash. Do not create a PR. Proceed directly to QA after final code approval.**
+**Do not squash. Do not create a PR. Proceed directly to QA after final code review.**
 
 
 ### QA
 
-This phase begins after the human declines code review or grants final human code approval.
+This phase begins after the human declines code review or the final agent code review approves.
 
 At this stage, the agent must stop, notify the human that the code is ready for QA, and wait for testing feedback. QA
 is the human approval gate for the implementation. It does not authorize a new planning or review cycle.
@@ -375,10 +351,10 @@ append an entry recording:
 - The files changed
 - Verification performed and its result
 
-During QA, agents and subagents MUST NOT modify the design plan, implementation plan, execution
-review, or any other plan or review artifact. Do not dispatch plan reviewers, reconcile the
-implementation against the plans, or start an adversarial review loop. Make only the smallest
-changes needed to address the user's direction.
+During QA, agents and subagents MUST NOT modify `design-plan.md`, `implementation-plan.md`, or review artifacts.
+For every human-directed QA change that departs from either approved plan, also update `plan-deviations.md` and link to
+the corresponding QA journal entry. Do not dispatch plan reviewers or perform a general plan reconciliation or
+adversarial review loop. Make only the smallest changes needed to address the user's direction.
 
 After each change, run the focused project quality gate and ask the human to verify the result.
 Wait for the human to report more work or give explicit QA approval. Issues reported, silence, or
@@ -393,6 +369,7 @@ Your final output while waiting must include this exact block:
 AWAITING APPROVAL: QA
 Branch: {regular branch name}
 QA journal: {path to qa-journal.md}
+Plan deviations: {path to plan-deviations.md}
 Unlocks: publication with `run-pr` — nothing else
 ```
 

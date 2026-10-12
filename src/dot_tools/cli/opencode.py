@@ -1,5 +1,6 @@
 """OpenCode CLI commands."""
 
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
@@ -112,6 +113,25 @@ def stop() -> None:
     except OpenCodeProfileError as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from error
+
+
+@cli.command("logs")
+def logs(
+    follow: Annotated[bool, typer.Option("--follow", "-f", help="Continue printing new log entries")] = False,
+    lines: Annotated[int, typer.Option("-n", "--lines", min=1, help="Number of recent lines to show")] = 30,
+) -> None:
+    """Show the personal OpenCode application log."""
+    log_file = personal_lifecycle().open_code_log_file
+    if not log_file.is_file():
+        typer.echo(f"OpenCode log file not found: {log_file}", err=True)
+        raise typer.Exit(code=1)
+
+    command = ["tail", f"-n{lines}"]
+    if follow:
+        command.append("-f")
+    result = subprocess.run([*command, str(log_file)], check=False)
+    if result.returncode:
+        raise typer.Exit(code=result.returncode)
 
 
 @staleness_guard_cli.command("read")
