@@ -159,6 +159,7 @@ def configure(
 def tunnel(
     target: Annotated[str, typer.Argument(help="SSH destination, such as user@example.com")],
     ports: Annotated[list[str], typer.Argument(help="Local port or LOCAL_PORT:REMOTE_PORT")],
+    debug: Annotated[bool, typer.Option(help="Show verbose SSH diagnostics")] = False,
 ):
     """
     Open an SSH tunnel to a remote host.
@@ -166,13 +167,28 @@ def tunnel(
     A bare port forwards the same port on both sides. A LOCAL_PORT:REMOTE_PORT
     specification forwards different local and remote ports.
     """
-    command = ["ssh", *_SSH_TUNNEL_OPTIONS]
-    for port_spec in ports:
-        command.extend(("-L", _format_tunnel_forward(port_spec)))
+    forwards = [_format_tunnel_forward(port_spec) for port_spec in ports]
+    for forward in forwards:
+        local_port = forward.split(":", 1)[0]
+        remote_port = forward.rsplit(":", 1)[1]
+        typer.echo(f"Forwarding localhost:{local_port} to {target}:{remote_port}", err=True)
+
+    command = ["ssh"]
+    if debug:
+        command.append("-vvv")
+    command.extend(_SSH_TUNNEL_OPTIONS)
+    for forward in forwards:
+        command.extend(("-L", forward))
     command.append(target)
 
-    result = subprocess.run(command)
+    try:
+        result = subprocess.run(command)
+    except OSError as error:
+        typer.echo(f"Failed to start SSH tunnel: {error}", err=True)
+        raise typer.Exit(code=127) from error
+
     if result.returncode != 0:
+        typer.echo(f"SSH tunnel exited with status {result.returncode}.", err=True)
         raise typer.Exit(code=result.returncode)
 
 

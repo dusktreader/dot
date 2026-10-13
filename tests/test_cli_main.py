@@ -166,6 +166,9 @@ class TestTunnel:
             result = runner.invoke(cli, ["tunnel", "user@raven", "15000", "9000:19000", "8000"])
 
         assert result.exit_code == 0
+        assert "Forwarding localhost:15000 to user@raven:15000" in result.output
+        assert "Forwarding localhost:9000 to user@raven:19000" in result.output
+        assert "Forwarding localhost:8000 to user@raven:8000" in result.output
         mock_run.assert_called_once_with([
             "ssh",
             "-N",
@@ -185,11 +188,27 @@ class TestTunnel:
             "user@raven",
         ])
 
+    def test_tunnel__enables_verbose_ssh_diagnostics_when_debug_is_requested(self, runner: CliRunner):
+        with patch("dot_tools.cli.main.subprocess.run", return_value=MagicMock(returncode=0)) as mock_run:
+            result = runner.invoke(cli, ["tunnel", "user@raven", "15000", "--debug"])
+
+        assert result.exit_code == 0
+        assert "-vvv" in mock_run.call_args[0][0]
+
     def test_tunnel__propagates_ssh_failure(self, runner: CliRunner):
         with patch("dot_tools.cli.main.subprocess.run", return_value=MagicMock(returncode=17)):
             result = runner.invoke(cli, ["tunnel", "user@raven", "15000"])
 
         assert result.exit_code == 17
+        assert "Forwarding localhost:15000 to user@raven:15000" in result.output
+        assert "SSH tunnel exited with status 17" in result.output
+
+    def test_tunnel__reports_failure_to_start_ssh(self, runner: CliRunner):
+        with patch("dot_tools.cli.main.subprocess.run", side_effect=FileNotFoundError("ssh not found")):
+            result = runner.invoke(cli, ["tunnel", "user@raven", "15000"])
+
+        assert result.exit_code == 127
+        assert "Failed to start SSH tunnel: ssh not found" in result.output
 
     def test_tunnel__rejects_malformed_port_specification(self, runner: CliRunner):
         with patch("dot_tools.cli.main.subprocess.run") as mock_run:
