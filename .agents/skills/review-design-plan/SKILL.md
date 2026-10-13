@@ -10,14 +10,14 @@ Read the provided design plan artifact and critique it in a structured review ar
 
 ## When to use
 
-Use this skill to critique a design plan artifact for structural completeness, AC quality,
-architectural clarity, and markdown conformance.
+Use this skill to critique a design plan artifact for structural completeness,
+AC quality, architectural clarity, and markdown conformance.
 
 This skill is a sub-skill called by orchestrators:
 - `run-feature` — after stage 1 (design) produces a design plan
 
-Do not confuse with `review-implementation-plan`, which reviews a lower-level implementation
-plan. Use this skill only for design plan artifacts — those describing WHAT and WHY, not HOW.
+Do not confuse with `review-implementation-plan`, which reviews a lower-level implementation plan. Use this skill only
+for design plan artifacts — those describing WHAT and WHY, not HOW.
 
 
 ## Prerequisites
@@ -46,14 +46,14 @@ Track your progress through these steps:
 
 ### 0. Setup
 
-Load the `create-design-plan` skill for process context. Read `.agents/artifacts/design-plan/description.md`
-for the canonical section definitions. Load any other relevant skills for context.
+Load the `create-design-plan` skill for process context. Read `.agents/artifacts/design-plan/description.md` for the
+canonical section definitions. Load any other relevant skills for context.
 
 
 ### 1. Resolve prior findings (re-review only)
 
-If a prior review artifact is provided, read it completely. For each prior finding, check whether the design
-plan has been updated to address it:
+If a prior review artifact is provided, read it completely. For each prior finding,
+check whether the design plan has been updated to address it:
 
 - ✓ Fully resolved — note the change in the plan
 - ⚠ Partially resolved — explain what remains
@@ -80,8 +80,8 @@ Flag any AC that is vague, subjective, redundant, or is not actually AC (e.g. an
 
 ### 4. Format markdown
 
-Run the `markdown_format` OpenCode tool with `mode: "format"` before reviewing the document. Do not run `check` or
-spend review tokens manually fixing formatting that the formatter handles.
+Run `dt format markdown` before reviewing the document. Do not pass `--check` or spend review
+tokens manually fixing formatting that the formatter handles.
 
 
 ### 5. Determine architectural clarity
@@ -101,8 +101,8 @@ Flag instances of:
 
 ### 7. Ensure unknowns relevance
 
-Ensure that the listed ambiguities are legitimate. Call out noise in this section. Make sure there is a clear
-resolution possible for each item. Call out any missing ambiguities that need to be addressed.
+Ensure that the listed ambiguities are legitimate. Call out noise in this section. Make sure there is a clear resolution
+possible for each item. Call out any missing ambiguities that need to be addressed.
 
 
 ### 8. Categorize findings
@@ -119,6 +119,6 @@ Each finding should be given a severity level:
 
 Write the review to `design-review--{N}.md` in the same directory as the design plan. Read
 `.agents/artifacts/design-review/description.md` for the canonical section definitions, and render
-`.agents/artifacts/design-review/template.md.j2` to produce the initial file. Replace all dummy
-content — every line drawn from the retro encabulator — with real content for this review. The
-rendered file must contain no placeholder text when submitted. Supply the path to your caller on completion.
+`.agents/artifacts/design-review/template.md.j2` to produce the initial file. Replace all dummy content — every line
+drawn from the retro encabulator — with real content for this review. The rendered file must contain no placeholder text
+when submitted. Supply the path to your caller on completion.

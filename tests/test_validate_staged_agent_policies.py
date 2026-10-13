@@ -23,7 +23,7 @@ def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
         Path(".agents/skills/run-fix/SKILL.md"),
         Path(".agents/skills/run-hotfix/SKILL.md"),
         Path(".agents/skills/run-pr/SKILL.md"),
-        Path(".agents/skills/review-pr/SKILL.md"),
+        Path(".agents/skills/external-review/SKILL.md"),
         *[path.relative_to(source) for path in (source / ".config/opencode/agents").glob("*.md")],
     ]
     for relative in relative_files:
@@ -78,7 +78,6 @@ def test_validator_requires_shared_worktree_skills(tmp_path: Path) -> None:
         ".agents/skills/run-bug-fix/SKILL.md",
         ".agents/skills/run-fix/SKILL.md",
         ".agents/skills/run-hotfix/SKILL.md",
-        ".agents/skills/review-pr/SKILL.md",
     ],
 )
 def test_validator_requires_shared_worktree_references(tmp_path: Path, relative: str) -> None:
@@ -96,7 +95,6 @@ def test_validator_requires_shared_worktree_references(tmp_path: Path, relative:
         (".agents/skills/run-bug-fix/SKILL.md", "feature/example--agents-bug-fix"),
         (".agents/skills/run-fix/SKILL.md", "allocate an audit branch"),
         (".agents/skills/run-hotfix/SKILL.md", "select a zero-padded suffix"),
-        (".agents/skills/review-pr/SKILL.md", "git worktree remove /tmp/agent"),
     ],
 )
 def test_validator_rejects_duplicate_worktree_plumbing(tmp_path: Path, relative: str, plumbing: str) -> None:
@@ -107,29 +105,30 @@ def test_validator_rejects_duplicate_worktree_plumbing(tmp_path: Path, relative:
 
 
 @pytest.mark.parametrize(
-    "relative",
+    ("relative", "shared_reference"),
     [
-        ".agents/skills/run-feature/SKILL.md",
-        ".agents/skills/run-task/SKILL.md",
-        ".agents/skills/run-bug-fix/SKILL.md",
-        ".agents/skills/run-fix/SKILL.md",
-        ".agents/skills/run-hotfix/SKILL.md",
-        ".agents/skills/review-pr/SKILL.md",
+        (".agents/skills/run-feature/SKILL.md", "cleanup-agent-worktree"),
+        (".agents/skills/run-task/SKILL.md", "cleanup-agent-worktree"),
+        (".agents/skills/run-bug-fix/SKILL.md", "cleanup-agent-worktree"),
+        (".agents/skills/run-fix/SKILL.md", "cleanup-agent-worktree"),
+        (".agents/skills/run-hotfix/SKILL.md", "cleanup-agent-worktree"),
     ],
 )
-def test_validator_rejects_wrong_shared_worktree_skill(tmp_path: Path, relative: str) -> None:
+def test_validator_rejects_wrong_shared_worktree_skill(
+    tmp_path: Path, relative: str, shared_reference: str
+) -> None:
     root, manifest = write_fixture(tmp_path)
     path = root / relative
-    path.write_text(path.read_text().replace("cleanup-agent-worktree", "create-agent-worktree"))
+    path.write_text(path.read_text().replace(shared_reference, "missing-worktree-skill"))
     assert any(relative in failure and "shared worktree reference" in failure for failure in validate(root, manifest))
 
 
 @pytest.mark.parametrize(
     ("relative", "needle"),
     [
-        (".agents/skills/create-agent-worktree/SKILL.md", "zero-padded suffix"),
+        (".agents/skills/create-agent-worktree/SKILL.md", "<repo>/.worktrees/"),
         (".agents/skills/cleanup-agent-worktree/SKILL.md", "git worktree list"),
-        (".agents/skills/cleanup-agent-worktree/SKILL.md", "no temporary audit branch was created"),
+        (".agents/skills/cleanup-agent-worktree/SKILL.md", "If `worktree_created` is false, do nothing."),
     ],
 )
 def test_validator_requires_shared_worktree_contract(tmp_path: Path, relative: str, needle: str) -> None:
@@ -243,8 +242,11 @@ def test_validator_rejects_incorrect_shared_role_prompt(tmp_path: Path) -> None:
     [
         (".agents/skills/run-bug-fix/SKILL.md", "before investigation"),
         (".agents/skills/run-fix/SKILL.md", "fail closed"),
-        (".agents/skills/run-hotfix/SKILL.md", "exclusive squash integration"),
-        (".agents/skills/review-pr/SKILL.md", "direct the user to run-pr"),
+        (".agents/skills/run-hotfix/SKILL.md", r"one lightweight\s+review"),
+        (
+            ".agents/skills/external-review/SKILL.md",
+            "Never push before the human approves the exact change, commit message, and response.",
+        ),
         (".agents/skills/create-agent-worktree/SKILL.md", "immutable parent base"),
         (".agents/skills/cleanup-agent-worktree/SKILL.md", "git worktree list"),
     ],
@@ -285,7 +287,7 @@ def test_validator_rejects_unqualified_unsafe_mutation_language(tmp_path: Path) 
     [
         (".agents/skills/run-bug-fix/SKILL.md", "before investigation"),
         (".agents/skills/run-fix/SKILL.md", "fail closed"),
-        (".agents/skills/run-hotfix/SKILL.md", "exclusive squash integration"),
+        (".agents/skills/run-hotfix/SKILL.md", r"one lightweight\s+review"),
     ],
 )
 def test_validator_rejects_missing_branch_workflow_lifecycle_requirement(
@@ -307,7 +309,7 @@ def test_validator_requires_run_fix_fail_closed_attachment(tmp_path: Path) -> No
 def test_validator_preserves_hotfix_streamlined_gate_and_no_planner(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
     path = root / ".agents/skills/run-hotfix/SKILL.md"
-    path.write_text(path.read_text().replace("one lightweight review", "two reviews", 1))
+    path.write_text(re.sub(r"one lightweight\s+review", "two reviews", path.read_text(), count=1))
     failures = validate(root, manifest)
     assert any("streamlined gate control" in failure for failure in failures)
 
@@ -339,7 +341,7 @@ def test_validator_rejects_missing_required_policy(tmp_path: Path, field: str) -
 def test_validator_requires_branch_contract(tmp_path: Path, relative: str) -> None:
     root, manifest = write_fixture(tmp_path)
     path = root / relative
-    path.write_text(path.read_text().replace("git merge --ff-only", "merge normally", 1))
+    path.write_text(path.read_text().replace("run-pr", "external-review"))
     assert any(relative in failure and "branch contract" in failure for failure in validate(root, manifest))
 
 
@@ -362,11 +364,11 @@ def test_validator_rejects_publication_and_worktree_mutation_controls(tmp_path: 
         ".agents/skills/run-hotfix/SKILL.md",
     ],
 )
-def test_validator_requires_ordered_main_integration(tmp_path: Path, relative: str) -> None:
+def test_validator_requires_run_pr_handoff(tmp_path: Path, relative: str) -> None:
     root, manifest = write_fixture(tmp_path)
     path = root / relative
-    path.write_text(path.read_text().replace("After approval rebase", "Before approval rebase", 1))
-    assert any("ordered approval, rebase, and fast-forward" in failure for failure in validate(root, manifest))
+    path.write_text(path.read_text().replace("run-pr", "external-review"))
+    assert any(relative in failure and "branch contract" in failure for failure in validate(root, manifest))
 
 
 def test_validator_preserves_principal_ownership_and_run_pr_controls(tmp_path: Path) -> None:
@@ -375,17 +377,20 @@ def test_validator_preserves_principal_ownership_and_run_pr_controls(tmp_path: P
     assert any("principal ownership" in failure for failure in failures)
 
     run_pr = root / ".agents/skills/run-pr/SKILL.md"
-    run_pr.write_text(run_pr.read_text().replace("`--agents`", "temporary branches", 1))
+    run_pr.write_text(run_pr.read_text().replace("Reject `main` and `master`", "Allow `main` and `master`", 1))
     assert any("run-pr missing required control" in failure for failure in validate(root, manifest))
 
 
-def test_validator_rejects_review_pr_publication_and_unretained_worktree(tmp_path: Path) -> None:
+def test_validator_rejects_external_review_force_push_and_missing_approval_gate(tmp_path: Path) -> None:
     root, manifest = write_fixture(tmp_path)
-    review_pr = root / ".agents/skills/review-pr/SKILL.md"
-    review_pr.write_text(review_pr.read_text() + "\ngit push origin feature\n")
-    assert any("review-pr includes a push command" in failure for failure in validate(root, manifest))
-    review_pr.write_text(review_pr.read_text().replace("Never delete it automatically", "Delete it automatically", 1))
-    assert any("retained temporary branch policy" in failure for failure in validate(root, manifest))
+    external_review = root / ".agents/skills/external-review/SKILL.md"
+    original = external_review.read_text()
+    external_review.write_text(original + "\ngit push --force origin feature\n")
+    assert any("external-review includes a force push" in failure for failure in validate(root, manifest))
+
+    approval_gate = "Never push before the human approves the exact change, commit message, and response."
+    external_review.write_text(original.replace(approval_gate, "Push before human approval."))
+    assert any(approval_gate in failure for failure in validate(root, manifest))
 
 
 @pytest.mark.parametrize(
@@ -396,7 +401,6 @@ def test_validator_rejects_review_pr_publication_and_unretained_worktree(tmp_pat
         ".agents/skills/run-bug-fix/SKILL.md",
         ".agents/skills/run-fix/SKILL.md",
         ".agents/skills/run-hotfix/SKILL.md",
-        ".agents/skills/review-pr/SKILL.md",
     ],
 )
 def test_validator_rejects_automatic_temporary_branch_deletion(tmp_path: Path, relative: str) -> None:

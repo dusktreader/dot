@@ -20,5 +20,5 @@ Read the relevant instruction file before starting any task that matches the tri
 
 ## Markdown formatting
 
-Use the `markdown_format` tool for Markdown files with `mode: "format"` after authoring or editing them. Do not run
-`check` during normal agent work; reserve it for explicit human or CI validation.
+Run `dt format markdown` on Markdown files after authoring or editing them. Do not pass `--check` during
+normal agent work; reserve it for explicit human or CI validation.

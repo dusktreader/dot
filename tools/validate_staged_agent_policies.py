@@ -30,63 +30,54 @@ _CAPABILITIES = {"coding", "analysis", "tools", "large-context"}
 _TIERS = {"light", "standard", "premium"}
 _LIFECYCLE_REQUIREMENTS = {
     ".agents/skills/run-feature/SKILL.md": (
-        "agent worktree",
-        "agent branch",
+        "create-agent-worktree",
         "before any artifact",
-        "exclusive squash integration",
-        "stale-parent",
-        "locally indefinitely",
+        "selected regular branch",
+        "cleanup-agent-worktree",
+        "never delete the regular branch",
     ),
     ".agents/skills/run-task/SKILL.md": (
-        "agent worktree",
-        "agent branch",
+        "create-agent-worktree",
         "before any artifact",
-        "exclusive squash integration",
-        "stale-parent",
-        "locally indefinitely",
+        "selected regular branch",
+        "cleanup-agent-worktree",
+        "run-pr",
     ),
     ".agents/skills/run-hack/SKILL.md": ("current branch", "no worktree", "no Git lifecycle", "only one artifact"),
     ".agents/skills/run-bug-fix/SKILL.md": (
         "agent worktree",
-        "agent branch",
         "before investigation",
-        "shared `engineer-investigator` role",
         "implementation journal",
         "final QA exactly once",
-        "exclusive squash integration",
-        "stale-parent",
-        "locally indefinitely",
+        "selected regular branch",
+        "cleanup-agent-worktree",
+        "never pushes",
     ),
     ".agents/skills/run-fix/SKILL.md": (
         "agent worktree",
-        "agent branch",
         "before reading or writing fix artifacts",
         "fail closed",
         "shared `engineer-executor` role",
-        "exclusive squash integration",
-        "stale parent",
-        "locally indefinitely",
+        "Run final QA once",
+        "cleanup-agent-worktree",
+        "never push or create a pull request",
     ),
     ".agents/skills/run-hotfix/SKILL.md": (
         "agent worktree",
-        "agent branch",
         "before investigation",
-        "shared `engineer-investigator` role",
-        "hotfix journal",
+        "principal-authored minimal plan",
         "one lightweight review",
-        "exclusive squash integration",
-        "stale parent",
-        "locally indefinitely",
+        "cleanup-agent-worktree",
+        "never push or create a pull request",
     ),
-    ".agents/skills/review-pr/SKILL.md": (
-        "agent worktree",
-        "agent branch",
-        "stale-parent",
-        "remove only the agent worktree",
-        "locally indefinitely",
-        "never delete it automatically",
-        "only explicit human cleanup may delete",
-        "direct the user to run-pr",
+    ".agents/skills/external-review/SKILL.md": (
+        "Stop and wait for explicit human approval before editing.",
+        "After the human approves the approach and before editing",
+        "Use one commit for each addressed comment.",
+        "Never push before the human approves the exact change, commit message, and response.",
+        "Push the current branch to its configured remote.",
+        "Never force-push, amend, or push unrelated changes.",
+        "Do not mark a thread resolved unless the human asks for that separately.",
     ),
 }
 _UNSAFE_MUTATION = re.compile(
@@ -100,7 +91,7 @@ _BRANCH_WORKFLOWS = (
     ".agents/skills/run-fix/SKILL.md",
     ".agents/skills/run-hotfix/SKILL.md",
 )
-_TEMPORARY_BRANCH_WORKFLOWS = (*_BRANCH_WORKFLOWS, ".agents/skills/review-pr/SKILL.md")
+_EXTERNAL_REVIEW_SKILL = ".agents/skills/external-review/SKILL.md"
 _SHARED_WORKTREE_SKILLS = (
     ".agents/skills/create-agent-worktree/SKILL.md",
     ".agents/skills/cleanup-agent-worktree/SKILL.md",
@@ -111,17 +102,15 @@ _SHARED_SKILL_CONTRACTS = {
         "parent branch",
         "immutable parent base",
         "workflow identifier",
-        "<repo-root>/.worktrees/<agent-branch>",
+        "<repo>/.worktrees/",
         "Never use `git switch`",
-        "zero-padded suffix",
     ),
     ".agents/skills/cleanup-agent-worktree/SKILL.md": (
         "git worktree remove",
         "git worktree list",
-        "git branch --list",
         "creation result",
-        "no temporary audit branch was created",
-        "Audit branch deletion is forbidden",
+        "If `worktree_created` is false, do nothing.",
+        "Never delete the regular branch automatically.",
         "Declined integration",
         "abandoned work",
     ),
@@ -133,21 +122,8 @@ _DUPLICATE_WORKTREE_PLUMBING = re.compile(
     r"(?:allocate|select)\s+(?:an?\s+)?(?:numbered|zero-padded|suffix)",
     re.IGNORECASE,
 )
-_BRANCH_CONTRACT = (
-    "local/audit only",
-    "tell the human to invoke `run-pr`",
-    "never pushes, creates a pull request, or merges into `main` or `master`",
-    "stop and obtain explicit human approval before integration",
-    "rebase the normal branch onto current main",
-    "git merge --ff-only",
-    "Never squash directly to main.",
-)
-_ORDERED_MAIN_INTEGRATION = re.compile(
-    r"stop and obtain explicit human approval before integration.{0,500}"
-    r"after approval rebase the\s+normal branch onto current main.{0,500}"
-    r"(?:then use )?`?git merge --ff-only`?.{0,500}never squash directly to main",
-    re.IGNORECASE | re.DOTALL,
-)
+_FORCE_PUSH = re.compile(r"\bgit push\b[^\n]*(?:--force(?:-with-lease)?|-f(?:\s|$))", re.IGNORECASE)
+_BRANCH_CONTRACT = ("run-pr",)
 _MODEL_SPECIFIC_DISPATCH = re.compile(
     r"model-specific|(?:architect|engineer)-[a-z-]+--(?:work|personal)-|\{work\|personal\}",
     re.IGNORECASE,
@@ -316,17 +292,9 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         if not re.search(pattern, task, re.IGNORECASE | re.DOTALL):
             failures.append(f"run-task missing required control: {phrase}")
 
-    for path_name in _TEMPORARY_BRANCH_WORKFLOWS:
+    for path_name in _BRANCH_WORKFLOWS:
         content = policy_text.get(Path(path_name), "")
         normalized_content = re.sub(r"\s+", " ", content).lower()
-        for requirement in (
-            "remove only the agent worktree",
-            "locally indefinitely",
-            "never delete it automatically",
-            "only explicit human cleanup may delete",
-        ):
-            if requirement not in normalized_content:
-                failures.append(f"{path_name} missing retained temporary branch policy: {requirement}")
         if re.search(r"git branch -[dD]\s+.*--agents", content, re.IGNORECASE):
             failures.append(f"{path_name} includes automatic temporary branch deletion")
         if "create-agent-worktree" not in content or "cleanup-agent-worktree" not in content:
@@ -334,10 +302,6 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         shared_references_removed = re.sub(r"`?(?:create|cleanup)-agent-worktree`?", "", content)
         if _DUPLICATE_WORKTREE_PLUMBING.search(shared_references_removed):
             failures.append(f"{path_name} includes duplicate worktree plumbing")
-
-    for path_name in _BRANCH_WORKFLOWS:
-        content = policy_text.get(Path(path_name), "")
-        normalized_content = re.sub(r"\s+", " ", content).lower()
         for requirement in _BRANCH_CONTRACT:
             if requirement.lower() not in normalized_content:
                 failures.append(f"{path_name} missing branch contract: {requirement}")
@@ -345,14 +309,12 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
             failures.append(f"{path_name} permits git switch outside its human-worktree prohibition")
         if re.search(r"\bgit push\b|\bgh pr (?:create|edit)\b", content, re.IGNORECASE):
             failures.append(f"{path_name} includes publication mechanics")
-        if not _ORDERED_MAIN_INTEGRATION.search(content):
-            failures.append(f"{path_name} lacks ordered approval, rebase, and fast-forward main integration")
 
     run_pr = policy_text.get(Path(".agents/skills/run-pr/SKILL.md"), "")
     for requirement in (
         "explicitly invokes `run-pr`",
-        "Reject `main`, `master`, and any branch whose name contains `--agents`",
-        "clean normal feature or task branch",
+        "Reject `main` and `master`",
+        "clean regular feature or task branch",
         "Confirm the authenticated `gh` account",
         "confirm the intended remote",
         "target base",
@@ -364,14 +326,9 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
     ):
         if requirement.lower() not in re.sub(r"\s+", " ", run_pr).lower():
             failures.append(f"run-pr missing required control: {requirement}")
-    review_pr = policy_text.get(Path(".agents/skills/review-pr/SKILL.md"), "")
-    if re.search(r"\bgit push\b", review_pr, re.IGNORECASE):
-        failures.append("review-pr includes a push command")
-    if "direct the user to run-pr" not in review_pr.lower():
-        failures.append("review-pr does not direct publication to run-pr")
-    review_setup = "Perform all comment triage artifacts, fixes, commits, and QA in `{agent-worktree}`"
-    if review_setup.lower() not in re.sub(r"\s+", " ", review_pr).lower():
-        failures.append(f"review-pr missing worktree setup control: {review_setup}")
+    external_review = policy_text.get(Path(_EXTERNAL_REVIEW_SKILL), "")
+    if _FORCE_PUSH.search(external_review):
+        failures.append("external-review includes a force push")
     hack = policy_text.get(Path(".agents/skills/run-hack/SKILL.md"), "")
     if not re.search(r"^name:\s*run-hack\s*$", hack, re.MULTILINE) or not re.search(r"^description:\s*.+", hack, re.MULTILINE):
         failures.append("run-hack frontmatter identity is incorrect")

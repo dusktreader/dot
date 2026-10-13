@@ -1,16 +1,7 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = ["typer"]
-# ///
-
 import re
 import textwrap
 from collections.abc import Iterator
 from pathlib import Path
-from typing import Annotated
-
-import typer
 
 
 MAX_PROSE_LINE_LENGTH = 120
@@ -20,9 +11,6 @@ HEADING_PATTERN = re.compile(r"^(#{1,6})\s+\S")
 H1_PATTERN = re.compile(r"^#\s+\S")
 TABLE_SEPARATOR_PATTERN = re.compile(r"^:?-+:?$")
 FRONTMATTER_DELIMITERS = {"---", "..."}
-
-app = typer.Typer(no_args_is_help=True, help="Check and format Markdown files.")
-Paths = Annotated[list[Path], typer.Argument(..., metavar="PATH")]
 
 
 def fence_match(line: str) -> re.Match[str] | None:
@@ -201,14 +189,30 @@ def wrap_prose_line(line: str) -> list[str]:
         text = line[len(initial_indent) :]
         subsequent_indent = initial_indent
 
-    return textwrap.wrap(
+    wrapped = textwrap.wrap(
         text,
         width=MAX_PROSE_LINE_LENGTH,
         initial_indent=initial_indent,
         subsequent_indent=subsequent_indent,
         break_long_words=False,
         break_on_hyphens=False,
-    ) or [line]
+    )
+    if len(wrapped) > 1:
+        final_content = wrapped[-1][len(subsequent_indent) :]
+        prior_indent = initial_indent if len(wrapped) == 2 else subsequent_indent
+        while len(final_content) < MAX_PROSE_LINE_LENGTH * 2 // 3:
+            prior_content = wrapped[-2][len(prior_indent) :]
+            prior_words = prior_content.rsplit(maxsplit=1)
+            if len(prior_words) != 2:
+                break
+            balanced_final_content = f"{prior_words[1]} {final_content}"
+            remaining_prior = prior_words[0]
+            if len(balanced_final_content) > MAX_PROSE_LINE_LENGTH or len(balanced_final_content) > len(remaining_prior):
+                break
+            wrapped[-2] = f"{prior_indent}{remaining_prior}"
+            wrapped[-1] = f"{subsequent_indent}{balanced_final_content}"
+            final_content = balanced_final_content
+    return wrapped or [line]
 
 
 def format_heading_spacing(lines: list[str]) -> list[str]:
@@ -262,6 +266,52 @@ def format_heading_spacing(lines: list[str]) -> list[str]:
     return result
 
 
+def is_prose_line(line: str) -> bool:
+    """Return whether a line can join a soft-wrapped prose paragraph."""
+    if not line.strip() or line[: len(line) - len(line.lstrip())]:
+        return False
+    if heading_match(line) or fence_match(line) or line.startswith("|"):
+        return False
+    if re.fullmatch(r"\s*-{3,}\s*", line):
+        return False
+    if re.match(r"(?:[-+*]\s+|\d+\.\s+|>\s?)", line):
+        return False
+    if line.startswith("<") or re.match(r"^\[[^\]]+\]:", line):
+        return False
+    return True
+
+
+def list_item_match(line: str) -> re.Match[str] | None:
+    """Return a list-item marker match for a line, if present."""
+    return re.match(r"^(\s*(?:[-+*]\s+|\d+\.\s+))", line)
+
+
+def is_list_continuation(line: str, indent_length: int) -> bool:
+    """Return whether an indented line continues the current list item."""
+    if not line.strip() or len(line) - len(line.lstrip()) != indent_length:
+        return False
+    content = line[indent_length:]
+    return not (
+        heading_match(content)
+        or fence_match(content)
+        or content.startswith("|")
+        or re.fullmatch(r"\s*-{3,}\s*", content)
+        or re.match(r"(?:[-+*]\s+|\d+\.\s+|>\s?)", content)
+    )
+
+
+def is_quoted_prose_content(line: str) -> bool:
+    """Return whether text inside a blockquote can join its prose paragraph."""
+    return bool(line.strip()) and not (
+        heading_match(line)
+        or fence_match(line)
+        or line.startswith("|")
+        or re.fullmatch(r"\s*-{3,}\s*", line)
+        or list_item_match(line)
+        or line.startswith(">")
+    )
+
+
 def format_contents(contents: str) -> str:
     """Apply deterministic Markdown formatting to file contents."""
     lines = [line.rstrip() for line in contents.split("\n")]
@@ -305,6 +355,42 @@ def format_contents(contents: str) -> str:
                 index += 1
             block = lines[start:index]
             formatted.extend(align_table(block) if any(is_separator_row(split_table_row(row)) for row in block) else block)
+            continue
+        list_marker = list_item_match(line)
+        if list_marker:
+            marker = list_marker[1]
+            paragraph = [line[len(marker) :].strip()]
+            index += 1
+            while index < len(lines) and is_list_continuation(lines[index], len(marker)):
+                paragraph.append(lines[index][len(marker) :].strip())
+                index += 1
+            formatted.extend(wrap_prose_line(f"{marker}{' '.join(paragraph)}"))
+            continue
+        quote_marker = re.match(r"^(\s*>\s?)", line)
+        if quote_marker:
+            marker = quote_marker[1]
+            content = line[len(marker) :].strip()
+            if is_quoted_prose_content(content):
+                paragraph = [content]
+                index += 1
+                while index < len(lines):
+                    next_marker = re.match(r"^(\s*>\s?)", lines[index])
+                    if not next_marker or next_marker[1] != marker:
+                        break
+                    next_content = lines[index][len(marker) :].strip()
+                    if not is_quoted_prose_content(next_content):
+                        break
+                    paragraph.append(next_content)
+                    index += 1
+                formatted.extend(wrap_prose_line(f"{marker}{' '.join(paragraph)}"))
+                continue
+        if is_prose_line(line):
+            paragraph = [line.strip()]
+            index += 1
+            while index < len(lines) and is_prose_line(lines[index]):
+                paragraph.append(lines[index].strip())
+                index += 1
+            formatted.extend(wrap_prose_line(" ".join(paragraph)))
             continue
         formatted.extend(wrap_prose_line(line))
         index += 1
@@ -409,38 +495,3 @@ def read_file(path: Path) -> str:
     """Read a Markdown file as UTF-8 text."""
     return path.read_text(encoding="utf-8")
 
-
-@app.command()
-def check(paths: Paths) -> None:
-    """Report Markdown formatting issues without changing files."""
-    files, input_errors = markdown_files(paths)
-    errors = list(input_errors)
-    for path in files:
-        errors.extend(validate_file(path, read_file(path)))
-    if errors:
-        typer.echo("\n".join(errors), err=True)
-        raise typer.Exit(1)
-    typer.echo(f"Markdown format check passed for {len(files)} file(s).")
-
-
-@app.command("format")
-def format_markdown(paths: Paths) -> None:
-    """Format Markdown files in place and report issues that remain."""
-    files, input_errors = markdown_files(paths)
-    errors = list(input_errors)
-    for path in files:
-        contents = read_file(path)
-        formatted = format_contents(contents)
-        if formatted != contents:
-            path.write_text(formatted, encoding="utf-8")
-            typer.echo(f"formatted: {path}")
-        else:
-            typer.echo(f"unchanged: {path}")
-        errors.extend(validate_file(path, formatted))
-    if errors:
-        typer.echo("\n".join(errors), err=True)
-        raise typer.Exit(1)
-
-
-if __name__ == "__main__":
-    app()

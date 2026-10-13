@@ -33,6 +33,7 @@ Top-level commands:
 | Command       | Description                                           |
 | ------------- | ----------------------------------------------------- |
 | `configure`   | Bootstrap / re-apply the full dotfiles installation   |
+| `format`      | Format Markdown files                                 |
 | `git`         | Git helper sub-commands                               |
 | `ssh`         | SSH key management sub-commands                       |
 | `kv`          | Produce a JSON string from key→value pairs            |
@@ -42,29 +43,28 @@ Top-level commands:
 | `logs`        | View application logs (typerdrive built-in)           |
 | `settings`    | Inspect/edit app settings (typerdrive built-in)       |
 
-Run `dt --help` or `dt <command> --help` for full option details.
+Use `dt format markdown <file-or-directory>` to format Markdown. Add `--check` to validate without changing files. Run
+`dt --help` or `dt <command> --help` for full option details.
 
 
 ## `dt configure` — system bootstrap
 
-`dt configure` is the primary bootstrap command. It creates a `DotInstaller` and calls
-`install_dot()`, which runs the following steps in order:
+`dt configure` is the primary bootstrap command. It creates a `DotInstaller` and
+calls `install_dot()`, which runs the following steps in order:
 
 1. **`_make_dirs`** — create directories listed under `mkdir_paths` in `etc/install.yaml`
 2. **`_make_links`** — create symlinks in `$HOME` for every path under `link_paths`
-3. **`_copy_files`** — copy files listed under `copy_paths`; respects file permissions and
-   protects files the user has locally modified (compares against last git-committed content)
+3. **`_copy_files`** — copy files listed under `copy_paths`; respects file permissions and protects files the user has
+   locally modified (compares against last git-committed content)
 4. **SSH keypair** — generate `~/.ssh/<user>.ed25519` if it does not already exist
-5. **`_install_tools`** — run installation scripts for each entry under `tools`; skips tools
-   whose `check` command exits 0
-6. **`_apply_settings`** — run scripts for each entry under `settings`; skips settings whose
-   `check` command exits 0
-7. **`_update_dotfiles`** — append `source <path>` lines for `dotfile_paths` entries to
-   `~/.extra_dotfiles`
+5. **`_install_tools`** — run installation scripts for each entry
+   under `tools`; skips tools whose `check` command exits 0
+6. **`_apply_settings`** — run scripts for each entry under `settings`; skips settings whose `check` command exits 0
+7. **`_update_dotfiles`** — append `source <path>` lines for `dotfile_paths` entries to `~/.extra_dotfiles`
 8. **`_github_cli_login`** — run `gh auth login` if not already authenticated
 9. **`_add_ssh_keys`** — upload the generated SSH public key to GitHub via `gh ssh-key add`
-10. **`_startup`** — inject an `EXTRA DOTFILES` block into `~/.bashrc` (Linux) or `~/.zshrc`
-    (macOS) that sources `~/.extra_dotfiles`
+10. **`_startup`** — inject an `EXTRA DOTFILES` block into `~/.bashrc`
+    (Linux) or `~/.zshrc` (macOS) that sources `~/.extra_dotfiles`
 11. **`_install_services`** — register services via launchd (macOS) or systemd user units (Linux)
 
 
@@ -81,10 +81,9 @@ Run `dt --help` or `dt <command> --help` for full option details.
 
 When a file in `copy_paths` already exists at the destination and differs from the source:
 
-- Without `--force`: compare destination against the last git-committed version of the source.
-  If the destination matches the committed version, the source has since been updated — safe to
-  overwrite. If the destination differs from the committed version, the user has local changes —
-  abort with an error.
+- Without `--force`: compare destination against the last git-committed version of the source. If the destination
+  matches the committed version, the source has since been updated — safe to overwrite. If the destination differs from
+  the committed version, the user has local changes — abort with an error.
 - With `--force`: always overwrite.
 
 
@@ -101,8 +100,8 @@ Sections:
 - **`mkdir_paths`**: directories to create under `$HOME`
 - **`tools`**: list of `{name, check, scripts: {generic, linux, darwin}}` entries
 - **`settings`**: same structure as tools; used for OS/preference configuration
-- **`services`**: list of `{name, label, executable, args, config_template}` entries; registered
-  as launchd agents (macOS) or systemd user services (Linux)
+- **`services`**: list of `{name, label, executable, args, config_template}` entries;
+  registered as launchd agents (macOS) or systemd user services (Linux)
 
 
 ## Development workflow
@@ -136,5 +135,5 @@ The configured line length is 120 characters (`[tool.ruff] line-length = 120`).
 - `"Linux"` — uses `apt`, `snap`, systemd user services, `~/.bashrc`
 - `"Darwin"` — uses MacPorts (`sudo port`), launchd agents, `~/.zshrc`
 
-Tool and setting scripts can provide `generic`, `linux`, and/or `darwin` variants.
-`generic` takes priority if present; otherwise the platform-specific script is required.
+Tool and setting scripts can provide `generic`, `linux`, and/or `darwin` variants. `generic` takes priority if
+present; otherwise the platform-specific script is required.

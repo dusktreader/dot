@@ -37,7 +37,7 @@ export PATH="$XDG_BIN_HOME:$PATH"
 confirm "Setup complete"
 
 check "Checking if git is installed"
-command -v uv > /dev/null 2>&1
+command -v git > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing git"
@@ -63,12 +63,7 @@ command -v uv > /dev/null 2>&1
 if (( $? ))
 then
     status "Installing uv"
-    if [[ "$OSTYPE" == "darwin"* ]]
-    then
-        sudo port -N install uv
-    else
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-    fi
+    curl -LsSf https://astral.sh/uv/install.sh | sh
     if (( $? ))
     then
         fail "Failed to install uv!"

@@ -1,7 +1,7 @@
 # System-Wide Agent Instructions
 
-Instructions applied to every agent session, regardless of project. These complement
-any project-level `.agents/` or `AGENTS.md` files found in the working directory.
+Instructions applied to every agent session, regardless of project. These complement any project-level
+`.agents/` or `AGENTS.md` files found in the working directory.
 
 
 ## Directory layout
@@ -17,8 +17,8 @@ any project-level `.agents/` or `AGENTS.md` files found in the working directory
 
 ## Agents
 
-Agent definitions live in `agents/`. Each file defines the persona, responsibilities, and mindset for one agent
-type. Orchestrators reference these by name when dispatching subagents.
+Agent definitions live in `agents/`. Each file defines the persona, responsibilities, and mindset for one agent type.
+Orchestrators reference these by name when dispatching subagents.
 
 | Agent                   | Role                                                                           |
 | ----------------------- | ------------------------------------------------------------------------------ |
@@ -34,17 +34,17 @@ type. Orchestrators reference these by name when dispatching subagents.
 
 ## Artifacts
 
-Artifact definitions live in `artifacts/`. Each subdirectory is named for the artifact type
-and contains exactly two files:
+Artifact definitions live in `artifacts/`. Each subdirectory is
+named for the artifact type and contains exactly two files:
 
 | File             | Contents                                                |
 | ---------------- | ------------------------------------------------------- |
 | `description.md` | Canonical section-by-section definition of the artifact |
 | `template.md.j2` | Renderable Jinja2 stub for the artifact                 |
 
-The `description.md` is the single source of truth for what belongs in each section. Skills
-reference it rather than carrying their own structural definitions. The `template.md.j2` is a
-minimal stub — headings and `{{ variable }}` slots — suitable for programmatic rendering.
+The `description.md` is the single source of truth for what belongs in each section. Skills reference it rather than
+carrying their own structural definitions. The `template.md.j2` is a minimal stub — headings and
+`{{ variable }}` slots — suitable for programmatic rendering.
 
 | Artifact type             | Description                                               |
 | ------------------------- | --------------------------------------------------------- |
@@ -91,13 +91,12 @@ Scripts in `tools/` are executable — invoke them directly. Run any tool with `
 
 | Tool                             | Purpose                                                |
 | -------------------------------- | ------------------------------------------------------ |
-| `tools/markdown-format.py`       | Automatically format Markdown files                    |
 | `tools/md-to-pdf.py`             | Render markdown files to styled PDF (headless browser) |
 | `tools/create-agent-worktree.py` | Create a branch and repository-local agent worktree    |
 
 
 ## Skill discovery
 
-Skills are directories containing a `SKILL.md` file. Search for a named skill with
-`**/*<skill-name>*/SKILL.md` under the skills directory, or read a known skill using its full path. Searching only
-for a skill directory name may not return a result with all filesystem glob implementations.
+Skills are directories containing a `SKILL.md` file. Search for a named skill with `**/*<skill-name>*/SKILL.md` under
+the skills directory, or read a known skill using its full path. Searching only for a skill directory name may
+not return a result with all filesystem glob implementations.

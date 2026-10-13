@@ -14,9 +14,11 @@ def runner():
 
 
 @pytest.fixture
-def temp_home():
-    """Create a temporary home directory for test isolation."""
+def temp_home(monkeypatch):
+    """Create a temporary settings directory for test isolation."""
     with tempfile.TemporaryDirectory() as tmpdir:
+        monkeypatch.setenv("HOME", tmpdir)
+        monkeypatch.setenv("DOT_STATE_HOME", tmpdir)
         yield tmpdir
 
 

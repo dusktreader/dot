@@ -1,7 +1,7 @@
 # Markdown Style Guide
 
-Rules for every Markdown file authored or edited by an agent, including repository documentation, work
-artifacts, READMEs, plans, and files under `.agents/`.
+Rules for every Markdown file authored or edited by an agent, including repository
+documentation, work artifacts, READMEs, plans, and files under `.agents/`.
 
 
 ## File structure
@@ -31,8 +31,8 @@ A brief paragraph describing what this document covers.
 
 No trailing punctuation on headings. No bold in headings.
 
-Always include 2 blank lines before a heading UNLESS the parent heading has no content, or the
-heading is preceded by a separator bar (`----`) in which case use 1 blank line:
+Always include 2 blank lines before a heading UNLESS the parent heading has no content, or the heading is
+preceded by a separator bar (`----`) in which case use 1 blank line:
 
 ```markdown
 # Parent
@@ -45,8 +45,8 @@ Child content here
 ### Grandchild
 ```
 
-Add a separator bar before going back to a higher-level heading. Do not use a separator bar between siblings at
-the same level or between a parent and its first child. Use four dashes (`----`) for separator bars.
+Add a separator bar before going back to a higher-level heading. Do not use a separator bar between siblings at the same
+level or between a parent and its first child. Use four dashes (`----`) for separator bars.
 
 ```markdown
 ## Section 1
@@ -61,16 +61,16 @@ the same level or between a parent and its first child. Use four dashes (`----`)
 
 ## Lists
 
-Use a blank line before and after a list block. Do not put blank lines between list items. If a list item wraps
-before 120 characters, indent the continuation line to align with the start of the text on the line above.
+Use a blank line before and after a list block. Do not put blank lines between list items. If a list item wraps before
+120 characters, indent the continuation line to align with the start of the text on the line above.
 
 
 ### Unordered lists
 
 Use `-` (not `*` or `+`).
 
-A **bold** subject followed by a colon is acceptable only when the full item fits on one line (≤ 120
-characters including the leading `- `):
+A **bold** subject followed by a colon is acceptable only when the full item
+fits on one line (≤ 120 characters including the leading `- `):
 
 ```markdown
 - **First item**: description of the first item
@@ -78,9 +78,8 @@ characters including the leading `- `):
   - Nested item (two-space indent)
 ```
 
-If an item's content would exceed 120 characters or requires more than one sentence, promote it to a
-subsection (`###` or `####`) instead. Never use a bold subject as a quasi-heading for a multi-sentence
-paragraph inside a list.
+If an item's content would exceed 120 characters or requires more than one sentence, promote it to a subsection (`###`
+or `####`) instead. Never use a bold subject as a quasi-heading for a multi-sentence paragraph inside a list.
 
 
 ### Ordered lists
@@ -104,8 +103,8 @@ Inline code: backticks for commands, file paths, env vars, function names, and l
 Set `GITHUB_TOKEN` before running `gh auth login`.
 ```
 
-Fenced code blocks: always specify the language, even if it is just `text`.
-Use `shell` for shell commands (not `bash` or `sh`).
+Fenced code blocks: always specify the language, even if it is just
+`text`. Use `shell` for shell commands (not `bash` or `sh`).
 
 ````markdown
 ```shell
@@ -163,20 +162,19 @@ Wrap all prose lines at 120 characters. Code blocks and tables are exempt.
 
 ## Required formatting
 
-Run the `markdown_format` OpenCode tool with `mode: "format"` after authoring or editing Markdown. If the tool is
-unavailable, invoke the formatter executable directly. It implements this guide's formatting preferences; do not
-substitute a third-party linter.
+Run `dt format markdown` after authoring or editing Markdown. It implements this guide's
+formatting preferences; do not substitute a third-party linter.
 
 ```shell
-~/.agents/tools/markdown-format.py format <file-or-directory>
+dt format markdown <file-or-directory>
 ```
 
 Formatting is the normal agent workflow. Do not run the checker or spend time manually fixing formatting that the
-formatter handles. The `check` mode is available for explicit human or CI validation:
+formatter handles. The `--check` option is available for explicit human or CI validation:
 
 ```shell
-~/.agents/tools/markdown-format.py check <file-or-directory>
+dt format markdown --check <file-or-directory>
 ```
 
-Use `check` only when a human or CI job explicitly requests validation. If a formatting rule needs an intentional
+Use `--check` only when a human or CI job explicitly requests validation. If a formatting rule needs an intentional
 exception, ask the human for approval and document the exception in the relevant artifact or task output.
