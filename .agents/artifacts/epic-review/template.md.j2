@@ -1,0 +1,40 @@
+# Epic review: {{ epic_title }}
+
+An adversarial review of the epic plan and its product-level decomposition.
+
+
+## Source artifact
+
+- Epic plan: `{{ epic_plan }}`
+- Epic identifier: `{{ epic_id }}`
+- Iteration: `{{ iteration }}`
+- Reviewed revision: `{{ revision }}`
+- Reviewer: `{{ reviewer }}`
+- Date: `{{ date }}`
+
+
+## Outcome
+
+{{ approved_or_changes_required }}
+
+{{ gate_readiness }}
+
+
+## Findings
+
+### E01: {{ finding_title }}
+
+- Severity: {{ Critical_Significant_or_Minor }}
+- Location: {{ plan_section_or_line }}
+- Evidence: {{ observed_gap }}
+- Impact: {{ product_or_delivery_impact }}
+- Resolution: {{ concrete_action }}
+
+
+## Prior-review resolution
+
+{{ prior_review_path_or_no_prior_review }}
+
+| Finding | Resolution state | Evidence |
+| ------- | ---------------- | -------- |
+| E01     | {{ resolved_unresolved_or_regressed }} | {{ verification }} |

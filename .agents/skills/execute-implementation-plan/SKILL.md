@@ -5,20 +5,20 @@ description: Instructions for executing implementation plans. Use when specifica
 
 # Execute Implementation Plan Skill
 
-The executor runs focused tests during execution and reports objective verification facts. Final QA is run once by the
-orchestrator after execution, not repeatedly by this skill.
+The executor runs focused tests during execution and reports objective verification facts. Final
+QA is run once by the orchestrator after execution, not repeatedly by this skill.
 
-Read the provided implementation plan artifact and execute every task in it to completion.
-Record progress in an implementation journal.
+Read the provided implementation plan artifact and execute every task
+in it to completion. Record progress in an implementation journal.
 
 
 ## When to use
 
-Use this skill to execute an approved implementation plan end-to-end. It is the execution
-stage in multiple orchestrator workflows.
+Use this skill to execute an approved implementation plan end-to-end.
+It is the execution stage in multiple orchestrator workflows.
 
 This skill is a sub-skill called by orchestrators:
-- `run-feature` — stage 3 (execute)
+- `run-feature-lifecycle` — execution stage in standalone and epic modes
 - `run-bug-fix` — execute stage
 - `run-fix` — execute stage
 - `run-hotfix` — execute stage
@@ -38,19 +38,18 @@ If not provided, ask before proceeding. Do not guess.
 
 ## Artifact
 
-Write the journal to `{project-dir}/implementation-journal.md`, where `{project-dir}` is the
-directory containing the implementation plan. Read `.agents/artifacts/implementation-journal/description.md`
-for the canonical section definitions, and render `.agents/artifacts/implementation-journal/template.md.j2`
-to produce the initial file. Replace all dummy content — every line drawn from the retro encabulator —
-with real content for this project. The rendered file must contain no placeholder text when submitted.
-Supply the path to your caller on completion.
+Write the journal to `{project-dir}/implementation-journal.md`, where `{project-dir}` is the directory containing the
+implementation plan. Read `.agents/artifacts/implementation-journal/description.md` for the canonical section
+definitions, and render `.agents/artifacts/implementation-journal/template.md.j2` to produce the initial file. Replace
+all dummy content — every line drawn from the retro encabulator — with real content for this project. The rendered file
+must contain no placeholder text when submitted. Supply the path to your caller on completion.
 
 
 ## Scope
 
-The work is complete only when **every task in the plan** has been executed and all acceptance
-criteria are met. Do not stop partway through the plan to report progress. Do not stop because
-a batch of tasks feels like a natural checkpoint. The plan is the unit of work — finish it.
+The work is complete only when **every task in the plan** has been executed and all acceptance criteria are met. Do not
+stop partway through the plan to report progress. Do not stop because a batch of
+tasks feels like a natural checkpoint. The plan is the unit of work — finish it.
 
 The only valid reasons to stop early are:
 - A task is genuinely blocked by missing information that cannot be found in the codebase
@@ -60,14 +59,12 @@ In either case, report the specific blocker clearly and stop. Otherwise, keep go
 
 Each listed task must be completed such that the acceptance criteria are fully met.
 
-All code that is produced must have unit test coverage. If a section should not be tested
-(generic setup/boilerplate) or cannot be directly tested (external calls that would be
-onerous to mock), exclude it via inline exclusion markers for the coverage tool. 100%
-coverage for all new or modified code should be the goal.
+All code that is produced must have unit test coverage. If a section should not be tested (generic setup/boilerplate) or
+cannot be directly tested (external calls that would be onerous to mock), exclude it via inline exclusion markers for
+the coverage tool. 100% coverage for all new or modified code should be the goal.
 
-You are writing code, not providing commentary on the plan artifact. If you have doubts about
-the plan, report that feedback to the caller before you start. Do NOT modify ANY planning
-documents.
+You are writing code, not providing commentary on the plan artifact. If you have doubts about the plan, report
+that feedback to the caller before you start. Do NOT modify ANY planning documents.
 
 
 ## Process
@@ -93,12 +90,12 @@ Work through every task in order, from first to last, without stopping. For each
 - Write a journal entry describing what was done and the outcome.
 - Move immediately to the next task.
 
-Do not pause between tasks. Do not batch tasks into groups and report partway through.
-Continue until every task is done.
+Do not pause between tasks. Do not batch tasks into groups and
+report partway through. Continue until every task is done.
 
 
 ### 3. Report back
 
-Report back to the orchestrator after all tasks are complete. Summarize results and objective focused-test
-verification facts, and note any challenges or surprises. Do not run project-wide QA or invoke `make qa`; the
-orchestrator owns final QA after execution.
+Report back to the orchestrator after all tasks are complete. Summarize results and objective focused-test verification
+facts, and note any challenges or surprises. Do not run project-wide QA
+or invoke `make qa`; the orchestrator owns final QA after execution.

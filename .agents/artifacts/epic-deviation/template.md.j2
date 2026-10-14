@@ -1,0 +1,54 @@
+# Epic deviation {{ sequence }}: {{ epic_title }}
+
+Product-level assessment of a human-approved feature-plan departure.
+
+
+## Source and departure
+
+- Epic plan: `{{ epic_plan }}`
+- Tranche: `{{ tranche_id }}`
+- Affected features: {{ feature_ids }}
+- Human-approved request: {{ request }}
+- Affected approved plan or criterion: {{ plan_reference }}
+
+| Feature | Feature deviation record |
+| ------- | ------------------------ |
+| FNN     | `{{ feature_deviation_path }}` |
+
+
+## Product-level impact
+
+### Epic outcome and scope
+
+{{ outcome_and_scope_impact }}
+
+
+### Success criteria and integration
+
+{{ success_criteria_and_integration_impact }}
+
+
+### Dependencies and sequencing
+
+{{ dependency_and_sequence_impact }}
+
+
+## Work decision
+
+- Decision: {{ pause_or_continue }}
+- Affected unfinished work: {{ affected_work }}
+- Rationale: {{ decision_rationale }}
+
+
+## Approval requirements
+
+- Renewed epic-plan approval: {{ yes_or_no }}
+- Renewed tranche design-set approval: {{ yes_or_no }}
+- Approval evidence and approved revision: {{ evidence }}
+
+
+## Verification
+
+| Feature or criterion | Required verification | Result | Human acceptance |
+| -------------------- | --------------------- | ------ | ---------------- |
+| {{ affected_item }} | {{ verification }} | {{ result }} | {{ acceptance }} |

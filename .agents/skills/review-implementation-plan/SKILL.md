@@ -14,12 +14,12 @@ Use this skill to critique an implementation plan artifact for structural
 completeness, AC quality, task ordering, and markdown conformance.
 
 This skill is a sub-skill called by orchestrators:
-- `run-feature` — after stage 2 (planning) produces an implementation plan
+- `run-feature-lifecycle` — implementation-planning stage in standalone and epic modes
 - `run-bug-fix` — after the bug fix plan is produced
 - `run-fix` — after the scoped fix plan is produced
 
-Do not confuse with `review-design-plan`, which reviews the higher-level design artifact. Use this skill only for
-implementation plan artifacts — those describing HOW to build something.
+Do not confuse with `review-design-plan`, which reviews the higher-level design artifact. Use this skill
+only for implementation plan artifacts — those describing HOW to build something.
 
 
 ## Prerequisites
@@ -48,14 +48,14 @@ Track your progress through these steps:
 ### 0. Setup
 
 Load the `create-implementation-plan` skill for process context. Read
-`.agents/artifacts/implementation-plan/description.md` for the canonical section definitions. Locate the design plan
-referenced in the implementation plan for higher-level context.
+`.agents/artifacts/implementation-plan/description.md` for the canonical section definitions.
+Locate the design plan referenced in the implementation plan for higher-level context.
 
 
 ### 1. Resolve prior findings (re-review only)
 
-If a prior review artifact is provided, read it completely. For each prior finding, check
-whether the implementation plan has been updated to address it:
+If a prior review artifact is provided, read it completely. For each prior finding,
+check whether the implementation plan has been updated to address it:
 
 - ✓ Fully resolved — note the change in the plan
 - ⚠ Partially resolved — explain what remains
@@ -82,8 +82,8 @@ Review the `## Relevant Skills` section. Ensure that all listed skills actually 
 
 ### 5. Format markdown
 
-Run `dt format markdown` before reviewing the document. Do not pass `--check` or spend review
-tokens manually fixing formatting that the formatter handles.
+Run `dt format markdown` before reviewing the document. Do not pass `--check`
+or spend review tokens manually fixing formatting that the formatter handles.
 
 
 ### 6. Evaluate execution tasks
@@ -133,5 +133,5 @@ Each finding should be given a severity level:
 Write the review to `implementation-review--{N}.md` in the same directory as the implementation plan. Read
 `.agents/artifacts/implementation-review/description.md` for the canonical section definitions, and render
 `.agents/artifacts/implementation-review/template.md.j2` to produce the initial file. Replace all dummy content — every
-line drawn from the retro encabulator — with real content for this review. The rendered file must contain no placeholder
-text when submitted. Supply the path to your caller on completion.
+line drawn from the retro encabulator — with real content for this review. The rendered file must contain
+no placeholder text when submitted. Supply the path to your caller on completion.

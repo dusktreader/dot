@@ -10,11 +10,11 @@ Based on business requirements, create a design plan artifact.
 
 ## When to use
 
-Use this skill to produce a design plan artifact from business requirements or a feature description. It is
-always the first artifact stage in the `run-feature` workflow.
+Use this skill to produce a feature-scoped design plan artifact from business requirements or a feature description. It
+is the first feature artifact stage in the standalone `run-feature` and epic-coordinated feature lifecycles.
 
 This skill is a sub-skill called by orchestrators:
-- `run-feature` — stage 1 (design)
+- `run-feature-lifecycle` — design stage in standalone and epic modes
 
 Do not use this skill to write implementation plans, fix plans, or any code. The output is a design plan only. Do not
 confuse with `create-implementation-plan`, which translates a design plan into executable steps.
@@ -50,20 +50,20 @@ The line between design and implementation:
 
 Implementation plans follow design plans. Those documents explain the HOW.
 
-**The plan MUST conform to the structure defined in the template!** Plans that deviate
-will be flagged by the plan reviewer with Critical Findings.
+**The plan MUST conform to the structure defined in the template!** Plans
+that deviate will be flagged by the plan reviewer with Critical Findings.
 
 
 ## Scope
 
-The work is complete after the design plan is created. The work does not include writing the implementation plan. The
-work should never include creation or modification of product code.
+The work is complete after the design plan is created. The work does not include writing the
+implementation plan. The work should never include creation or modification of product code.
 
 
 ## Structure
 
-Read `.agents/artifacts/design-plan/description.md` for the canonical definition of each section — what belongs
-there, what good looks like, and what is explicitly excluded.
+Read `.agents/artifacts/design-plan/description.md` for the canonical definition of each
+section — what belongs there, what good looks like, and what is explicitly excluded.
 
 Use `.agents/artifacts/design-plan/template.md.j2` as the structural stub. A good design plan is succinct and clear. It
 can be consumed by agents and humans alike to understand the scope and goals of the project. A reviewer should be able
@@ -75,11 +75,11 @@ to approve or reject the direction without needing to know how any of it will be
 Write the design plan to `{project-dir}/design-plan.md`. Supply the path to your caller on completion.
 
 Render `.agents/artifacts/design-plan/template.md.j2` to produce the initial file. Replace all dummy content — every
-line drawn from the retro encabulator — with real content for this project. The
-rendered file must contain no placeholder text when submitted.
+line drawn from the retro encabulator — with real content for this project.
+The rendered file must contain no placeholder text when submitted.
 
-Before writing, read and follow `~/.agents/instructions/markdown.md`. All heading spacing, list formatting,
-line length, and code fence rules apply to every plan artifact.
+Before writing, read and follow `~/.agents/instructions/markdown.md`. All heading spacing,
+list formatting, line length, and code fence rules apply to every plan artifact.
 
-Before submitting the artifact, run `dt format markdown` on it. Do not pass `--check` during normal agent
-work; formatting handles the Markdown style rules automatically.
+Before submitting the artifact, run `dt format markdown` on it. Do not pass `--check`
+during normal agent work; formatting handles the Markdown style rules automatically.

@@ -1,0 +1,100 @@
+# Epic plan: {{ epic_title }}
+
+{{ initiative_outcome }}
+
+
+## Goal
+
+{{ product_outcome_and_beneficiaries }}
+
+
+## Scope and non-goals
+
+### Scope
+
+{{ included_scope }}
+
+
+### Non-goals
+
+{{ excluded_scope }}
+
+
+## Success criteria
+
+| ID  | Integrated product outcome | Verification method | State |
+| --- | -------------------------- | ------------------- | ----- |
+| S01 | {{ success_criterion }}    | {{ verification }}  | Open  |
+
+
+## Architecture and cross-cutting decisions
+
+{{ product_level_decisions }}
+
+
+## Feature register
+
+| Feature | Outcome | Tranche | Priority | Dependencies | State | Artifact directory |
+| ------- | ------- | ------- | -------- | ------------ | ----- | ------------------ |
+| F01     | {{ outcome }} | T01 | {{ priority }} | None | Proposed | `.artifacts/{{ date }}--{{ epic_name }}--F01-{{ feature_name }}/` |
+
+
+## Tranche register
+
+| Tranche | Objective | Features | Dependencies | State | Verification result | Artifact links | Coordinator branch | Coordinator worktree |
+| ------- | --------- | -------- | ------------ | ----- | ------------------- | -------------- | ------------------ | -------------------- |
+| T01     | {{ mvp_objective }} | F01 | None | Proposed | Not started | `epic-plan.md` | Not selected | Not selected |
+| T02+    | Approved later-slice objective | FNN | Prerequisite tranche IDs | Brief | Not started | Epic plan only until approved | Not selected | Not selected |
+
+
+## T01 MVP plan
+
+### Objective
+
+{{ mvp_objective }}
+
+
+### Included features and dependencies
+
+| Feature | Outcome | Dependencies | Artifact directory |
+| ------- | ------- | ------------ | ------------------ |
+| F01     | {{ outcome }} | None | `.artifacts/{{ date }}--{{ epic_name }}--F01-{{ feature_name }}/` |
+
+Every committed MVP feature requires a complete, individually reviewed design plan before implementation planning or
+code begins. The complete T01 design set requires explicit human approval before implementation planning starts.
+
+
+### Acceptance boundary
+
+{{ mvp_acceptance_boundary }}
+
+
+## Post-MVP roadmap briefs
+
+| Feature | Brief outcome | Priority | Dependencies | Proposed tranche |
+| ------- | ------------- | -------- | ------------ | ---------------- |
+| FNN     | {{ deferred_outcome }} | {{ priority }} | {{ dependencies }} | Unscheduled |
+
+Do not create detailed feature artifacts until the human approves a roadmap tranche.
+
+
+## Dependencies
+
+{{ product_and_cross_tranche_dependencies }}
+
+
+## Risks
+
+| Risk | Impact | Mitigation | Owner |
+| ---- | ------ | ---------- | ----- |
+| {{ risk }} | {{ impact }} | {{ mitigation }} | {{ owner }} |
+
+
+## Unknowns
+
+- {{ answerable_product_question }}
+
+
+## Closure criteria
+
+{{ tranche_acceptance_epic_closure_and_roadmap_decision }}

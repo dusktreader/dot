@@ -13,17 +13,16 @@ Read the implementation journal, inspect the modified files recorded in it, and 
 
 ## When to use
 
-Use this skill to review code changes *against an implementation plan and journal* — verifying
-AC coverage, plan alignment, scope creep, and code quality.
+Use this skill to review code changes *against an implementation plan and journal*
+— verifying AC coverage, plan alignment, scope creep, and code quality.
 
 This skill is a sub-skill called by orchestrators:
-- `run-feature` — after stage 3 (execute) produces an implementation journal
+- `run-feature-lifecycle` — after execution produces an implementation journal in standalone or epic mode
 - `run-bug-fix` — after the fix is executed
 - `run-fix` — after the scoped fix is executed
 
-Do not confuse with `internal-review`, which reviews files against quality standards without a
-plan or journal. Use `review-implementation-execution` when a plan exists to verify against —
-use `internal-review` when there is no plan.
+Do not confuse with `internal-review`, which reviews files against quality standards without a plan or journal. Use
+`review-implementation-execution` when a plan exists to verify against — use `internal-review` when there is no plan.
 
 
 ## Prerequisites
@@ -42,9 +41,9 @@ If any of these are missing, ask before proceeding. Do not guess.
 
 Write the review to `execution-review--{scope-id}--{N}.md` in the same directory as the journal. Read
 `.agents/artifacts/execution-review/description.md` for the canonical section definitions, and render
-`.agents/artifacts/execution-review/template.md.j2` to produce the initial file. Replace all dummy
-content — every line drawn from the retro encabulator — with real content for this review. The rendered
-file must contain no placeholder text when submitted. Supply the path to your caller on completion.
+`.agents/artifacts/execution-review/template.md.j2` to produce the initial file. Replace all dummy content — every line
+drawn from the retro encabulator — with real content for this review. The rendered file must contain
+no placeholder text when submitted. Supply the path to your caller on completion.
 
 
 ## Scope
@@ -60,9 +59,9 @@ file must contain no placeholder text when submitted. Supply the path to your ca
 
 ### 1. Read context
 
-Read the implementation journal. From it, locate and read the implementation plan referenced in the journal's
-`## Source plan` section. If `Project Commands` or `Project Standards` is missing from the plan, report a
-Critical finding and stop.
+Read the implementation journal. From it, locate and read the implementation plan referenced in the journal's `## Source
+plan` section. If `Project Commands` or `Project Standards` is
+missing from the plan, report a Critical finding and stop.
 
 Locate and read the design plan referenced by the implementation plan for higher-level context.
 
@@ -78,22 +77,20 @@ Walk through every finding from the prior review artifact. For each, mark:
 
 ### 3. Identify files under review
 
-From the journal's `## Files modified` section(s), collect the list of files changed for the scope being
-reviewed. Read each file directly. Do not rely solely on the journal's description of what changed.
+From the journal's `## Files modified` section(s), collect the list of files changed for the scope being reviewed. Read
+each file directly. Do not rely solely on the journal's description of what changed.
 
 
 ### 4. Run verification commands
 
-Consult the project's working guides or the plan's `Project Commands` section to find the
-correct commands for running all quality checks. Run all of them: type checker, linter, and
-tests.
+Consult the project's working guides or the plan's `Project Commands` section to find the correct commands
+for running all quality checks. Run all of them: type checker, linter, and tests.
 
 Do not invent commands not documented in the project. If no coverage command is documented,
 record `skipped (no project-documented command)` in the verification evidence.
 
-If any quality check fails (type errors, lint errors, test failures): stop, write the review
-artifact noting the full failure output, and return "Quality checks failing. Fix before
-review." Do not continue the review past this point.
+If any quality check fails (type errors, lint errors, test failures): stop, write the review artifact noting the full
+failure output, and return "Quality checks failing. Fix before review." Do not continue the review past this point.
 
 
 ### 4. Verify acceptance criteria
@@ -114,9 +111,9 @@ A Critical finding for any of:
 
 ### 5. Check for scope creep
 
-For each file listed in the journal as modified, identify which plan task justifies the change. Unjustified
-changes to unrelated subsystems, security-sensitive code, or public APIs are Critical findings. Other
-unjustified changes are Significant findings.
+For each file listed in the journal as modified, identify which plan task justifies the change. Unjustified changes to
+unrelated subsystems, security-sensitive code, or public APIs are Critical
+findings. Other unjustified changes are Significant findings.
 
 
 ### 6. Review code and test quality

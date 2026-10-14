@@ -1,7 +1,7 @@
 # System-Wide Agent Instructions
 
-Instructions applied to every agent session, regardless of project. These complement any project-level
-`.agents/` or `AGENTS.md` files found in the working directory.
+Instructions applied to every agent session, regardless of project. These complement
+any project-level `.agents/` or `AGENTS.md` files found in the working directory.
 
 
 ## Directory layout
@@ -17,8 +17,8 @@ Instructions applied to every agent session, regardless of project. These comple
 
 ## Agents
 
-Agent definitions live in `agents/`. Each file defines the persona, responsibilities, and mindset for one agent type.
-Orchestrators reference these by name when dispatching subagents.
+Agent definitions live in `agents/`. Each file defines the persona, responsibilities, and mindset for
+one agent type. Orchestrators reference these by name when dispatching subagents.
 
 | Agent                   | Role                                                                           |
 | ----------------------- | ------------------------------------------------------------------------------ |
@@ -43,8 +43,8 @@ named for the artifact type and contains exactly two files:
 | `template.md.j2` | Renderable Jinja2 stub for the artifact                 |
 
 The `description.md` is the single source of truth for what belongs in each section. Skills reference it rather than
-carrying their own structural definitions. The `template.md.j2` is a minimal stub — headings and
-`{{ variable }}` slots — suitable for programmatic rendering.
+carrying their own structural definitions. The `template.md.j2` is a minimal stub
+— headings and `{{ variable }}` slots — suitable for programmatic rendering.
 
 | Artifact type             | Description                                               |
 | ------------------------- | --------------------------------------------------------- |
@@ -54,6 +54,9 @@ carrying their own structural definitions. The `template.md.j2` is a minimal stu
 | `code-review/`            | Standalone code quality review without a plan             |
 | `design-plan/`            | WHAT and WHY: requirements, AC, and architecture          |
 | `design-review/`          | Structured critique of a design plan                      |
+| `epic-deviation/`         | Product-level assessment of a feature-plan departure      |
+| `epic-plan/`              | Product-level outcome, feature register, MVP, and roadmap |
+| `epic-review/`            | Adversarial review of an epic plan                        |
 | `execution-review/`       | Code review against an implementation plan and journal    |
 | `implementation-journal/` | Running record of execution progress                      |
 | `implementation-plan/`    | HOW: step-by-step execution tasks with AC and steps       |
@@ -66,8 +69,8 @@ carrying their own structural definitions. The `template.md.j2` is a minimal stu
 
 ## Instructions
 
-Instruction files live in `instructions/`. Read them when they are relevant to the task at hand.
-`instructions/about-me.md` is the exception: read it every session.
+Instruction files live in `instructions/`. Read them when they are relevant to the
+task at hand. `instructions/about-me.md` is the exception: read it every session.
 
 | File                         | Read when                                                                                   |
 | ---------------------------- | ------------------------------------------------------------------------------------------- |
@@ -98,5 +101,5 @@ Scripts in `tools/` are executable — invoke them directly. Run any tool with `
 ## Skill discovery
 
 Skills are directories containing a `SKILL.md` file. Search for a named skill with `**/*<skill-name>*/SKILL.md` under
-the skills directory, or read a known skill using its full path. Searching only for a skill directory name may
-not return a result with all filesystem glob implementations.
+the skills directory, or read a known skill using its full path. Searching only for a skill
+directory name may not return a result with all filesystem glob implementations.
