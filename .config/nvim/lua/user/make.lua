@@ -44,10 +44,15 @@ local function term_opts(id, cmd)
             local code = vim.v.event.status
             local icon = code == 0 and "✓" or "✗"
             local msg = code == 0 and "succeeded" or ("failed (exit " .. code .. ")")
+            if not vim.api.nvim_buf_is_valid(self.buf) then return end
+
+            local was_modifiable = vim.bo[self.buf].modifiable
+            vim.bo[self.buf].modifiable = true
             vim.api.nvim_buf_set_lines(self.buf, -1, -1, false, {
               "",
               icon .. " " .. cmd .. " " .. msg,
             })
+            vim.bo[self.buf].modifiable = was_modifiable
           end,
         })
       end,
