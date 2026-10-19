@@ -6,7 +6,7 @@ import git
 import pytest
 
 from dot_tools.exceptions import GitError
-from dot_tools.git_tools import GitUrl, GitManager
+from dot_tools.git_tools import GitUrl, GitManager, _run_git
 
 
 class TestGitUrl:
@@ -34,6 +34,28 @@ def init_empty_repo(path: Path) -> git.Repo:
     repo = git.Repo.init(path)
     repo.index.commit("Initial Commit")
     return repo
+
+
+class TestRunGit:
+    def test_run_git__returns_standard_output(self, tmp_path: Path):
+        root = tmp_path / "repo"
+        init_empty_repo(root)
+
+        assert _run_git(root, "rev-parse", "--show-toplevel") == str(root)
+
+    def test_run_git__adds_command_and_stderr_to_git_error(self, tmp_path: Path):
+        root = tmp_path / "repo"
+        init_empty_repo(root)
+
+        with pytest.raises(GitError, match=r"git -C .* not-a-command failed with exit code") as error:
+            _run_git(root, "not-a-command")
+
+        assert "not-a-command" in str(error.value)
+
+    def test_run_git__wraps_os_errors(self, tmp_path: Path):
+        with patch("dot_tools.git_tools.subprocess.run", side_effect=FileNotFoundError("git missing")):
+            with pytest.raises(GitError, match="Could not run git"):
+                _run_git(tmp_path, "status")
 
 
 def init_filled_repo(path: Path) -> git.Repo:
@@ -431,17 +453,13 @@ class TestGitManagerConflicts:
                 # editor invocation — simulate the user resolving the conflict
                 battle.write_text("resolved\n")
 
-        with patch("subprocess.call") as mock_call:
-            mock_call.side_effect = side_effect
+        with patch("subprocess.call", side_effect=side_effect), patch(
+            "dot_tools.git_tools._run_git", wraps=_run_git
+        ) as mock_run_git:
             git_man.resolve_conflicts()
 
-        # Verify that `git add <path>` was called for the modified file
-        add_calls = [
-            c for c in mock_call.call_args_list
-            if c.args[0][0] == "git" and "add" in c.args[0]
-        ]
-        assert len(add_calls) == 1
-        assert str(battle) in add_calls[0].args[0]
+        mock_run_git.assert_any_call(fake_root, "add", str(battle))
+        mock_run_git.assert_any_call(fake_root, "status")
 
     def test_resolve_conflicts__skips_staging_unmodified_file(
         self,
@@ -452,16 +470,10 @@ class TestGitManagerConflicts:
         monkeypatch.chdir(fake_root)
         git_man = GitManager()
 
-        with patch("subprocess.call") as mock_call:
-            # editor does nothing — file is not modified
+        with patch("subprocess.call"), patch("dot_tools.git_tools._run_git", wraps=_run_git) as mock_run_git:
             git_man.resolve_conflicts()
 
-        # `git add` should not have been called
-        add_calls = [
-            c for c in mock_call.call_args_list
-            if c.args[0][0] == "git" and "add" in c.args[0]
-        ]
-        assert len(add_calls) == 0
+        assert not any(call.args[1] == "add" for call in mock_run_git.call_args_list)
 
     def test_resolve_conflicts__raises_error_when_no_conflicts(
         self,
@@ -485,11 +497,7 @@ class TestGitManagerConflicts:
         monkeypatch.chdir(fake_root)
         git_man = GitManager()
 
-        with patch("subprocess.call") as mock_call:
+        with patch("subprocess.call"), patch("dot_tools.git_tools._run_git", wraps=_run_git) as mock_run_git:
             git_man.resolve_conflicts()
 
-        status_calls = [
-            c for c in mock_call.call_args_list
-            if c.args[0][0] == "git" and "status" in c.args[0]
-        ]
-        assert len(status_calls) == 1
+        mock_run_git.assert_called_once_with(fake_root, "status")

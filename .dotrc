@@ -122,6 +122,29 @@ alias fvim='fzf --print0 | xargs -0 -o nvim'
 alias cojira='dt git cojira'
 alias cb='current-branch'
 
+dt() {
+    case "$1" in
+        worktree|worktrees|jump|drop) ;;
+        *) command dt "$@"; return $? ;;
+    esac
+
+    local dt_navigation_file dt_navigation_status dt_destination
+    dt_navigation_file=$(mktemp) || return
+    DT_NAVIGATION_FILE="$dt_navigation_file" command dt "$@"
+    dt_navigation_status=$?
+    if [[ -s "$dt_navigation_file" ]]; then
+        IFS= read -r dt_destination < "$dt_navigation_file"
+        rm -f "$dt_navigation_file"
+        if [[ $dt_navigation_status -eq 0 ]]; then
+            builtin cd "$dt_destination" || return
+            smart_ls .
+        fi
+    else
+        rm -f "$dt_navigation_file"
+    fi
+    return "$dt_navigation_status"
+}
+
 alias sl='ls'
 alias ls='ls --color=tty'
 

@@ -1,5 +1,6 @@
 import os
 import re
+import shlex
 import subprocess
 from dataclasses import dataclass
 from enum import StrEnum, auto
@@ -11,6 +12,19 @@ import git
 from loguru import logger
 
 from dot_tools.exceptions import DotError, GitError
+
+
+def _run_git(root: Path, *args: str) -> str:
+    command = ["git", "-C", str(root), *args]
+    try:
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as error:
+        output = (error.stderr or error.stdout or "").strip()
+        detail = f": {output}" if output else ""
+        raise GitError(f"{shlex.join(command)} failed with exit code {error.returncode}{detail}") from error
+    except OSError as error:
+        raise GitError(f"Could not run {shlex.join(command)}: {error}") from error
+    return result.stdout.strip()
 
 
 class GitProtocol(StrEnum):
@@ -206,11 +220,11 @@ class GitManager:
             subprocess.call([editor, str(path)])
             if path.stat().st_mtime != mtime_before:
                 logger.debug(f"Staging {path} (modified)")
-                subprocess.call(["git", "-C", str(self.repo.working_dir), "add", str(path)])
+                _run_git(Path(self.repo.working_dir), "add", str(path))
             else:
                 logger.debug(f"Skipping {path} (unchanged)")
 
-        subprocess.call(["git", "-C", str(self.repo.working_dir), "status"])
+        print(_run_git(Path(self.repo.working_dir), "status"))
 
     def checkout_branch_by_pattern(self, pattern: str):
         matching_refs: list[git.Head | git.SymbolicReference] = [

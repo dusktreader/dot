@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.13"
 
 [[package]]
@@ -319,6 +319,7 @@ dependencies = [
     { name = "auto-name-enum" },
     { name = "dateparser" },
     { name = "gitpython" },
+    { name = "inflection" },
     { name = "loguru" },
     { name = "paramiko" },
     { name = "plotille" },
@@ -355,6 +356,7 @@ requires-dist = [
     { name = "auto-name-enum", specifier = ">=4.1.0" },
     { name = "dateparser", specifier = ">=1.4.1" },
     { name = "gitpython", specifier = "~=3.1" },
+    { name = "inflection", specifier = ">=0.5.1" },
     { name = "loguru", specifier = "~=0.7" },
     { name = "paramiko", specifier = "~=3.5" },
     { name = "plotille", specifier = ">=5.0.0" },

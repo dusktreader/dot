@@ -22,6 +22,8 @@ from dot_tools.cli.ssh import cli as ssh_cli
 from dot_tools.cli.creds import cli as creds_cli
 from dot_tools.cli.opencode import cli as opencode_cli
 from dot_tools.cli.format import cli as format_cli
+from dot_tools.cli.worktree import cli as worktree_cli
+from dot_tools.cli.worktree import drop_worktree, jump_to_worktree
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
 from dot_tools.line_length import get_config_line_length
@@ -37,6 +39,31 @@ cli.add_typer(ssh_cli, name="ssh")
 cli.add_typer(creds_cli, name="creds")
 cli.add_typer(opencode_cli, name="opencode")
 cli.add_typer(format_cli, name="format")
+cli.add_typer(worktree_cli, name="worktree")
+cli.add_typer(worktree_cli, name="worktrees")
+
+
+@cli.command(no_args_is_help=True)
+@handle_errors("Couldn't find worktree")
+@attach_logging()
+def jump(
+    ctx: typer.Context,
+    query: Annotated[str, typer.Argument(help="Text to match against worktree branches")],
+):
+    """Navigate to a matching worktree."""
+    jump_to_worktree(query)
+
+
+@cli.command(no_args_is_help=True)
+@handle_errors("Couldn't remove worktree")
+@attach_logging()
+def drop(
+    ctx: typer.Context,
+    query: Annotated[str, typer.Argument(help="Text to match against worktree branches")],
+    delete_branch: Annotated[bool, typer.Option("--branch", help="Delete the branch after removing the worktree")] = False,
+):
+    """Remove a matching worktree."""
+    drop_worktree(query, delete_branch)
 
 
 _SSH_TUNNEL_OPTIONS = (
