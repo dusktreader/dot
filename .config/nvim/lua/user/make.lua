@@ -56,6 +56,11 @@ local function term_opts(id, cmd)
 end
 
 local function run_command(cmd)
+  for i = #history, 1, -1 do
+    if history[i] == cmd then
+      table.remove(history, i)
+    end
+  end
   table.insert(history, 1, cmd)
   if #history > max_history then
     table.remove(history)
