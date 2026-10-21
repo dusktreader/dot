@@ -60,8 +60,8 @@ local function get_targets()
 
   local targets = {}
   for line in io.lines(makefile) do
-    local target = line:match("^([a-zA-Z0-9_%.%-%/][a-zA-Z0-9_%.%-%/]*)%s*:[^=]")
-    if target and target ~= ".PHONY" then
+    local target, remainder = line:match("^([a-zA-Z0-9_%.%-%/][a-zA-Z0-9_%.%-%/]*)%s*:(.*)$")
+    if target and not remainder:match("^%s*=") and target ~= ".PHONY" then
       table.insert(targets, target)
     end
   end

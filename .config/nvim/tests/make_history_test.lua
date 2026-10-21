@@ -9,7 +9,7 @@ vim.fn.mkdir(root .. "/state", "p")
 vim.env.XDG_STATE_HOME = root .. "/state"
 vim.cmd("cd " .. vim.fn.fnameescape(project))
 project = vim.fn.getcwd()
-vim.fn.writefile({ "check: ;" }, project .. "/Makefile")
+vim.fn.writefile({ "plain:", "\t@true", "check: ;" }, project .. "/Makefile")
 
 local picker_items
 Snacks = {
@@ -25,14 +25,15 @@ vim.ui.input = function(options, callback) callback(options.default) end
 
 local make = dofile(repo .. "/.config/nvim/lua/user/make.lua")
 make.run_edit()
+assert(vim.deep_equal(picker_items, { "plain", "check" }), "targets without comments should appear by name")
 
 local history_path = vim.fn.stdpath("state") .. "/make-history/" .. vim.fn.sha256(project) .. ".json"
 local saved = vim.fn.readfile(history_path)
-assert(vim.deep_equal(vim.fn.json_decode(table.concat(saved, "\n")), { "make check" }), "command should be saved")
+assert(vim.deep_equal(vim.fn.json_decode(table.concat(saved, "\n")), { "make plain" }), "command should be saved")
 
 make = dofile(repo .. "/.config/nvim/lua/user/make.lua")
 make.history()
-assert(vim.deep_equal(picker_items, { "make check" }), "saved command should load after module reload")
+assert(vim.deep_equal(picker_items, { "make plain" }), "saved command should load after module reload")
 
 local oversized = {}
 local expected = {}
