@@ -1,5 +1,10 @@
 return {
   "folke/snacks.nvim", -- already loaded, just hooking keymaps here
+  init = function()
+    vim.api.nvim_create_user_command("MakeHistoryClear", function()
+      require("user.make").clear_history()
+    end, { desc = "Clear make command history for the current directory" })
+  end,
   keys = {
     { "<leader>mr", function() require("user.make").run() end,      desc = "Make: run target" },
     { "<leader>me", function() require("user.make").run_edit() end, desc = "Make: run target (edit command)" },

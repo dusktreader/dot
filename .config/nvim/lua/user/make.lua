@@ -4,7 +4,51 @@ local M = {}
 local jobs = {}
 local current_cmd = nil
 local history = {}
-local max_history = 10
+local history_cwd
+local max_history = 25
+
+local function history_path(cwd)
+  return vim.fn.stdpath("state") .. "/make-history/" .. vim.fn.sha256(cwd) .. ".json"
+end
+
+local function load_history(cwd)
+  local path = history_path(cwd)
+  if vim.fn.filereadable(path) == 0 then return {} end
+
+  local lines = vim.fn.readfile(path)
+  if #lines == 0 then return {} end
+
+  local ok, saved = pcall(vim.fn.json_decode, table.concat(lines, "\n"))
+  if not ok or type(saved) ~= "table" then return {} end
+
+  local loaded = {}
+  for _, cmd in ipairs(saved) do
+    if type(cmd) == "string" and not vim.tbl_contains(loaded, cmd) then
+      table.insert(loaded, cmd)
+      if #loaded == max_history then break end
+    end
+  end
+  return loaded
+end
+
+local function use_current_directory_history()
+  local cwd = vim.fn.getcwd()
+  if cwd ~= history_cwd then
+    history_cwd = cwd
+    history = load_history(cwd)
+  end
+end
+
+local function save_history()
+  local path = history_path(history_cwd)
+  vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
+  if vim.fn.writefile({ vim.fn.json_encode(history) }, path) ~= 0 then
+    vim.notify("Unable to save make command history", vim.log.levels.WARN)
+  end
+end
+
+history_cwd = vim.fn.getcwd()
+history = load_history(history_cwd)
 
 -- Parse make targets from the Makefile in cwd
 local function get_targets()
@@ -61,6 +105,7 @@ local function term_opts(id, cmd)
 end
 
 local function run_command(cmd)
+  use_current_directory_history()
   for i = #history, 1, -1 do
     if history[i] == cmd then
       table.remove(history, i)
@@ -70,6 +115,7 @@ local function run_command(cmd)
   if #history > max_history then
     table.remove(history)
   end
+  save_history()
 
   -- If this command is already running, kill it first
   if jobs[cmd] then
@@ -131,6 +177,7 @@ function M.run_edit()
 end
 
 function M.history()
+  use_current_directory_history()
   if #history == 0 then
     vim.notify("No make command history", vim.log.levels.INFO)
     return
@@ -147,6 +194,13 @@ function M.history()
       end
     end)
   end)
+end
+
+function M.clear_history()
+  use_current_directory_history()
+  history = {}
+  save_history()
+  vim.notify("Make command history cleared", vim.log.levels.INFO)
 end
 
 -- Toggle the current make terminal
@@ -212,6 +266,10 @@ function M.kill()
     do_kill()
   end
 end
+
+vim.api.nvim_create_autocmd("DirChanged", {
+  callback = use_current_directory_history,
+})
 
 vim.api.nvim_create_autocmd("VimLeavePre", {
   callback = function()
