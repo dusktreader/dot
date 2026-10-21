@@ -12,7 +12,7 @@ model_list:
       mode: responses
   - model_name: personal-light-zen
     litellm_params:
-      model: openai/deepseek-v4-flash
+      model: openai/gpt-6-luna
       api_base: https://opencode.ai/zen/v1
       api_key: os.environ/OPENCODE_ZEN_API_KEY
       tags:
@@ -78,8 +78,21 @@ router_settings:
   enable_tag_filtering: true
   tag_filtering_match_any: false
   tag_routing_prefix: "route:"
+  enable_pre_call_checks: true
+  optional_pre_call_checks:
+    - encrypted_content_affinity
   fallbacks:
     - light-luna:
+        - personal-light-zen
+    - light-haiku:
+        - personal-light-zen
+    - standard-terra:
+        - personal-light-zen
+    - standard-sonnet:
+        - personal-light-zen
+    - premium-sol:
+        - personal-light-zen
+    - premium-opus:
         - personal-light-zen
   retry_policy:
     RateLimitErrorRetries: 0

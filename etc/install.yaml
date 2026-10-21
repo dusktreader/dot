@@ -208,7 +208,7 @@ tools:
   - name: litellm
     check: "command -v litellm"
     scripts:
-      generic: "uv tool install --force 'litellm[proxy] @ git+https://github.com/BerriAI/litellm.git@366c06607e88e63d0b73c41bfc0eba7085661a91'"
+      generic: "uv tool install --force 'litellm[proxy]==1.104.0'"
   - name: 1password-cli
     check: "command -v op"
     scripts:

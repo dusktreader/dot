@@ -32,7 +32,15 @@ def test_personal_profile_has_aliases_and_only_personal_zen_fallback() -> None:
     router = yaml.safe_load((ROOT / ".config/litellm/personal.yaml").read_text())
     names = [item["model_name"] for item in router["model_list"]]
     assert {"light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus", "personal-light-zen"} == set(names)
-    assert router["router_settings"]["fallbacks"] == [{"light-luna": ["personal-light-zen"]}]
+    settings = router["router_settings"]
+    assert settings["enable_pre_call_checks"] is True
+    assert settings["optional_pre_call_checks"] == ["encrypted_content_affinity"]
+    assert settings["fallbacks"] == [
+        {model: ["personal-light-zen"]}
+        for model in ("light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus")
+    ]
+    zen = next(item for item in router["model_list"] if item["model_name"] == "personal-light-zen")
+    assert zen["litellm_params"]["model"] == "openai/gpt-6-luna"
     assert "os.environ/OPENCODE_ZEN_API_KEY" in (ROOT / ".config/litellm/personal.yaml").read_text()
 
 
@@ -96,6 +104,24 @@ def test_environment_preserves_home_and_isolates_runtime_state(tmp_path: Path) -
     assert environment["GITHUB_COPILOT_TOKEN_DIR"].endswith("personal/copilot")
 
 
+def test_bound_zen_credential_is_private_and_added_to_router_environment(tmp_path: Path) -> None:
+    profile = lifecycle(tmp_path)
+    profile.bind_zen_api_key("zen-secret")
+
+    assert profile.zen_api_key_file.read_text() == "zen-secret"
+    assert profile.zen_api_key_file.parent.stat().st_mode & 0o777 == 0o700
+    assert profile.zen_api_key_file.stat().st_mode & 0o777 == 0o600
+    assert profile.environment_for()["OPENCODE_ZEN_API_KEY"] == "zen-secret"
+    assert profile.zen_credential_status() == "configured"
+
+
+def test_environment_key_takes_precedence_over_bound_zen_credential(tmp_path: Path) -> None:
+    profile = lifecycle(tmp_path, environment={"OPENCODE_ZEN_API_KEY": "environment-key"})
+    profile.bind_zen_api_key("stored-key")
+
+    assert profile.environment_for()["OPENCODE_ZEN_API_KEY"] == "environment-key"
+
+
 @pytest.mark.parametrize(
     ("payload", "expected"),
     [
@@ -115,9 +141,32 @@ def test_copilot_credential_status_reports_missing(tmp_path: Path) -> None:
     assert lifecycle(tmp_path).copilot_credential_status() == "missing"
 
 
+def test_zen_credential_status_reports_missing_and_configured(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    profile = lifecycle(tmp_path)
+    assert profile.zen_credential_status() == "missing"
+    profile.bind_zen_api_key("zen-secret")
+    assert profile.zen_credential_status() == "configured"
+    profile.status()
+    output = capsys.readouterr().out
+    assert "zen: configured" in output
+    assert "zen-secret" not in output
+
+
+def test_bind_zen_api_key_rejects_empty_value(tmp_path: Path) -> None:
+    with pytest.raises(OpenCodeProfileError, match="cannot be empty"):
+        lifecycle(tmp_path).bind_zen_api_key("  ")
+
+
 @pytest.mark.parametrize(
     "executable",
-    ["litellm", "/usr/local/bin/litellm", "/usr/local/bin/python /usr/local/bin/litellm"],
+    [
+        "litellm",
+        "/usr/local/bin/litellm",
+        "/usr/local/bin/python /usr/local/bin/litellm",
+        "/opt/local/Library/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python /Users/tucker.beck/.local/bin/litellm",
+    ],
 )
 def test_router_ownership_accepts_litellm_command_shapes(tmp_path: Path, executable: str) -> None:
     command = f"{executable} --config {ROOT / '.config/litellm/personal.yaml'} --host 127.0.0.1 --port 4010"
@@ -322,7 +371,29 @@ def test_status_does_not_print_router_key(tmp_path: Path, capsys: pytest.Capture
     output = capsys.readouterr().out
     assert "profile: personal" in output
     assert "4010" in output
+    assert "zen: missing" in output
     assert "router.key" not in output
+
+
+def test_cli_auth_zen_prompts_and_binds_without_echoing_key() -> None:
+    with patch("dot_tools.cli.opencode.personal_lifecycle") as factory, patch(
+        "dot_tools.cli.opencode.typer.prompt", return_value="zen-secret"
+    ) as prompt:
+        result = CliRunner().invoke(cli, ["opencode", "auth", "zen"])
+
+    assert result.exit_code == 0
+    assert "zen-secret" not in result.output
+    assert "stop" in result.output and "relaunch" in result.output
+    prompt.assert_called_once_with("OpenCode Zen API key", hide_input=True, confirmation_prompt=True)
+    factory.return_value.bind_zen_api_key.assert_called_once_with("zen-secret")
+
+
+def test_cli_auth_defaults_to_copilot() -> None:
+    with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
+        result = CliRunner().invoke(cli, ["opencode", "auth"])
+
+    assert result.exit_code == 0
+    factory.return_value.authenticate.assert_called_once_with()
 
 
 def test_cli_launch_parses_only_its_model_and_forwards_extra_args(tmp_path: Path) -> None:

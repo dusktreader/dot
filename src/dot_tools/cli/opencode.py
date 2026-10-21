@@ -86,10 +86,21 @@ def models() -> None:
 
 
 @cli.command("auth")
-def auth() -> None:
-    """Authenticate the personal GitHub Copilot provider."""
+def auth(
+    provider: Annotated[str, typer.Argument(help="Provider to authenticate: copilot or zen")] = "copilot",
+) -> None:
+    """Authenticate a provider for the personal OpenCode profile."""
+    lifecycle = personal_lifecycle()
     try:
-        personal_lifecycle().authenticate()
+        if provider == "zen":
+            api_key = typer.prompt("OpenCode Zen API key", hide_input=True, confirmation_prompt=True)
+            lifecycle.bind_zen_api_key(api_key)
+            typer.echo("OpenCode Zen API key stored. Run `dt opencode stop` and relaunch to apply it.")
+            return
+        if provider != "copilot":
+            typer.echo("Provider must be 'copilot' or 'zen'.", err=True)
+            raise typer.Exit(code=2)
+        lifecycle.authenticate()
     except OpenCodeProfileError as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=1) from error

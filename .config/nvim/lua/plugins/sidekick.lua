@@ -13,6 +13,9 @@ return {
         opencode = {
           cmd = { "dt", "opencode", "launch", "--continue" },
         },
+        opencode_new = {
+          cmd = { "dt", "opencode", "launch" },
+        },
         work_opencode = {
           cmd = { "wdt", "opencode", "launch", "--continue" },
         },
@@ -34,6 +37,11 @@ return {
       "<leader>ad",
       function() require("user.opencode").toggle({ focus = true }, "opencode") end,
       desc = "Sidekick Personal OpenCode",
+    },
+    {
+      "<leader>an",
+      function() require("user.opencode").toggle({ focus = true }, "opencode_new") end,
+      desc = "Sidekick New Personal OpenCode Session",
     },
     {
       "<leader>aw",

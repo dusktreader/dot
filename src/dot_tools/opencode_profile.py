@@ -171,6 +171,11 @@ class OpenCodeLifecycle:
         """Return the profile-owned GitHub Copilot API key file."""
         return self.state_root / "copilot" / "api-key.json"
 
+    @property
+    def zen_api_key_file(self) -> Path:
+        """Return the profile-owned OpenCode Zen API key file."""
+        return self.state_root / "zen" / "api-key"
+
     def copilot_credential_status(self) -> str:
         """Return the cached GitHub Copilot credential state."""
         try:
@@ -182,6 +187,41 @@ class OpenCodeLifecycle:
         if not isinstance(payload, dict) or not isinstance(payload.get("expires_at"), (int, float)):
             return "malformed"
         return "valid" if payload["expires_at"] > time.time() else "expired"
+
+    def _stored_zen_api_key(self) -> str | None:
+        if self.zen_api_key_file.is_symlink():
+            return None
+        try:
+            value = self.zen_api_key_file.read_text().strip()
+        except OSError:
+            return None
+        return value or None
+
+    def zen_credential_status(self) -> str:
+        """Return whether an OpenCode Zen API key is available."""
+        return "configured" if self.base_environment.get("OPENCODE_ZEN_API_KEY") or self._stored_zen_api_key() else "missing"
+
+    def bind_zen_api_key(self, api_key: str) -> None:
+        """Store the OpenCode Zen API key with private file permissions."""
+        value = api_key.strip()
+        if not value:
+            raise OpenCodeProfileError("OpenCode Zen API key cannot be empty.")
+        try:
+            self._ensure_state()
+            credential_directory = self.zen_api_key_file.parent
+            credential_directory.mkdir(mode=0o700, exist_ok=True)
+            if credential_directory.is_symlink():
+                raise OpenCodeProfileError(f"OpenCode Zen credential directory is a symlink: {credential_directory}")
+            credential_directory.chmod(0o700)
+            if self.zen_api_key_file.is_symlink():
+                raise OpenCodeProfileError(f"OpenCode Zen credential path is a symlink: {self.zen_api_key_file}")
+            flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, "O_NOFOLLOW", 0)
+            descriptor = os.open(self.zen_api_key_file, flags, 0o600)
+            with os.fdopen(descriptor, "w") as key_file:
+                key_file.write(value)
+            self.zen_api_key_file.chmod(0o600)
+        except OSError as error:
+            raise OpenCodeProfileError("Could not securely store the OpenCode Zen API key.") from error
 
     @property
     def endpoint(self) -> str:
@@ -251,6 +291,10 @@ class OpenCodeLifecycle:
                 "GITHUB_COPILOT_ACCESS_TOKEN_FILE": "access-token",
             }
         )
+        if not self.profile.requires_work_account and not environment.get("OPENCODE_ZEN_API_KEY"):
+            zen_api_key = self._stored_zen_api_key()
+            if zen_api_key:
+                environment["OPENCODE_ZEN_API_KEY"] = zen_api_key
         no_proxy = environment.get("NO_PROXY", "")
         loopback = "127.0.0.1,localhost"
         environment["NO_PROXY"] = f"{loopback},{no_proxy}" if no_proxy else loopback
@@ -446,8 +490,13 @@ class OpenCodeLifecycle:
                 return False
         elif (
             Path(tokens[command_start - 1]).name not in {"python", "python3"}
-            or not executable.is_absolute()
-        ):
+            and not (
+                Path(tokens[command_start - 1]).name == "Python"
+                and Path(tokens[command_start - 1]).parent.name == "MacOS"
+                and Path(tokens[command_start - 1]).parent.parent.name == "Contents"
+                and Path(tokens[command_start - 1]).parent.parent.parent.name == "Python.app"
+            )
+        ) or (command_start > 0 and not executable.is_absolute()):
             return False
         return tokens[command_start:] == [tokens[command_start], *expected]
 
@@ -594,7 +643,8 @@ class OpenCodeLifecycle:
             f"endpoint: {self.endpoint}\n"
             f"config: {self.open_code_config}\n"
             f"state: {self.state_root}\n"
-            f"copilot: {self.copilot_credential_status()}"
+            f"copilot: {self.copilot_credential_status()}\n"
+            f"zen: {self.zen_credential_status()}"
         )
         if self.router_healthy() and self.router_pid_is_ours():
             print("router: healthy")
