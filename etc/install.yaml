@@ -95,13 +95,6 @@ tools:
         sudo apt install -y watch
       darwin: |
         sudo port -N install watch
-  - name: lynx
-    check: "command -v lynx"
-    scripts:
-      linux: |
-        sudo apt install -y lynx
-      darwin: |
-        sudo port -N install lynx
   - name: nvm
     check: "test -s $HOME/.nvm/nvm.sh"
     scripts:
