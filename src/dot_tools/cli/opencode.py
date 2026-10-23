@@ -2,17 +2,28 @@
 
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
 import dateparser
 import typer
 from auto_name_enum import AutoNameEnum, auto
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 from typerdrive import handle_errors, log_error
 
 from dot_tools.exceptions import OpenCodeError
-from dot_tools.opencode_costs import REPORT_COLUMNS, OpenCodeSessionStore, Report, fields
+from dot_tools.opencode_costs import (
+    REPORT_COLUMNS,
+    OpenCodeSessionStore,
+    Report,
+    _NoWrapPager,
+    display_directory,
+    fields,
+    session_summary_rows,
+)
 from dot_tools.opencode_profile import MODEL_ALIASES, OpenCodeProfileError, personal_lifecycle, routing_tier, validate_model
 from dot_tools.opencode_staleness_guard import check_before_edit, record_read
 from dot_tools.opencode_trends import DEFAULT_MAX_MODELS, aggregate_daily_model_costs, render_trends
@@ -145,6 +156,65 @@ def logs(
         raise typer.Exit(code=result.returncode)
 
 
+@cli.command("sessions")
+@handle_errors("Failed to list OpenCode sessions", do_except=log_error)
+def sessions(
+    since: Annotated[str | None, typer.Option(help="Inclusive start date for last activity")] = None,
+    sort: Annotated[
+        str | None,
+        typer.Option(
+            help="Sort by session ID, working directory, or last activity; prefix with asc: or desc: "
+            "(default: last activity descending)"
+        ),
+    ] = None,
+    all_sessions: Annotated[bool, typer.Option("--all", help="Include child and subagent sessions")] = False,
+) -> None:
+    """List OpenCode sessions, working directories, and last activity."""
+    parsed_sort = _parse_session_sort(sort) if sort is not None else None
+    since_date = _parse_date(since) if since is not None else None
+    with OpenCodeSessionStore() as store:
+        summaries = store.session_summaries()
+
+    if since_date is not None:
+        summaries = [
+            summary
+            for summary in summaries
+            if datetime.fromtimestamp(summary.last_activity / 1000, tz=timezone.utc).date() >= since_date
+        ]
+    if not all_sessions:
+        summaries = [summary for summary in summaries if summary.parent_id is None]
+
+    rows = session_summary_rows(summaries, parsed_sort)
+    if not rows:
+        typer.echo("No OpenCode sessions found.")
+        return
+
+    table = Table(title="OpenCode sessions", show_lines=False)
+    table.add_column("Session", no_wrap=True, overflow="ignore")
+    table.add_column("Working directory", no_wrap=True, overflow="ignore")
+    table.add_column("Last activity", no_wrap=True, overflow="ignore")
+    for summary, session_display in rows:
+        is_child = session_display.lstrip().startswith(("├─", "└─"))
+        directory = display_directory(summary.directory)
+        if is_child:
+            directory = f" ↳ {directory}"
+        last_activity = datetime.fromtimestamp(summary.last_activity / 1000, tz=timezone.utc).isoformat(timespec="seconds")
+        if is_child:
+            last_activity = f" ↳ {last_activity}"
+        table.add_row(
+            Text(session_display, style="dim" if is_child else "bold"),
+            Text(directory, style="dim bright_blue" if is_child else "bold bright_blue"),
+            Text(last_activity, style="dim" if is_child else "bold"),
+        )
+
+    console = Console()
+    if console.is_terminal and (len(rows) + 4 > console.height or console.measure(table).maximum > console.width):
+        with console.pager(pager=_NoWrapPager(), styles=True):
+            console.print(table)
+    else:
+        console.print(table)
+
+
 @staleness_guard_cli.command("read")
 def staleness_guard_read(file_paths: Annotated[list[Path], typer.Argument()]) -> None:
     """Record files after OpenCode reads them."""
@@ -187,6 +257,43 @@ def _parse_sort(value: str) -> list[tuple[str, bool]]:
             matches[0].field if len(matches) == 1 else None,
             (
                 f"Ambiguous sort column {column.strip()!r}; matches: {', '.join(match.label for match in matches)}"
+                if matches
+                else f"Invalid sort column {column.strip()!r}; choose one of: {choices}"
+            ),
+        )
+        parsed.insert(0, (field, direction == "desc"))
+    return parsed
+
+
+def _parse_session_sort(value: str) -> list[tuple[str, bool]]:
+    """Parse session sort keys into (field, descending) pairs, last key first."""
+    columns = [
+        ("session_id", "Session ID"),
+        ("directory", "Working directory"),
+        ("last_activity", "Last activity"),
+    ]
+    parsed: list[tuple[str, bool]] = []
+    for item in value.split(","):
+        direction, separator, column = item.strip().partition(":")
+        if separator:
+            direction = direction.casefold()
+            OpenCodeError.require_condition(
+                direction in {"asc", "desc"}, f"Invalid sort direction {direction!r}; use 'asc' or 'desc'"
+            )
+        else:
+            direction, column = "desc", item.strip()
+        query = column.strip().casefold()
+        OpenCodeError.require_condition(bool(query), "Sort column cannot be empty")
+        matches = [
+            (field, label)
+            for field, label in columns
+            if all(part in label.casefold() for part in query.split())
+        ]
+        choices = ", ".join(label for _, label in columns)
+        field = OpenCodeError.enforce_defined(
+            matches[0][0] if len(matches) == 1 else None,
+            (
+                f"Ambiguous sort column {column.strip()!r}; matches: {', '.join(label for _, label in matches)}"
                 if matches
                 else f"Invalid sort column {column.strip()!r}; choose one of: {choices}"
             ),

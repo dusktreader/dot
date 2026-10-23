@@ -131,8 +131,10 @@ orchestrator record used to assess and resolve review findings; do not present i
 
 **End your turn. Output nothing further. Wait.**
 
-The human will read the artifact, ask questions, request revisions, and give explicit
-approval. Only after explicit approval do you proceed to the next phase.
+The human will read the artifact, ask questions, request revisions, and explicitly approve the exact revision. For
+`run-feature` plans and feature plans or design sets in `run-epic`, that is the single human gate before the final
+blocker check. A passing check proceeds without another human approval. A blocker returns to human review and update;
+approve the revised candidate before rerunning the check. Other workflows retain their own gates.
 
 This stop is not a formality. It is the point where your turn ends and the human's begins. A prompt that says "implement
 this" authorizes you to run the workflow — it does not authorize you to skip the human review gates.

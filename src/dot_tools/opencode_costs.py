@@ -7,7 +7,7 @@ from dataclasses import dataclass, fields, replace
 from datetime import date, datetime, timezone
 from pathlib import Path
 from statistics import mean, pstdev
-from typing import Any, Generic, Iterable, Literal, TypeVar
+from typing import Generic, Iterable, Literal, TypeVar
 
 from rich.align import Align
 from rich.console import Console
@@ -101,6 +101,14 @@ class SessionRecord:
     metadata: dict[str, object] | None
     root_id: str | None
     ancestry_status: str
+
+
+@dataclass(frozen=True)
+class SessionSummary:
+    session_id: str
+    parent_id: str | None
+    directory: str
+    last_activity: int
 
 
 class _NoWrapPager(Pager):
@@ -264,49 +272,62 @@ class Report:
             if getattr(REPORT_COLUMNS, report_field.name).label
             and getattr(REPORT_COLUMNS, report_field.name).field != "root_session"
         ]
-        rendered_rows: list[list[str]] = []
+        rendered_rows: list[tuple[list[str], bool]] = []
         for row, session_display, total_cost in table_rows(self.rows, self.sort):
             values = row.to_dict()
+            is_child = session_display.lstrip().startswith(("├─", "└─"))
             values["session_id"] = session_display
             values["total_cost"] = total_cost
             values["directory"] = display_directory(str(values["directory"]))
+            if is_child:
+                values["directory"] = f" ↳ {values['directory']}"
+                for field in ("agent", "model"):
+                    if values[field]:
+                        values[field] = f" ↳ {values[field]}"
             for metric_field in ("recorded_cost", "local_estimate", "total_cost"):
                 if values[metric_field] is not None:
                     values[metric_field] = f"${values[metric_field]:.2f}"
             if values["cache_ratio"] is not None:
                 values["cache_ratio"] = f"{values['cache_ratio']:.2f}"
             rendered_rows.append(
-                [str(values[column.field]) if values[column.field] is not None else "" for column in columns]
+                ([str(values[column.field]) if values[column.field] is not None else "" for column in columns], is_child)
             )
 
         table = Table(title="OpenCode session costs", show_lines=False, expand=False)
         for column in columns:
             table.add_column(column.label, no_wrap=True, overflow="ignore")
 
-        def _style(field: str, value: Any) -> object:
-            style = None
-            align_right = False
-            match field:
-                case "recorded_cost" | "total_cost":
-                    style = "green"
-                    align_right = True
-                case "local_estimate":
-                    style = "yellow"
-                    align_right = True
-                case "directory":
-                    style = "blue"
-                case "model":
-                    style = "purple"
+        def _style(field: str, value: str, is_child: bool) -> object:
+            align_right = field in {"recorded_cost", "local_estimate", "total_cost"}
+            if is_child:
+                style = {
+                    "directory": "dim bright_blue",
+                    "agent": "dim cyan",
+                    "model": "dim purple",
+                    "recorded_cost": "dim green",
+                    "local_estimate": "dim yellow",
+                    "total_cost": "dim green",
+                }.get(field, "dim")
+            else:
+                style = {
+                    "session_id": "bold",
+                    "directory": "bold bright_blue",
+                    "agent": "bold cyan",
+                    "model": "bold purple",
+                    "recorded_cost": "bold green",
+                    "local_estimate": "bold yellow",
+                    "total_cost": "bold green",
+                }.get(field, "bold")
             text = Text(value, style=style)
             if align_right:
                 return Align.right(text)
             return text
 
-        for values in rendered_rows:
-            table.add_row(*[_style(column.field, value) for value, column in zip(values, columns)])
+        for values, is_child in rendered_rows:
+            table.add_row(*[_style(column.field, value, is_child) for value, column in zip(values, columns)])
 
         column_widths = [len(column.label) for column in columns]
-        for values in rendered_rows:
+        for values, _ in rendered_rows:
             column_widths = [max(width, len(value)) for width, value in zip(column_widths, values)]
         table_width = sum(column_widths) + (3 * len(column_widths)) + 1
 
@@ -500,6 +521,28 @@ class OpenCodeSessionStore:
             ancestry_status="unresolved",
         )
 
+    def session_summaries(self) -> list[SessionSummary]:
+        """Load session identifiers, working directories, and last activity timestamps."""
+        OpenCodeError.require_condition(
+            self.conn is not None,
+            f"Connection unexpectedly closed before loading sessions: {self.db_path}",
+        )
+        activity_expression = (
+            "COALESCE(time_updated, time_created)" if "time_updated" in self.columns["session"] else "time_created"
+        )
+        conn = OpenCodeError.enforce_defined(
+            self.conn, f"Connection unexpectedly closed before loading sessions: {self.db_path}"
+        )
+        with OpenCodeError.handle_errors(f"Cannot query OpenCode database {self.db_path}"):
+            rows = conn.execute(
+                f"SELECT id, parent_id, directory, {activity_expression} AS last_activity "
+                f"FROM session ORDER BY last_activity DESC, id"
+            )
+            return [
+                SessionSummary(row["id"], row["parent_id"], row["directory"], row["last_activity"])
+                for row in rows
+            ]
+
     def sessions(self) -> list[SessionRecord]:
         """Load sessions and resolve parent chains in memory."""
         OpenCodeError.require_condition(
@@ -567,6 +610,51 @@ def sort_report_rows(rows: list[ReportColumns], sort: list[tuple[str, bool]] | N
         available.sort(key=lambda row: row.get_value(sort_field), reverse=reverse)
         sorted_rows = available + unavailable
     return sorted_rows
+
+
+def session_summary_rows(
+    summaries: list[SessionSummary], sort: list[tuple[str, bool]] | None = None,
+) -> list[tuple[SessionSummary, str]]:
+    """Sort session groups and return identifiers indented by parent-child ancestry."""
+    by_id = {summary.session_id: summary for summary in summaries}
+    children: dict[str, list[SessionSummary]] = {session_id: [] for session_id in by_id}
+    roots: list[SessionSummary] = []
+    for summary in summaries:
+        parent = by_id.get(summary.parent_id) if summary.parent_id is not None else None
+        if parent is None:
+            roots.append(summary)
+        else:
+            children[parent.session_id].append(summary)
+
+    sort_keys = sort or [("last_activity", True)]
+
+    def sort_siblings(siblings: list[SessionSummary]) -> None:
+        for sort_field, reverse in sort_keys:
+            siblings.sort(key=lambda summary: getattr(summary, sort_field), reverse=reverse)
+
+    sort_siblings(roots)
+    for siblings in children.values():
+        sort_siblings(siblings)
+
+    rendered: list[tuple[SessionSummary, str]] = []
+    visited: set[str] = set()
+
+    def add_subtree(summary: SessionSummary, prefix: str, is_last: bool, is_root: bool = False) -> None:
+        if summary.session_id in visited:
+            return
+        visited.add(summary.session_id)
+        display = summary.session_id if is_root else f"{'└─ ' if is_last else '├─ '}{summary.session_id}"
+        rendered.append((summary, prefix + display))
+        child_prefix = prefix + ("   " if is_last else "│  ") if not is_root else ""
+        for index, child in enumerate(children[summary.session_id]):
+            add_subtree(child, child_prefix, index == len(children[summary.session_id]) - 1)
+
+    for root in roots:
+        add_subtree(root, "", True, is_root=True)
+    for summary in summaries:
+        if summary.session_id not in visited:
+            add_subtree(summary, "", True, is_root=True)
+    return rendered
 
 
 def table_rows(

@@ -210,6 +210,26 @@ def test_make_defaults_to_feat_and_rejects_unknown_type(
     assert invalid.exit_code != 0
 
 
+def test_jump_fuzzy_matches_worktree_branch_and_requests_navigation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, runner: CliRunner
+) -> None:
+    root = tmp_path / "repo"
+    init_repo(root)
+    monkeypatch.chdir(root)
+    worktree_path = root / ".worktrees" / "feat" / "foo-mud-shark"
+    add_worktree(git.Repo(root), worktree_path, "feat/foo-mud-shark")
+    navigation_file = tmp_path / "navigation"
+
+    result = runner.invoke(
+        cli,
+        ["jump", "fms"],
+        env={"DT_NAVIGATION_FILE": str(navigation_file)},
+    )
+
+    assert result.exit_code == 0, result.output
+    assert navigation_file.read_text().strip() == str(worktree_path)
+
+
 def test_jump_matches_ticket_without_punctuation_and_requests_navigation(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, runner: CliRunner
 ) -> None:

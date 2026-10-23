@@ -28,7 +28,10 @@ Your prompt must include:
 
 - Path to the implementation plan
 - Iteration number (N = 01 for first review, 02+ for re-reviews)
+- Optional review mode: `full` (default) or `final-blocker-check`
 - For re-reviews: path to the prior review artifact
+- In `final-blocker-check` mode: path to the initial full review; for
+  blocker rechecks, also provide the prior blocker-check artifact
 
 If not provided, ask before proceeding. Do not guess.
 
@@ -38,6 +41,14 @@ If not provided, ask before proceeding. Do not guess.
 - You are reviewing an **implementation plan** artifact. Not code.
 - Do NOT run tests, builds, or linters.
 - Do NOT modify the document.
+
+The default review mode is `full`. In `final-blocker-check` mode, read the initial full review and examine the exact
+human-approved revision. On blocker rechecks, verify the prior blocker-check findings first; do not reopen earlier
+non-blocking suggestions. Do not repeat the full checklist below; use it only to test for blockers. Report only Critical
+or Significant flaws that could make execution infeasible, contradict the approved design, omit critical acceptance or
+verification work, or introduce substantial security, data-integrity, or operational risk. Ignore wording and
+formatting. If no blocker exists, explicitly approve the plan for execution and write `Gate result: PASS` in
+Notes; otherwise write `Gate result: BLOCKED` and identify the blocking findings.
 
 
 ## Steps
@@ -61,6 +72,9 @@ check whether the implementation plan has been updated to address it:
 - ⚠ Partially resolved — explain what remains
 - ✗ Not resolved — carry this forward as a Critical finding in the current review
 
+In `final-blocker-check` mode, carry forward only unresolved findings that meet the blocker
+threshold. Prior Trivial findings and non-blocking suggestions remain non-blocking.
+
 
 ### 2. Evaluate structural completeness
 
@@ -82,8 +96,9 @@ Review the `## Relevant Skills` section. Ensure that all listed skills actually 
 
 ### 5. Format markdown
 
-Run `dt format markdown` before reviewing the document. Do not pass `--check`
-or spend review tokens manually fixing formatting that the formatter handles.
+In `full` mode, run `dt format markdown` before reviewing the document. Do not pass `--check` or spend review tokens
+manually fixing formatting that the formatter handles. In `final-blocker-check` mode, do not format or modify the
+human-approved plan; review that exact revision and ignore formatting-only issues.
 
 
 ### 6. Evaluate execution tasks

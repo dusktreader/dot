@@ -9,7 +9,7 @@ from typer.testing import CliRunner
 from dot_tools.cli.main import cli
 from dot_tools.cli.opencode import _parse_sort
 from dot_tools.exceptions import OpenCodeError
-from dot_tools.opencode_costs import SessionRecord
+from dot_tools.opencode_costs import SessionRecord, SessionSummary
 
 
 def test_costs_help_and_json_output() -> None:
@@ -22,6 +22,61 @@ def test_costs_help_and_json_output() -> None:
         result = runner.invoke(cli, ["opencode", "costs", "--format", "json"])
     assert result.exit_code == 0
     assert json.loads(result.output)["rows"][0]["session_id"] == "one"
+
+
+def test_sessions_lists_session_directory_and_last_activity() -> None:
+    runner = CliRunner()
+    summaries = [SessionSummary("session-1", None, "/project", 1760002000000)]
+    with patch("dot_tools.cli.opencode.OpenCodeSessionStore") as store:
+        store.return_value.__enter__.return_value.session_summaries.return_value = summaries
+        result = runner.invoke(cli, ["opencode", "sessions"])
+
+    assert result.exit_code == 0
+    assert "session-1" in result.output
+    assert "/project" in result.output
+    assert "2025-10-09T09:26:40+00:00" in result.output
+
+
+def test_sessions_filters_since_and_hides_child_sessions_by_default() -> None:
+    runner = CliRunner()
+    summaries = [
+        SessionSummary("child", "root", "/project", 1760080000000),
+        SessionSummary("root", None, "/project", 1760000000000),
+        SessionSummary("old-root", None, "/old", 1759881600000),
+    ]
+    with patch("dot_tools.cli.opencode.OpenCodeSessionStore") as store:
+        store.return_value.__enter__.return_value.session_summaries.return_value = summaries
+        result = runner.invoke(cli, ["opencode", "sessions", "--since", "2025-10-09"])
+        all_result = runner.invoke(cli, ["opencode", "sessions", "--since", "2025-10-09", "--all"])
+
+    assert result.exit_code == 0
+    assert "root" in result.output
+    assert "old-root" not in result.output
+    assert "child" not in result.output
+    assert all_result.exit_code == 0
+    assert "└─ child" in all_result.output
+    assert "↳ /project" in all_result.output
+    assert "↳ 2025-10-10T07:06:40+00:00" in all_result.output
+    assert "old-root" not in all_result.output
+
+
+def test_sessions_sorts_top_level_groups_and_discloses_options() -> None:
+    runner = CliRunner()
+    summaries = [
+        SessionSummary("z-child", "z-root", "/project", 1760080000000),
+        SessionSummary("z-root", None, "/project", 1760000000000),
+        SessionSummary("a-root", None, "/project", 1759990000000),
+    ]
+    with patch("dot_tools.cli.opencode.OpenCodeSessionStore") as store:
+        store.return_value.__enter__.return_value.session_summaries.return_value = summaries
+        result = runner.invoke(cli, ["opencode", "sessions", "--sort", "asc:Session ID", "--all"])
+    assert result.exit_code == 0
+    assert result.output.index("a-root") < result.output.index("z-root") < result.output.index("└─ z-child")
+
+    help_output = runner.invoke(cli, ["opencode", "sessions", "--help"]).output
+    assert "--since" in help_output
+    assert "--sort" in help_output
+    assert "--all" in help_output
 
 
 def test_costs_provider_option_filters_sessions_and_help_discloses_option() -> None:
@@ -67,6 +122,9 @@ def test_costs_table_output_is_aligned_and_file_output_has_no_terminal_codes(tmp
     assert "Total Cost" in terminal.output
     assert "$2.00" in terminal.output
     child_line = next(line for line in terminal.output.splitlines() if "└─ child" in line)
+    assert "↳ /project" in child_line
+    assert "↳ agent" in child_line
+    assert "↳ gpt-5.6-luna" in child_line
     assert child_line.count("$1.00") == 1
     assert "│" in terminal.output
     assert written.exit_code == 0

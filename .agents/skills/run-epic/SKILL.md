@@ -63,14 +63,16 @@ shared `architect-reviewer` role with `review-epic-plan`. Resolve findings and r
 approval before child feature planning. Re-review material changes. Renew approval for material changes to
 outcome, scope, MVP boundary, feature sequencing, or cross-cutting architecture.
 
-Before any implementation planning or code in a slice, complete and individually review a design plan for every included
-feature. Present the complete design set together and obtain explicit human approval for that exact set. Then run each
-approved design through final individual review. No feature implementation plan begins until the whole set has passed
-both gates. Commit the approved epic plan and each approved slice design set on the coordinator branch.
+Before any implementation planning or code in a slice, complete and fully review a design plan for every included
+feature. Present the complete, individually reviewed design set together and obtain one explicit human approval for that
+exact set. Then run a scoped final blocker check on each approved design; do not request separate per-feature design
+approvals. No feature implementation plan begins until every check passes. Commit the
+approved epic plan and each approved slice design set on the coordinator branch.
 
-Each feature retains its own implementation-plan human approval, final plan review, execution review, code review
-option, QA, and immutable approved plans. Commit each approved feature implementation plan. After the human accepts
-feature QA and verifies the feature outcome, commit the completed feature stage and any human-approved QA changes.
+Each feature receives one human approval of its exact revised implementation plan, followed by a scoped final blocker
+check. A passing check opens execution without another human gate. Preserve execution review, code review option, QA,
+and plan immutability. Commit each approved feature implementation plan. After the human accepts feature QA and verifies
+the feature outcome, commit the completed feature stage and any human-approved QA changes.
 
 Commit only approved stages. After the integrated slice outcome receives explicit human acceptance, make the final
 approved slice commit. Never automatically publish, push, create a pull request, squash, merge, or delete the regular
@@ -86,14 +88,14 @@ branch. After epic completion, conditionally invoke `cleanup-agent-worktree` onl
 | Epic authoring                      | Create epic plan and product-level feature/slice registers                                       |
 | Epic agent review                   | Resolve findings and repeat review when changes are material                                     |
 | Epic human approval                 | Stop for explicit approval; material product changes renew this gate                             |
-| Slice design authoring              | Create and individually review every included feature design                                     |
+| Slice design authoring              | Create and fully review every included feature design                                            |
 | Slice agent review                  | Review cross-feature dependencies, integration, ordering, and slice readiness                    |
-| Slice human approval                | Stop for explicit approval of the complete current design set                                    |
-| Slice final design review           | Final-review every approved design; any material change invalidates affected set approval        |
-| Feature implementation planning     | Author implementation plan from the approved immutable design and slice-approval evidence        |
-| Feature plan agent review           | Resolve implementation-plan findings and repeat review when changes are material                 |
-| Feature plan human approval         | Stop for explicit implementation-plan approval before execution                                  |
-| Feature final plan review           | Final-review the approved plan; material changes return to feature human approval                |
+| Slice human approval                | Approve the exact complete design set once                                                       |
+| Slice final design check            | Check approved designs for major blockers; material changes renew affected set approval          |
+| Feature implementation planning     | Author plans from immutable designs and current slice approval evidence                          |
+| Feature plan agent review           | Resolve full-review findings and repeat review when changes are material                         |
+| Feature plan human approval         | Approve the exact revised feature plan once                                                      |
+| Feature final plan check            | Check major blockers; pass opens execution, blockers return to human review                      |
 | Feature execution                   | Execute the approved feature plan and record the implementation journal                          |
 | Feature agent review                | Review implementation against the feature plan and resolve findings                              |
 | Feature human review                | Present completed feature changes for human review before QA                                     |
@@ -127,23 +129,25 @@ resolution. The agent review does not approve the epic plan for the human.
 
 For every feature included in the current slice, invoke `.agents/skills/run-feature-lifecycle/SKILL.md` with explicit
 context: `execution_mode=epic`, `entry_stage=design`, its `FNN`, the parent `epic-plan.md`, its identifier-bearing
-feature directory, selected regular branch, and coordinator worktree. The lifecycle creates and individually reviews the
-feature design; the coordinator retains all detailed artifacts in the child directory.
+feature directory, selected regular branch, and coordinator worktree. The lifecycle creates and fully agent-reviews the
+feature design; it does not request a separate per-feature human approval.
+The coordinator retains all detailed artifacts in the child directory.
 
-After every design has passed its individual review, present the full set for one explicit human approval. Record the
-approved feature IDs, exact design revisions, and approval evidence in the epic plan. Then request final individual
-design reviews against those revisions. Commit the complete approved slice design set only after all final reviews pass.
-A material design change returns to the design human gate and final review, invalidates the affected set approval, and
-blocks dependent implementation until the affected complete set is approved again.
+After every design has passed its full individual review, present the complete set for one explicit human approval.
+Record the approved feature IDs, exact design revisions, and approval evidence in the epic plan. Then request a scoped
+final blocker check for each design against that set. If a blocker requires a material design change, return it to human
+review, invalidate the affected set approval, and pause dependent implementation until the affected complete set is
+approved again and its blocker check passes. Commit the slice design set only after every final check passes.
 
 
 ### Sequential feature delivery
 
 Process features in the approved dependency order, one at a time. For each feature, invoke the shared lifecycle in epic
-mode at `entry_stage=implementation-planning`, passing its immutable individually approved design, final review, current
-slice design-set approval evidence, parent epic path, `FNN`, feature directory, selected branch, and worktree. The
-lifecycle must reject missing or stale approval evidence. Complete that feature's implementation-plan
-review and explicit human approval before execution, then commit the approved plan.
+mode at `entry_stage=implementation-planning`, passing its immutable individually approved design, final blocker-check
+result, current slice design-set approval evidence, parent epic path, `FNN`, feature directory, selected branch, and
+worktree. The lifecycle must reject missing or stale approval evidence. Complete the plan's full agent review, obtain
+one human approval of the exact revised plan, and pass its final blocker check before
+execution. Commit the plan after that check passes; do not add another human gate.
 
 Dispatch the shared `engineer-executor` role through the principal-selected profile and tier for execution, and the
 shared `engineer-reviewer` role for execution review. Preserve all lifecycle code-review, plan-immutability, deviation,

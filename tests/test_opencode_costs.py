@@ -26,12 +26,12 @@ def make_database(path: Path, *, optional: bool = True) -> None:
     columns = "agent TEXT, model TEXT, cost REAL, tokens_input INTEGER, tokens_output INTEGER, " \
         "tokens_reasoning INTEGER, tokens_cache_read INTEGER, tokens_cache_write INTEGER, metadata TEXT," if optional else ""
     with sqlite3.connect(path) as connection:
-        connection.execute(f"CREATE TABLE session (id TEXT PRIMARY KEY, parent_id TEXT, directory TEXT NOT NULL, time_created INTEGER NOT NULL, {columns} title TEXT)")
+        connection.execute(f"CREATE TABLE session (id TEXT PRIMARY KEY, parent_id TEXT, directory TEXT NOT NULL, time_created INTEGER NOT NULL, time_updated INTEGER, {columns} title TEXT)")
         connection.executemany(
-            "INSERT INTO session VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO session VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
-                ("root", None, "/project", 1760000000000, "executor", '{"providerID":"github-copilot","id":"gpt-5.6-luna"}', 1.25, 100, 50, 10, 20, 5, '{"ok": true}', "Root"),
-                ("child", "root", "/project", 1760001000000, "reviewer", '{"providerID":"github-copilot","id":"claude-sonnet-5"}', 0.0, 0, 0, 0, 0, 0, None, "Child"),
+                ("root", None, "/project", 1760000000000, 1760000500000, "executor", '{"providerID":"github-copilot","id":"gpt-5.6-luna"}', 1.25, 100, 50, 10, 20, 5, '{"ok": true}', "Root"),
+                ("child", "root", "/project", 1760001000000, 1760002000000, "reviewer", '{"providerID":"github-copilot","id":"claude-sonnet-5"}', 0.0, 0, 0, 0, 0, 0, None, "Child"),
             ],
         )
 
@@ -45,6 +45,17 @@ def test_store_loads_sessions_and_resolves_root(tmp_path: Path) -> None:
     assert sessions[1].root_id == "root"
     assert sessions[1].parent_id == "root"
     assert sessions[1].metadata is None
+
+
+def test_store_lists_sessions_by_last_activity(tmp_path: Path) -> None:
+    path = tmp_path / "opencode.db"
+    make_database(path)
+    with OpenCodeSessionStore(path) as store:
+        summaries = store.session_summaries()
+
+    assert [summary.session_id for summary in summaries] == ["child", "root"]
+    assert summaries[0].directory == "/project"
+    assert summaries[0].last_activity == 1760002000000
 
 
 def test_store_normalizes_json_model_and_keeps_provider_for_filtering(tmp_path: Path) -> None:
@@ -241,7 +252,7 @@ def test_table_applies_requested_styles_only_when_color_is_enabled() -> None:
 
     assert re.search(r"\x1b\[\d+m\$2\.00\x1b\[0m", colored)
     assert re.search(r"\x1b\[\d+m\$0\.00\x1b\[0m", colored)
-    assert re.search(r"\x1b\[\d+m/project\x1b\[0m", colored)
+    assert re.search(r"\x1b\[[\d;]+m/project\x1b\[0m", colored)
     assert re.search(r"\x1b\[[\d;]+mprovider/gpt-5\.6-luna\x1b\[0m", colored)
     assert "\x1b[" not in plain
 

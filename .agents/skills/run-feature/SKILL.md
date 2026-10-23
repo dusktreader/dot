@@ -62,10 +62,10 @@ request, or merge into `main` or `master`; the human invokes `run-pr` after comp
 `~/.agents/instructions/git.md` with stage types `docs` for approved design and implementation
 plans, and `feat`, `fix`, `refactor`, or `ci` as appropriate for approved QA changes.
 
-After human approval of each plan and its final agent review, commit that approved stage. After QA approval, commit QA
-changes. Do not commit review feedback, unapproved plans, or unapproved QA changes. If `worktree_created` is true,
-invoke `cleanup-agent-worktree` only after the workflow closes and
-only to remove the worktree; never delete the regular branch.
+After the single human approval and passing final blocker check for each plan, commit that approved stage. After QA
+approval, commit QA changes. Do not commit review feedback, unapproved plans, or unapproved QA changes. If
+`worktree_created` is true, invoke `cleanup-agent-worktree` only after the workflow
+closes and only to remove the worktree; never delete the regular branch.
 
 
 ## Process
@@ -93,10 +93,12 @@ Invoke `.agents/skills/run-feature-lifecycle/SKILL.md` with explicit context:
 - Selected regular branch and worktree, plus `worktree_created`
 
 The lifecycle begins with design authoring and applies the individual design, implementation-plan, execution-review,
-code review, and QA gates. Require explicit human approval at each applicable gate. The principal selects the profile
-and tier before dispatch using the principal's routing policy, then uses the shared `architect-planner` role, shared
-`architect-reviewer` role, and the generic shared lifecycle roles through the selected profile's launcher. Do not encode
-account or model names in role names. The wrapper commits approved plan stages as described above.
+code review, and QA gates. Require one explicit human approval of each revised plan before its scoped final blocker
+check; a passing check proceeds without a second human approval. Preserve the other applicable gates. The principal
+selects the profile and tier before dispatch using the principal's routing policy, then uses the shared
+`architect-planner` role, shared `architect-reviewer` role, and the generic shared lifecycle roles through the selected
+profile's launcher. Do not encode account or model names in role names.
+The wrapper commits approved plan stages as described above.
 
 
 ### Report and handoff
