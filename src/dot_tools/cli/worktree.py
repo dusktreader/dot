@@ -9,6 +9,7 @@ from typerdrive import attach_logging, handle_errors
 from dot_tools.worktree_tools import (
     BranchType,
     build_branch_name,
+    checkout_worktree,
     create_worktree,
     find_worktree,
     list_worktrees,
@@ -24,7 +25,13 @@ cli = typer.Typer(help="Create and manage repository worktrees", no_args_is_help
 def make_worktree(summary: list[str], branch_type: BranchType, ticket: str | None) -> None:
     branch = build_branch_name(branch_type, " ".join(summary), ticket)
     worktree = create_worktree(branch)
-    typer.echo(f"Created {worktree.branch} at {worktree.path}")
+    typer.echo(f"Created worktree for {worktree.branch} at {worktree.path}")
+    navigate_to(worktree.path)
+
+
+def grab_branch(query: list[str]) -> None:
+    worktree = checkout_worktree(" ".join(query))
+    typer.echo(f"Checked out {worktree.branch} at {worktree.path}")
     navigate_to(worktree.path)
 
 
@@ -57,6 +64,17 @@ def make(
 ):
     """Create a branch and worktree from a summary."""
     make_worktree(summary, branch_type, ticket)
+
+
+@cli.command(no_args_is_help=True)
+@handle_errors("Couldn't grab branch")
+@attach_logging()
+def grab(
+    ctx: typer.Context,
+    query: Annotated[list[str], typer.Argument(help="Text to match against local and origin branches")],
+):
+    """Grab a matching local or origin branch into a worktree."""
+    grab_branch(query)
 
 
 @cli.command(no_args_is_help=True)

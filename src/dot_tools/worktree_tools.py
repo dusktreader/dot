@@ -37,6 +37,18 @@ class Worktree:
     branch: str
 
 
+@dataclass(frozen=True)
+class BranchRef:
+    name: str
+    remote: str | None = None
+
+    @property
+    def label(self) -> str:
+        if self.remote is None:
+            return f"{self.name} (local)"
+        return f"{self.remote}/{self.name} (remote)"
+
+
 def project_root(path: Path | None = None) -> Path:
     with WorktreeError.handle_errors(
         "Current directory is not inside a Git repository",
@@ -108,16 +120,62 @@ def create_worktree(branch: str) -> Worktree:
     return Worktree(path.resolve(), branch)
 
 
+def checkout_worktree(query: str) -> Worktree:
+    root = project_root()
+    repo = git.Repo(root)
+    local_branch_names = {head.name for head in repo.heads}
+    branches = [BranchRef(name) for name in sorted(local_branch_names)]
+    origin = next((remote for remote in repo.remotes if remote.name == "origin"), None)
+    if origin is not None:
+        _run_git(root, "fetch", "origin")
+        branches.extend(
+            BranchRef(ref.remote_head, "origin")
+            for ref in origin.refs
+            if ref.remote_head != "HEAD" and ref.remote_head not in local_branch_names
+        )
+    selected_branch = choose_branch(matching_branches(query, branches))
+    path = root / ".worktrees" / selected_branch.name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if selected_branch.remote is None:
+        _run_git(root, "worktree", "add", str(path), selected_branch.name)
+    else:
+        _run_git(
+            root,
+            "worktree",
+            "add",
+            "--track",
+            "-b",
+            selected_branch.name,
+            str(path),
+            f"{selected_branch.remote}/{selected_branch.name}",
+        )
+    return Worktree(path.resolve(), selected_branch.name)
+
+
+def _normalize_search_text(text: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", text.casefold())
+
+
+def _matches_search(normalized_query: str, candidate: str) -> bool:
+    normalized_candidate = _normalize_search_text(candidate)
+    return normalized_query in normalized_candidate or _is_subsequence(normalized_query, normalized_candidate)
+
+
 def matching_worktrees(query: str, worktrees: list[Worktree]) -> list[Worktree]:
-    normalized_query = re.sub(r"[^a-z0-9]", "", query.casefold())
+    normalized_query = _normalize_search_text(query)
     if not normalized_query:
         raise DotError("Search text must contain at least one letter or number")
+    return [worktree for worktree in worktrees if _matches_search(normalized_query, worktree.branch)]
 
-    def matches(worktree: Worktree) -> bool:
-        candidate = re.sub(r"[^a-z0-9]", "", worktree.branch.casefold())
-        return normalized_query in candidate or _is_subsequence(normalized_query, candidate)
 
-    return [worktree for worktree in worktrees if matches(worktree)]
+def matching_branches(query: str, branches: list[BranchRef]) -> list[BranchRef]:
+    normalized_query = _normalize_search_text(query)
+    if not normalized_query:
+        raise DotError("Search text must contain at least one letter or number")
+    matches = [branch for branch in branches if _matches_search(normalized_query, branch.name)]
+    if not matches:
+        raise DotError(f"No local or origin branch matches {query!r}")
+    return matches
 
 
 def _is_subsequence(query: str, candidate: str) -> bool:
@@ -128,6 +186,20 @@ def _is_subsequence(query: str, candidate: str) -> bool:
             if position == len(query):
                 return True
     return False
+
+
+def choose_branch(branches: list[BranchRef]) -> BranchRef:
+    if len(branches) == 1:
+        return branches[0]
+
+    typer.echo("Select an existing branch:")
+    for index, branch in enumerate(branches, 1):
+        typer.echo(f"{index}. {branch.label}")
+    while True:
+        selection = typer.prompt("Selection", type=int)
+        if 1 <= selection <= len(branches):
+            return branches[selection - 1]
+        typer.echo(f"Enter a number between 1 and {len(branches)}")
 
 
 def choose_worktree(worktrees: list[Worktree]) -> Worktree:
