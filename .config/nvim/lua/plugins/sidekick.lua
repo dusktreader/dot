@@ -10,14 +10,23 @@ return {
     cli = {
       default = "opencode",
       tools = {
-        opencode = {
+        doc_continue = {
           cmd = { "dt", "opencode", "launch", "--continue" },
         },
-        opencode_new = {
+        doc_new = {
           cmd = { "dt", "opencode", "launch" },
         },
-        work_opencode = {
+        doc_premium = {
+          cmd = { "dt", "opencode", "launch", "--premium-ok" },
+        },
+        woc_continue = {
           cmd = { "wdt", "opencode", "launch", "--continue" },
+        },
+        woc_new = {
+          cmd = { "wdt", "opencode", "launch" },
+        },
+        woc_premium = {
+          cmd = { "wdt", "opencode", "launch", "--premium-ok" },
         },
       },
       context = {
@@ -34,18 +43,33 @@ return {
       desc = "Sidekick Toggle CLI",
     },
     {
-      "<leader>ad",
-      function() require("user.opencode").toggle({ focus = true }, "opencode") end,
+      "<leader>adc",
+      function() require("user.opencode").toggle({ focus = true }, "doc_continue") end,
       desc = "Sidekick Personal OpenCode",
     },
     {
-      "<leader>an",
-      function() require("user.opencode").toggle({ focus = true }, "opencode_new") end,
+      "<leader>adn",
+      function() require("user.opencode").toggle({ focus = true }, "doc_new") end,
+      desc = "Sidekick Personal OpenCode",
+    },
+    {
+      "<leader>adp",
+      function() require("user.opencode").toggle({ focus = true }, "doc_premium") end,
+      desc = "Sidekick Personal OpenCode",
+    },
+    {
+      "<leader>awc",
+      function() require("user.opencode").toggle({ focus = true }, "woc_continue") end,
       desc = "Sidekick New Personal OpenCode Session",
     },
     {
-      "<leader>aw",
-      function() require("user.opencode").toggle({ focus = true }, "work_opencode") end,
+      "<leader>awn",
+      function() require("user.opencode").toggle({ focus = true }, "woc_new") end,
+      desc = "Sidekick Work OpenCode",
+    },
+    {
+      "<leader>awp",
+      function() require("user.opencode").toggle({ focus = true }, "woc_premium") end,
       desc = "Sidekick Work OpenCode",
     },
     {
@@ -68,21 +92,15 @@ return {
       desc = "Send Selection to opencode",
     },
     {
-      "<leader>ar",
-      function() require("user.opencode").review_staged() end,
-      mode = { "n" },
-      desc = "Review staged diff in opencode",
-    },
-    {
       "<leader>af",
       function() require("user.opencode").send({ msg = "{file}" }) end,
       desc = "Send File",
     },
-    -- Example of a keybinding to open Claude directly
     {
-      "<leader>ac",
-      function() require("user.opencode").toggle({ focus = true }) end,
-      desc = "Sidekick Toggle opencode",
+      "<leader>ar",
+      function() require("user.opencode").review_staged() end,
+      mode = { "n" },
+      desc = "Review staged diff in opencode",
     },
   },
 }

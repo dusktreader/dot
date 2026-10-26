@@ -46,12 +46,14 @@ class OutputFormat(AutoNameEnum):
 def launch(
     ctx: typer.Context,
     model: Annotated[str, typer.Option("--model", help="Model alias: light-luna, light-haiku, standard-terra, standard-sonnet, premium-sol, or premium-opus")] = "light-luna",
+    premium_ok: Annotated[bool, typer.Option("--premium-ok", help="Allow switching to a premium model after launch")] = False,
 ) -> None:
     """
     Launch OpenCode through the personal LiteLLM router.
 
     The default `light-luna` model uses the tool-capable Luna route. Select one of the supported aliases with
-    `--model`; premium authorization derives from the `premium-` model prefix. Invalid models fail before router startup.
+    `--model`; premium models authorize premium routing, and `--premium-ok` authorizes switching to premium later.
+    Invalid models fail before router startup.
 
     OpenCode arguments are passed through unchanged. The personal router listens only on `127.0.0.1:4010` and keeps
     OpenCode, Copilot, XDG, PID, log, and cache state under `~/.local/state/personal`. `HOME` remains unchanged so
@@ -63,7 +65,7 @@ def launch(
     """
     try:
         validate_model(model)
-        personal_lifecycle().launch(ctx.args, model)
+        personal_lifecycle().launch(ctx.args, model, premium_ok)
     except ValueError as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=2) from error

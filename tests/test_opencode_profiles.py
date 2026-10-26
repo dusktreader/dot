@@ -95,6 +95,13 @@ def test_environment_selects_each_model_without_provider_contact(tmp_path: Path,
     assert environment.get("OPENCODE_CLI_PREMIUM_AUTHORIZED") == ("1" if model.startswith("premium-") else None)
 
 
+def test_environment_premium_ok_authorizes_switching_without_selecting_premium(tmp_path: Path) -> None:
+    environment = lifecycle(tmp_path).environment_for("standard-terra", premium_ok=True)
+
+    assert environment["OPENCODE_ROUTING_TIER"] == "standard"
+    assert environment["OPENCODE_CLI_PREMIUM_AUTHORIZED"] == "1"
+
+
 def test_environment_preserves_home_and_isolates_runtime_state(tmp_path: Path) -> None:
     original_home = str(tmp_path / "home")
     environment = lifecycle(tmp_path).environment_for()
@@ -401,7 +408,7 @@ def test_cli_launch_parses_only_its_model_and_forwards_extra_args(tmp_path: Path
     with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
         result = runner.invoke(cli, ["opencode", "launch", "--model", "standard-terra", "--session", "abc"])
     assert result.exit_code == 0
-    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "standard-terra")
+    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "standard-terra", False)
 
 
 def test_cli_premium_model_forwards_without_approval_marker(tmp_path: Path) -> None:
@@ -409,7 +416,15 @@ def test_cli_premium_model_forwards_without_approval_marker(tmp_path: Path) -> N
     with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
         result = runner.invoke(cli, ["opencode", "launch", "--model", "premium-sol"])
     assert result.exit_code == 0
-    factory.return_value.launch.assert_called_once_with([], "premium-sol")
+    factory.return_value.launch.assert_called_once_with([], "premium-sol", False)
+
+
+def test_cli_premium_ok_allows_switching_after_launch() -> None:
+    with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
+        result = CliRunner().invoke(cli, ["opencode", "launch", "--premium-ok"])
+
+    assert result.exit_code == 0
+    factory.return_value.launch.assert_called_once_with([], "light-luna", True)
 
 
 def test_cli_prompt_forwards_run_arguments() -> None:

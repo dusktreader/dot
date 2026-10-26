@@ -54,6 +54,20 @@ def jump_to_root() -> None:
 
 
 @cli.command(no_args_is_help=True)
+@handle_errors("Couldn't build branch name")
+@attach_logging()
+def name(
+    ctx: typer.Context,
+    summary: Annotated[list[str], typer.Argument(help="Text summary for the branch name")],
+    branch_type: Annotated[BranchType, typer.Option("--type", help="Conventional commit type")] = BranchType.feat,
+    ticket: Annotated[str | None, typer.Option("--ticket", help="Ticket identifier")]=None,
+):
+    """Create a branch and worktree from a summary."""
+    branch_name = build_branch_name(branch_type, " ".join(summary), ticket)
+    typer.echo(branch_name)
+
+
+@cli.command(no_args_is_help=True)
 @handle_errors("Couldn't create worktree")
 @attach_logging()
 def make(

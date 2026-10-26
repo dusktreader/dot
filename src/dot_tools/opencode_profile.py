@@ -262,7 +262,7 @@ class OpenCodeLifecycle:
             separators=(",", ":"),
         )
 
-    def environment_for(self, model_alias: str = "light-luna") -> dict[str, str]:
+    def environment_for(self, model_alias: str = "light-luna", premium_ok: bool = False) -> dict[str, str]:
         """Build the isolated OpenCode and router environment for one invocation."""
         validate_model(model_alias)
         tier = routing_tier(model_alias)
@@ -300,7 +300,7 @@ class OpenCodeLifecycle:
         environment["NO_PROXY"] = f"{loopback},{no_proxy}" if no_proxy else loopback
         environment["no_proxy"] = environment["NO_PROXY"]
         environment.pop("OPENCODE_CLI_PREMIUM_AUTHORIZED", None)
-        if routing_tier(model_alias) == "premium":
+        if premium_ok or routing_tier(model_alias) == "premium":
             environment["OPENCODE_CLI_PREMIUM_AUTHORIZED"] = "1"
         return environment
 
@@ -616,13 +616,13 @@ class OpenCodeLifecycle:
                 f"Work Copilot account marker is missing or mismatched. Set {marker} to TuckerBeck_mcgraw after work authentication."
             )
 
-    def launch(self, arguments: Sequence[str], model_alias: str = "light-luna") -> None:
+    def launch(self, arguments: Sequence[str], model_alias: str = "light-luna", premium_ok: bool = False) -> None:
         """Start the profile router and replace this process with OpenCode."""
         validate_model(model_alias)
         self._ensure_state()
         if self.profile.requires_work_account:
             self.validate_work_account()
-        environment = self.environment_for(model_alias)
+        environment = self.environment_for(model_alias, premium_ok)
         environment["OPENCODE_ROUTER_KEY"] = self._router_key()
         credential_status = self.copilot_credential_status()
         if credential_status != "valid":
