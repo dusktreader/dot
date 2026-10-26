@@ -189,7 +189,10 @@ def wrap_prose_line(line: str) -> list[str]:
         text = line[len(initial_indent) :]
         subsequent_indent = initial_indent
 
-    wrapped = textwrap.wrap(
+    if not text.strip():
+        return [line]
+
+    return textwrap.wrap(
         text,
         width=MAX_PROSE_LINE_LENGTH,
         initial_indent=initial_indent,
@@ -197,22 +200,6 @@ def wrap_prose_line(line: str) -> list[str]:
         break_long_words=False,
         break_on_hyphens=False,
     )
-    if len(wrapped) > 1:
-        final_content = wrapped[-1][len(subsequent_indent) :]
-        prior_indent = initial_indent if len(wrapped) == 2 else subsequent_indent
-        while len(final_content) < MAX_PROSE_LINE_LENGTH * 2 // 3:
-            prior_content = wrapped[-2][len(prior_indent) :]
-            prior_words = prior_content.rsplit(maxsplit=1)
-            if len(prior_words) != 2:
-                break
-            balanced_final_content = f"{prior_words[1]} {final_content}"
-            remaining_prior = prior_words[0]
-            if len(balanced_final_content) > MAX_PROSE_LINE_LENGTH or len(balanced_final_content) > len(remaining_prior):
-                break
-            wrapped[-2] = f"{prior_indent}{remaining_prior}"
-            wrapped[-1] = f"{subsequent_indent}{balanced_final_content}"
-            final_content = balanced_final_content
-    return wrapped or [line]
 
 
 def format_heading_spacing(lines: list[str]) -> list[str]:

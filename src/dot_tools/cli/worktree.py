@@ -9,48 +9,17 @@ from typerdrive import attach_logging, handle_errors
 from dot_tools.worktree_tools import (
     BranchType,
     build_branch_name,
-    checkout_worktree,
-    create_worktree,
-    find_worktree,
+    drop_worktree,
+    grab_branch,
+    jump_to_worktree,
     list_worktrees,
+    make_worktree,
     navigate_to,
     project_root,
-    remove_worktree,
 )
 
 
 cli = typer.Typer(help="Create and manage repository worktrees", no_args_is_help=True)
-
-
-def make_worktree(summary: list[str], branch_type: BranchType, ticket: str | None) -> None:
-    branch = build_branch_name(branch_type, " ".join(summary), ticket)
-    worktree = create_worktree(branch)
-    typer.echo(f"Created worktree for {worktree.branch} at {worktree.path}")
-    navigate_to(worktree.path)
-
-
-def grab_branch(query: list[str]) -> None:
-    worktree = checkout_worktree(" ".join(query))
-    typer.echo(f"Checked out {worktree.branch} at {worktree.path}")
-    navigate_to(worktree.path)
-
-
-def jump_to_worktree(query: str) -> None:
-    worktree = find_worktree(query)
-    navigate_to(worktree.path)
-
-
-def drop_worktree(query: str, delete_branch: bool) -> None:
-    root = project_root()
-    worktree = find_worktree(query, root=root)
-    branch_detail = f" and branch {worktree.branch}" if delete_branch else ""
-    typer.confirm(f"Remove worktree {worktree.path}{branch_detail}?", abort=True)
-    remove_worktree(worktree, delete_branch=delete_branch)
-    navigate_to(root)
-
-
-def jump_to_root() -> None:
-    navigate_to(project_root())
 
 
 @cli.command(no_args_is_help=True)
@@ -144,4 +113,4 @@ def drop(
 @attach_logging()
 def root(ctx: typer.Context):
     """Navigate to the project root."""
-    jump_to_root()
+    navigate_to(project_root())

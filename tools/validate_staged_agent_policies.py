@@ -30,22 +30,19 @@ _CAPABILITIES = {"coding", "analysis", "tools", "large-context"}
 _TIERS = {"light", "standard", "premium"}
 _LIFECYCLE_REQUIREMENTS = {
     ".agents/skills/run-feature/SKILL.md": (
-        ".agents/workflows/use-worktree.md",
-        "before creating any artifact",
+        "before any artifact is created",
         "selected regular branch",
         "cleanup-agent-worktree",
         "never delete the regular branch",
     ),
     ".agents/skills/run-task/SKILL.md": (
-        ".agents/workflows/use-worktree.md",
-        "before any artifact or code change",
+        "before any artifact",
         "selected regular branch",
         "cleanup-agent-worktree",
         "run-pr",
     ),
     ".agents/skills/run-hack/SKILL.md": ("current branch", "no worktree", "no Git lifecycle", "only one artifact"),
     ".agents/skills/run-bug-fix/SKILL.md": (
-        ".agents/workflows/use-worktree.md",
         "before investigation",
         "implementation journal",
         "final QA exactly once",
@@ -54,7 +51,6 @@ _LIFECYCLE_REQUIREMENTS = {
         "never pushes",
     ),
     ".agents/skills/run-fix/SKILL.md": (
-        ".agents/workflows/use-worktree.md",
         "before reading or writing fix artifacts",
         "fail closed",
         "shared `engineer-executor` role",
@@ -63,7 +59,6 @@ _LIFECYCLE_REQUIREMENTS = {
         "never push or create a pull request",
     ),
     ".agents/skills/run-hotfix/SKILL.md": (
-        ".agents/workflows/use-worktree.md",
         "before investigation",
         "principal-authored minimal plan",
         "one lightweight review",
@@ -92,18 +87,16 @@ _BRANCH_WORKFLOWS = (
     ".agents/skills/run-hotfix/SKILL.md",
 )
 _EXTERNAL_REVIEW_SKILL = ".agents/skills/external-review/SKILL.md"
-_SHARED_WORKTREE_WORKFLOWS = (".agents/workflows/use-worktree.md",)
-_SHARED_WORKTREE_CONTRACTS = {
-    ".agents/workflows/use-worktree.md": (
-        "~/.agents/tools/use-worktree.py",
-        "dt worktree name",
-        "dt worktree list",
-        "dt worktree jump",
-        "dt worktree grab",
-        "dt worktree make",
-        "dt worktree root",
-        "parent base",
-        "worktree_created",
+_SHARED_WORKTREE_SKILLS = {
+    ".agents/skills/create-agent-worktree/SKILL.md": (
+        "immutable parent base",
+        "<repo>/.worktrees/",
+        "selected regular branch",
+    ),
+    ".agents/skills/cleanup-agent-worktree/SKILL.md": (
+        "If `worktree_created` is false, do nothing.",
+        "git worktree list",
+        "Never delete the regular branch automatically.",
     ),
 }
 _DUPLICATE_WORKTREE_PLUMBING = re.compile(
@@ -216,20 +209,16 @@ def validate(staging_root: Path, manifest_path: Path) -> list[str]:
         if _has_unsafe_mutation(content):
             failures.append(f"{path_name} permits silent Git mutation")
 
-    for path_name in _SHARED_WORKTREE_WORKFLOWS:
+    for path_name, requirements in _SHARED_WORKTREE_SKILLS.items():
         path = Path(path_name)
-        if path not in policy_text:
-            failures.append(f"missing shared worktree workflow: {path_name}")
+        content = policy_text.get(path, "")
+        if not content:
+            failures.append(f"missing shared worktree skill: {path_name}")
             continue
-        normalized_content = re.sub(r"\s+", " ", policy_text[path]).lower()
-        for requirement in _SHARED_WORKTREE_CONTRACTS[path_name]:
+        normalized_content = re.sub(r"\s+", " ", content).lower()
+        for requirement in requirements:
             if requirement.lower() not in normalized_content:
-                failures.append(f"{path_name} missing worktree workflow contract: {requirement}")
-
-    tool_path = "~/.agents/tools/use-worktree.py"
-    for path, content in policy_text.items():
-        if tool_path in content and path != Path(".agents/workflows/use-worktree.md"):
-            failures.append(f"{tool_path} must only be referenced by .agents/workflows/use-worktree.md")
+                failures.append(f"{path_name} missing shared worktree contract: {requirement}")
 
     dispatch_paths = {
         path: content

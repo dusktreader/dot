@@ -23,7 +23,7 @@ from dot_tools.cli.creds import cli as creds_cli
 from dot_tools.cli.opencode import cli as opencode_cli
 from dot_tools.cli.format import cli as format_cli
 from dot_tools.cli.worktree import cli as worktree_cli
-from dot_tools.cli.worktree import drop_worktree, jump_to_worktree
+from dot_tools.worktree_tools import drop_worktree, jump_to_worktree
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
 from dot_tools.line_length import get_config_line_length

@@ -7,14 +7,16 @@ from dot_tools.markdown_format import format_contents, wrap_prose_line
     ("prefix", "continuation"),
     [("", ""), ("- ", "  "), ("> ", "> ")],
 )
-def test_wrap_prose_rebalances_single_word_final_line(prefix: str, continuation: str):
+def test_wrap_prose_preserves_greedy_wrap_with_short_final_line(prefix: str, continuation: str):
     content = " ".join(["word"] * 25)
 
     wrapped = wrap_prose_line(f"{prefix}{content}")
 
     assert len(wrapped) > 1
-    assert len(wrapped[-1][len(continuation) :].split()) > 1
+    assert wrapped[-1].startswith(continuation)
     assert all(len(line) <= 120 for line in wrapped)
+    if not prefix:
+        assert wrapped[-1] == "word"
     assert all(line.startswith(prefix if index == 0 else continuation) for index, line in enumerate(wrapped))
     reconstructed = " ".join(
         line[len(prefix if index == 0 else continuation) :] for index, line in enumerate(wrapped)
@@ -22,7 +24,7 @@ def test_wrap_prose_rebalances_single_word_final_line(prefix: str, continuation:
     assert reconstructed == content
 
 
-def test_wrap_prose_rebalances_short_final_line_from_task_plan_example():
+def test_wrap_prose_does_not_rebalance_short_final_line_from_task_plan_example():
     content = (
         "Revise the `run-feature` plan-review cadence to stop dispatching adversarial agent reviews after every "
         "human-directed edit. Preserve an initial agent review, allow an uninterrupted human feedback loop, then run a "
@@ -32,7 +34,7 @@ def test_wrap_prose_rebalances_short_final_line_from_task_plan_example():
 
     wrapped = wrap_prose_line(content)
 
-    assert wrapped[-1].startswith("plans without weakening")
+    assert wrapped[-1] == "or explicit-approval requirements."
     assert all(len(line) <= 120 for line in wrapped)
     assert " ".join(wrapped) == content
 
@@ -54,7 +56,7 @@ def test_format_contents_reflows_soft_wrapped_marked_paragraph(prefix: str, cont
         line[len(prefix if index == 0 else continuation) :] for index, line in enumerate(paragraph)
     )
     assert reconstructed == " ".join(words)
-    assert len(paragraph[-1][len(continuation) :].split()) > 1
+    assert paragraph[-1][len(continuation) :] == "word word"
 
 
 def test_format_contents_reflows_soft_wrapped_paragraph_and_preserves_fenced_code():
@@ -69,6 +71,6 @@ def test_format_contents_reflows_soft_wrapped_paragraph_and_preserves_fenced_cod
 
     assert blocks[0] == "# Example"
     assert " ".join(blocks[1].splitlines()) == prose
-    assert len(blocks[1].splitlines()[-1].split()) > 1
+    assert blocks[1].splitlines()[-1] == "word"
     assert blocks[2] == f"```text\n{code}\n```"
     assert formatted.endswith("\n\n\n## Next\n\nDone.")

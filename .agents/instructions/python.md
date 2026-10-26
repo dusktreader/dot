@@ -1,7 +1,23 @@
 # Python Style Guide
 
-Rules for writing Python code in any project. These rules apply unless a project's `.agents/` or `AGENTS.md`
-file explicitly overrides them.
+Rules for writing Python code in any project. These rules apply unless a project's `.agents/` or `AGENTS.md` file
+explicitly overrides them.
+
+
+## Multiline strings
+
+Do not build multiline strings by concatenating adjacent string literals across lines. Use triple-quoted strings and
+`snick.dedent` instead. Do not concatenate or interpolate separate strings into a multiline f-string; put the full
+multiline content in one triple-quoted f-string passed to `snick.dedent`.
+
+```python
+message = snick.dedent(
+    """
+    First line
+    Second line
+    """
+)
+```
 
 
 ## Docstrings
@@ -45,8 +61,8 @@ def foo(client: Client) -> Result:
 ### Voice and content
 
 The first line of a docstring should always use imperative voice and include proper punctuation. It should be a single
-line followed by an empty line. Further explanation, argument documentation, return explanation, examples, callouts,
-etc may be included after the empty line:
+line followed by an empty line. Further explanation, argument documentation, return explanation, examples, callouts, etc
+may be included after the empty line:
 
 ```text
 # WRONG
@@ -72,8 +88,8 @@ Docstrings render as Markdown. Do not use reStructuredText markup.
 
 Specifically:
 
-- No Sphinx interpreted-text roles. Never write `:class:`, `:func:`, `:mod:`, `:meth:`, `:attr:`, `:exc:`, or
-  `:obj:` prefixes before a backtick-wrapped name.
+- No Sphinx interpreted-text roles. Never write `:class:`, `:func:`, `:mod:`, `:meth:`, `:attr:`, `:exc:`, or `:obj:`
+  prefixes before a backtick-wrapped name.
 - No double backticks for inline code. Use a single backtick.
 
 ```python
@@ -94,5 +110,5 @@ def foo(client: Client) -> Result:
     """
 ```
 
-The only project where rST docstring markup is acceptable is one explicitly using Sphinx, and that project
-will say so in its own `.agents/` or `AGENTS.md`. If you don't see an explicit opt-in, assume Markdown.
+The only project where rST docstring markup is acceptable is one explicitly using Sphinx, and that project will say so
+in its own `.agents/` or `AGENTS.md`. If you don't see an explicit opt-in, assume Markdown.

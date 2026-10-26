@@ -26,6 +26,7 @@ def write_fixture(tmp_path: Path, text: str | None = None) -> tuple[Path, Path]:
         Path(".agents/skills/external-review/SKILL.md"),
         *[path.relative_to(source) for path in (source / ".config/opencode/agents").glob("*.md")],
     ]
+    relative_files = [path for path in relative_files if (source / path).is_file()]
     for relative in relative_files:
         destination = root / relative
         destination.parent.mkdir(parents=True, exist_ok=True)

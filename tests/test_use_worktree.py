@@ -1,20 +1,9 @@
-import importlib.util
+import json
 import subprocess
 from pathlib import Path
-from types import ModuleType
-
-import pytest
 
 
-SCRIPT = Path(__file__).parents[1] / ".agents" / "tools" / "use-worktree.py"
-
-
-def load_tool() -> ModuleType:
-    spec = importlib.util.spec_from_file_location("use_worktree", SCRIPT)
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+SCRIPT = Path(__file__).parents[1] / ".agents" / "tools" / "create-agent-worktree.py"
 
 
 def run_git(path: Path, *args: str) -> str:
@@ -33,68 +22,105 @@ def init_repo(path: Path) -> Path:
     return path
 
 
-def test_creates_worktree_and_returns_handoff(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    root = init_repo(tmp_path / "repo")
-    navigation = tmp_path / "navigation"
-    monkeypatch.setenv("DT_NAVIGATION_FILE", str(navigation))
+def create_agent_worktree(root: Path, workflow: str = "task") -> dict[str, object]:
+    parent_branch = run_git(root, "branch", "--show-current")
+    parent_base = run_git(root, "rev-parse", "HEAD")
+    result = subprocess.run(
+        [
+            "python3",
+            str(SCRIPT),
+            "--repository",
+            str(root),
+            "--parent-worktree",
+            str(root),
+            "--parent-branch",
+            parent_branch,
+            "--parent-base",
+            parent_base,
+            "--workflow",
+            workflow,
+            "--type",
+            "feat",
+            "--task-id",
+            "ABC-123",
+            "--slug",
+            "add-retry-logic",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(result.stdout)
 
-    result = load_tool().use_worktree("Add retry logic", "feat", "ABC-123", root)
+
+def test_creates_regular_branch_and_worktree_from_main(tmp_path: Path) -> None:
+    root = init_repo(tmp_path / "repo")
+
+    result = create_agent_worktree(root)
 
     expected_branch = "feat/ABC-123--add-retry-logic"
     expected_path = root / ".worktrees" / expected_branch
-    assert result["action"] == "created"
-    assert result["branch"] == expected_branch
+    assert result["agent_branch"] == expected_branch
     assert result["parent_branch"] == "main"
-    assert result["worktree"] == str(expected_path)
+    assert result["agent_worktree"] == str(expected_path)
     assert result["worktree_created"] is True
-    assert navigation.read_text().strip() == str(expected_path)
     assert run_git(expected_path, "branch", "--show-current") == expected_branch
 
 
-def test_rejects_non_main_project_root(tmp_path: Path) -> None:
+def test_reuses_regular_branch_without_creating_another_worktree(tmp_path: Path) -> None:
     root = init_repo(tmp_path / "repo")
-    run_git(root, "branch", "feature/current")
-    run_git(root, "checkout", "feature/current")
+    run_git(root, "checkout", "-b", "feat/current")
 
-    with pytest.raises(load_tool().WorktreeError, match="Switch it to main or master"):
-        load_tool().use_worktree("Add retry logic", "feat", "ABC-123", root)
+    result = create_agent_worktree(root, "feature")
 
-
-def test_returns_to_project_root_then_creates_requested_worktree(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    root = init_repo(tmp_path / "repo")
-    other_path = root / ".worktrees" / "feat" / "other-task"
-    other_path.parent.mkdir(parents=True)
-    run_git(root, "worktree", "add", "-b", "feat/other-task", str(other_path))
-    navigation = tmp_path / "navigation"
-    monkeypatch.setenv("DT_NAVIGATION_FILE", str(navigation))
-
-    result = load_tool().use_worktree("Add retry logic", "feat", "ABC-123", other_path)
-
-    expected_path = root / ".worktrees" / "feat" / "ABC-123--add-retry-logic"
-    assert result["action"] == "created"
-    assert result["parent_worktree"] == str(root)
-    assert result["parent_branch"] == "main"
-    assert result["worktree"] == str(expected_path)
-    assert navigation.read_text().strip() == str(expected_path)
-
-
-def test_resumes_matching_dirty_worktree_without_pulling(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    root = init_repo(tmp_path / "repo")
-    branch = "feat/ABC-123--add-retry-logic"
-    worktree = root / ".worktrees" / branch
-    worktree.parent.mkdir(parents=True)
-    run_git(root, "worktree", "add", "-b", branch, str(worktree))
-    (worktree / "uncommitted.txt").write_text("keep this\n")
-    navigation = tmp_path / "navigation"
-    monkeypatch.setenv("DT_NAVIGATION_FILE", str(navigation))
-
-    result = load_tool().use_worktree("Add retry logic", "feat", "ABC-123", worktree)
-
-    assert result["action"] == "resumed"
+    assert result["agent_branch"] == "feat/current"
+    assert result["agent_worktree"] == str(root)
     assert result["worktree_created"] is False
-    assert "uncommitted changes" in result["error"]
-    assert navigation.read_text().strip() == str(worktree)
+    assert run_git(root, "worktree", "list", "--porcelain").count("worktree ") == 1
+
+
+def test_uses_next_branch_suffix_when_requested_branch_exists(tmp_path: Path) -> None:
+    root = init_repo(tmp_path / "repo")
+    run_git(root, "branch", "feat/ABC-123--add-retry-logic")
+
+    result = create_agent_worktree(root)
+
+    expected_branch = "feat/ABC-123--add-retry-logic-02"
+    assert result["agent_branch"] == expected_branch
+    assert (root / ".worktrees" / expected_branch).is_dir()
+
+
+def test_rejects_parent_worktree_that_is_not_repository_root(tmp_path: Path) -> None:
+    root = init_repo(tmp_path / "repo")
+    other_path = tmp_path / "other"
+    other_path.mkdir()
+    parent_base = run_git(root, "rev-parse", "HEAD")
+
+    result = subprocess.run(
+        [
+            "python3",
+            str(SCRIPT),
+            "--repository",
+            str(root),
+            "--parent-worktree",
+            str(other_path),
+            "--parent-branch",
+            "main",
+            "--parent-base",
+            parent_base,
+            "--workflow",
+            "task",
+            "--type",
+            "feat",
+            "--task-id",
+            "ABC-123",
+            "--slug",
+            "add-retry-logic",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode != 0
+    assert "parent worktree must be the repository root" in result.stderr

@@ -4,7 +4,7 @@ local selected_tool = "opencode"
 
 function M.toggle(opts, tool_name)
   opts = opts or {}
-  selected_tool = tool_name or selected_tool
+  selected_tool = tool_name
   opts.name = selected_tool
   require("sidekick.cli").toggle(opts)
 end
@@ -16,14 +16,30 @@ function M.send(opts, tool_name)
 end
 
 function M.select()
-  vim.ui.select({ "Personal OpenCode", "Work OpenCode" }, { prompt = "Select OpenCode profile" }, function(choice)
-    if choice == "Personal OpenCode" then
-      selected_tool = "opencode"
+  local tool_name
+  vim.ui.select({
+    "Personal OpenCode: Continue Session",
+    "Personal OpenCode: New Session",
+    "Personal OpenCode: New Premium Session",
+    "Work OpenCode: Continue Session",
+    "Work OpenCode: New Session",
+    "Work OpenCode: New Premium Session",
+  }, { prompt = "Select OpenCode profile" }, function(choice)
+    if choice == "Personal OpenCode: Continue Session" then
+      tool_name = "doc_continue"
+    elseif choice == "Personal OpenCode: New Session" then
+      tool_name = "doc_new"
+    elseif choice == "Personal OpenCode: New Premium Session" then
+      tool_name = "doc_premium"
     elseif choice == "Work OpenCode" then
-      selected_tool = "work_opencode"
+      tool_name = "woc_continue"
+    elseif choice == "Work OpenCode: New Session" then
+      tool_name = "woc_new"
+    elseif choice == "Work OpenCode: New Premium Session" then
+      tool_name = "woc_premium"
     end
     if choice then
-      M.toggle({ focus = true })
+      M.toggle({ focus = true }, tool_name)
     end
   end)
 end
