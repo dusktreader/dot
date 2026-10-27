@@ -18,6 +18,13 @@ Read the relevant instruction file before starting any task that matches the tri
 | `~/.agents/instructions/python.md`     | Writing or editing Python code or docstrings  |
 
 
+## Testing
+
+After small changes, run only the relevant unit tests during iteration. Do not run integration or end-to-end suites
+after
+each edit; run them once at the end only when the change warrants them or the user requests them.
+
+
 ## Markdown formatting
 
 Run `dt format markdown` on Markdown files after authoring or editing them. Do not pass `--check` during

@@ -258,7 +258,13 @@ class OpenCodeLifecycle:
         }
         agents["principal"]["variant"] = "xhigh"
         return json.dumps(
-            {"default_agent": "principal", "model": model, "small_model": model, "agent": agents},
+            {
+                "default_agent": "principal",
+                "model": model,
+                "small_model": model,
+                "compaction": {"auto": True, "buffer": 16384},
+                "agent": agents,
+            },
             separators=(",", ":"),
         )
 

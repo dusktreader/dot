@@ -47,6 +47,7 @@ def launch(
     ctx: typer.Context,
     model: Annotated[str, typer.Option("--model", help="Model alias: light-luna, light-haiku, standard-terra, standard-sonnet, premium-sol, or premium-opus")] = "light-luna",
     premium_ok: Annotated[bool, typer.Option("--premium-ok", help="Allow switching to a premium model after launch")] = False,
+    session: Annotated[str | None, typer.Option("--session", "-s", help="Resume an existing OpenCode session")] = None,
 ) -> None:
     """
     Launch OpenCode through the personal LiteLLM router.
@@ -65,7 +66,8 @@ def launch(
     """
     try:
         validate_model(model)
-        personal_lifecycle().launch(ctx.args, model, premium_ok)
+        arguments = ["--session", session] if session is not None else []
+        personal_lifecycle().launch([*arguments, *ctx.args], model, premium_ok)
     except ValueError as error:
         typer.echo(str(error), err=True)
         raise typer.Exit(code=2) from error

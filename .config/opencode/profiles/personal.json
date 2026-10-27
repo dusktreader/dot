@@ -2,6 +2,10 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "personal/light-luna",
   "small_model": "personal/light-luna",
+  "compaction": {
+    "auto": true,
+    "buffer": 16384
+  },
   "provider": {
     "personal": {
       "npm": "@ai-sdk/openai",

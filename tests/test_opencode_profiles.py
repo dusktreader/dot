@@ -47,6 +47,7 @@ def test_personal_profile_has_aliases_and_only_personal_zen_fallback() -> None:
 def test_personal_overlay_uses_responses_transport_for_gpt_5_6() -> None:
     overlay = json.loads((ROOT / ".config/opencode/profiles/personal.json").read_text())
     assert overlay["provider"]["personal"]["npm"] == "@ai-sdk/openai"
+    assert overlay["compaction"] == {"auto": True, "buffer": 16384}
 
 
 def test_personal_premium_route_uses_github_copilot_provider() -> None:
@@ -91,6 +92,7 @@ def test_environment_selects_each_model_without_provider_contact(tmp_path: Path,
     assert config["default_agent"] == "principal"
     assert config["model"] == f"personal/{model}"
     assert config["agent"]["principal"]["variant"] == "xhigh"
+    assert config["compaction"] == {"auto": True, "buffer": 16384}
     assert environment["DOT_STATE_HOME"] == str(Path(environment["HOME"]) / ".local" / "state")
     assert environment.get("OPENCODE_CLI_PREMIUM_AUTHORIZED") == ("1" if model.startswith("premium-") else None)
 
@@ -406,9 +408,20 @@ def test_cli_auth_defaults_to_copilot() -> None:
 def test_cli_launch_parses_only_its_model_and_forwards_extra_args(tmp_path: Path) -> None:
     runner = CliRunner()
     with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
-        result = runner.invoke(cli, ["opencode", "launch", "--model", "standard-terra", "--session", "abc"])
+        result = runner.invoke(
+            cli, ["opencode", "launch", "--model", "standard-terra", "--session", "abc", "--experimental", "value"]
+        )
     assert result.exit_code == 0
-    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "standard-terra", False)
+    factory.return_value.launch.assert_called_once_with(
+        ["--session", "abc", "--experimental", "value"], "standard-terra", False
+    )
+
+
+def test_cli_launch_accepts_session_short_option() -> None:
+    with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
+        result = CliRunner().invoke(cli, ["opencode", "launch", "-s", "abc"])
+    assert result.exit_code == 0
+    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "light-luna")
 
 
 def test_cli_premium_model_forwards_without_approval_marker(tmp_path: Path) -> None:
