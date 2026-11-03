@@ -13,19 +13,34 @@
       "models": {
         "light-luna": {
           "name": "Light · Luna",
-          "provider": { "npm": "@ai-sdk/openai" }
+          "provider": { "npm": "@ai-sdk/openai" },
+          "limit": { "context": 1050000, "input": 272000, "output": 128000 }
         },
-        "light-haiku": { "name": "Light · Haiku 5.5" },
-        "standard-terra": { "name": "Standard · Terra" },
-        "standard-sonnet": { "name": "Standard · Sonnet 5.5" },
+        "light-haiku": {
+          "name": "Light · Haiku 5.5",
+          "limit": { "context": 1000000, "input": 128000, "output": 16000 }
+        },
+        "standard-terra": {
+          "name": "Standard · Terra",
+          "limit": { "context": 1050000, "input": 272000, "output": 128000 }
+        },
+        "standard-sonnet": {
+          "name": "Standard · Sonnet 5.5",
+          "limit": { "context": 1000000, "input": 200000, "output": 128000 }
+        },
         "premium-sol": {
           "name": "Premium · Sol",
-          "provider": { "npm": "@ai-sdk/openai" }
+          "provider": { "npm": "@ai-sdk/openai" },
+          "limit": { "context": 1050000, "input": 272000, "output": 128000 }
         },
-        "premium-opus": { "name": "Premium · Opus 5.5" }
+        "premium-opus": {
+          "name": "Premium · Opus 5.5",
+          "limit": { "context": 1000000, "input": 200000, "output": 128000 }
+        }
       }
     }
   },
+  "compaction": { "auto": true, "reserved": 50000 },
   "agent": {
     "principal": { "model": "personal/light-luna", "variant": "xhigh" },
     "title": { "model": "personal/light-luna" },

@@ -41,6 +41,7 @@ def test_personal_profile_has_aliases_and_only_personal_zen_fallback() -> None:
     ]
     zen = next(item for item in router["model_list"] if item["model_name"] == "personal-light-zen")
     assert zen["litellm_params"]["model"] == "openai/gpt-6-luna"
+    assert {"tier:light", "tier:standard", "tier:premium"} <= set(zen["litellm_params"]["tags"])
     assert "os.environ/OPENCODE_ZEN_API_KEY" in (ROOT / ".config/litellm/personal.yaml").read_text()
 
 
@@ -80,6 +81,21 @@ def test_personal_overlay_defaults_to_light_luna_alias() -> None:
     assert set(overlay["provider"]["personal"]["models"]) == {
         "light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus"
     }
+
+
+def test_personal_overlay_declares_route_safe_limits_and_auto_compaction() -> None:
+    overlay = json.loads((ROOT / ".config/opencode/profiles/personal.json").read_text())
+    models = overlay["provider"]["personal"]["models"]
+
+    assert {name: model["limit"] for name, model in models.items()} == {
+        "light-luna": {"context": 1050000, "input": 272000, "output": 128000},
+        "light-haiku": {"context": 1000000, "input": 128000, "output": 16000},
+        "standard-terra": {"context": 1050000, "input": 272000, "output": 128000},
+        "standard-sonnet": {"context": 1000000, "input": 200000, "output": 128000},
+        "premium-sol": {"context": 1050000, "input": 272000, "output": 128000},
+        "premium-opus": {"context": 1000000, "input": 200000, "output": 128000},
+    }
+    assert overlay["compaction"] == {"auto": True, "reserved": 50000}
 
 
 @pytest.mark.parametrize("model", ["light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus"])

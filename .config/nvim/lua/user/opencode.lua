@@ -31,7 +31,7 @@ function M.select()
       tool_name = "doc_new"
     elseif choice == "Personal OpenCode: New Premium Session" then
       tool_name = "doc_premium"
-    elseif choice == "Work OpenCode" then
+    elseif choice == "Work OpenCode: Continue Session" then
       tool_name = "woc_continue"
     elseif choice == "Work OpenCode: New Session" then
       tool_name = "woc_new"

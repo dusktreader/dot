@@ -18,6 +18,8 @@ model_list:
       tags:
         - profile:personal
         - tier:light
+        - tier:standard
+        - tier:premium
         - capability:coding
         - capability:analysis
         - capability:tools
