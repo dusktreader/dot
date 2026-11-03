@@ -1,5 +1,6 @@
 from collections import deque
 import sys
+from collections.abc import Mapping
 from contextlib import contextmanager
 from typing import Any, override, TYPE_CHECKING
 
@@ -63,7 +64,7 @@ class ProgressLogger(Progress):
 spin_logger: int | None = None
 
 
-def filter_spin_log(record: Record) -> bool:
+def filter_spin_log(record: Mapping[str, Any]) -> bool:
     return not record.get("extra", {}).get("spin", False)
 
 

@@ -1,259 +1,153 @@
 # Run Task Skill
 
-Coordinate a bounded task with a human plan gate, focused execution, implementation approval,
-user-directed QA, and a human approval gate before squash. Use this workflow for small
-features, refactors, cleanup, configuration changes, or documentation updates where the scope
-is clear and a full design cycle would be excessive.
-
-All artifacts are stored under `.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`.
+Coordinate a bounded task with a human-approved plan, focused execution, implementation review, and user-directed QA.
+Use this workflow when the scope is clear and a full design cycle would be excessive.
 
 
 ## When to use
 
-Use this skill for any well-scoped minor change where the human already knows what they want
-and a separate design document adds no value. If you can describe the full change in a short
-task plan without needing an architecture section, use this skill.
+Use this skill for a well-scoped minor change where the human already knows what they want and a separate design
+document adds no value. Examples include small features, localized refactors, configuration or tooling changes, style
+fixes, tests for existing behavior, and documentation updates.
 
-**Reach for this skill first** whenever the request looks like any of these:
-
-- Adding or tweaking a small feature to an existing module (new flag, new output format,
-  changed behavior of one function)
-- A localized refactor (rename, extract a helper, split a function, reorder imports)
-- A configuration or tooling change (Makefile target, pyproject.toml entry, CI step)
-- A style or formatting fix across a bounded set of files
-- Adding tests for an already-implemented piece of code
-- A documentation update (README, docstrings, changelog, TODO)
-- Any change where all affected files can be listed up front and none of them require
-  rethinking the architecture
-
-**Use `run-feature` instead when:**
-
-- The change requires a design decision that the human has not already made
-- Multiple subsystems need to be coordinated in a non-obvious way
-- The scope is uncertain and might expand once investigation begins
-- A new module, subpackage, or major data structure is being introduced from scratch
-
-**Use other skills when:**
-
-- Fixing a confirmed bug → `run-bug-fix` or `run-hotfix`
-- Addressing a gap in an existing implementation project → `run-fix`
-- Addressing PR review comments → `external-review`
+Use `run-feature` when the change requires unresolved design decisions, coordinates multiple subsystems, has uncertain
+scope, or introduces a major module, package, or data structure. Use `triage-bug` when a bug's cause or scope is
+unclear, `run-fix` when a defect is understood and explicitly authorized for fixing, and `external-review` for PR review
+comments.
 
 
 ## Prerequisites
 
-Your prompt must include:
+The prompt must include a clear description of the task. If it is missing, ask before proceeding.
 
-- A clear description of the task to perform
 
-If not provided, ask before proceeding. Do not guess.
+## Artifact topology
 
+After worktree setup, invoke `.agents/procedures/use-artifact-dir.md` with the same task summary, branch type, and
+ticket used for `use-worktree`. Store all task artifacts in the returned directory. Use the `task-plan-review` artifact
+definition for plan reviews and the shared execution-journal, execution-review, and plan-deviations artifacts for the
+remaining records:
 
-## Project directory
+| Artifact                              | Description                                          |
+| ------------------------------------- | ---------------------------------------------------- |
+| `task-plan.md`                        | Minimal task plan                                    |
+| `task-plan-review--NN.md`             | Independent task-plan review                         |
+| `execution-journal.md`                | Work implemented against the task plan               |
+| `execution-review--whole-plan--NN.md` | Implementation review                                |
+| `plan-deviations.md`                  | All post-plan implementation, review, and QA changes |
 
-Derive `{project-name}` from the task description: kebab-case, lowercase, five words or fewer
-(e.g. `add-retry-logic`, `clean-up-imports`, `update-default-timeout`).
 
-Run process step 0 first so `{JIRA-ID}` is known, then create
-`.artifacts/{YYYYMMDD}--{JIRA-ID}--{project-name}/`. If the branch has no ticket (no match, or it contains
-`NO-TICKET`), omit the `{JIRA-ID}` segment entirely — do not write the literal text `NO-TICKET` into the path.
+## Lifecycle phases and states
 
-All artifacts for this task are stored there.
+| Phase                | State                         | Transition                                                      |
+| -------------------- | ----------------------------- | --------------------------------------------------------------- |
+| Setup                | Worktree setup                | Select task worktree and record the branch                      |
+| Task planning        | Task plan authoring           | Resolve essential Unknowns; continue to agent review            |
+| Task planning        | Task plan agent review        | Findings: revise and re-review; approval opens human review     |
+| Task planning        | Task plan human review        | Revisions: agent review; approval opens blocker check           |
+| Task planning        | Task plan final blocker check | BLOCKED: discuss and recheck; PASS: commit and execute          |
+| Execution and review | Execution                     | Task and focused tests complete: execution agent review         |
+| Execution and review | Execution agent review        | Findings: fix and re-review; approval opens human feedback      |
+| Execution and review | Execution human feedback      | Changes: agent review; accepted: execution blocker check        |
+| Execution and review | Execution final blocker check | BLOCKED: resolve and re-review; PASS: commit and QA             |
+| QA                   | QA authoring                  | Requested changes: verify with human; approval opens completion |
+| QA                   | QA completion                 | Report result and artifacts; task is complete                   |
 
-| Artifact             | Description                                                           |
-| -------------------- | --------------------------------------------------------------------- |
-| `task-plan.md`       | Minimal plan authored by the principal                                |
-| `task-journal.md`    | Execution journal                                                     |
-| `code-review--01.md` | Single lightweight review pass                                        |
-| `qa-journal.md`      | User-directed QA changes, reasons, verification, and final QA summary |
 
+### Setup phase
 
-## Git workflow
+#### Worktree setup
 
-Make all workflow commits in the agent worktree on `{agent-branch}`. The agent never switches the human's worktree.
+Invoke `.agents/procedures/use-worktree.md` with the task summary, ticket if provided, and a suitable branch type. Keep
+task artifacts and code changes in the returned worktree. Do not create branches or worktrees directly or modify the
+project root.
 
 
-### Branch and integration contract
+### Task planning phase
 
-Invoke `create-agent-worktree` with workflow identifier `task`. It owns normal-branch selection, local/audit only
-branch allocation, collision handling, and agent worktree creation. This workflow never pushes, creates a pull request,
-or merges into `main` or `master`.
-Once the normal branch is ready, tell the human to invoke `run-pr`.
+#### Task plan authoring
 
-When starting from `main` or `master`, the created regular branch is the work and publishing branch. Do not merge it
-back into the base branch; use `run-pr` when the workflow is complete.
+Dispatch the shared `engineer-task-planner` role with `.agents/procedures/create-task-plan.md`, the task description,
+and artifact directory. The procedure directs the planner to investigate and author `task-plan.md` using the canonical
+task-plan artifact definition and template. If essential Unknowns arise, invoke
+`.agents/procedures/resolve-unknowns-with-human.md` to resolve them with the human, then resume plan authoring or review
+as appropriate.
 
-After human QA approval, the selected regular branch is ready for `run-pr`. There is no squash, merge, audit branch,
-or separate agent worktree when the parent is already a regular branch. If `worktree_created` is true, invoke
-`cleanup-agent-worktree` only to remove that temporary worktree.
 
-Do NOT push the parent branch and do NOT create a PR — that is the human's decision.
+#### Task plan agent review
 
-Commit message format follows `~/.agents/instructions/git.md`:
+Dispatch the shared `architect-reviewer` role with `.agents/procedures/review-task-plan.md`, the task-plan path, review
+iteration, output review path, and any prior review artifact. Resolve findings in the plan and repeat review after
+material revisions. A satisfactory review opens the human review gate; it does not approve the plan for the human.
 
-```text
-<type>(<jira-id>): <short description>
 
-- <bullet describing what was done>
-- <bullet describing what was done>
-```
+#### Task plan human review
 
-Use `feat`, `fix`, `refactor`, `docs`, or `ci` as appropriate for the change.
+Invoke `.agents/procedures/discuss-plan-with-human.md` with the task-plan path, plan type `task`, review purpose
+`task-plan approval`, task-plan review artifact, current state, resume state **Task plan final blocker check**, and a
+single-plan gate. If the human requests revisions, update the plan and return through agent review. Questions and
+silence are not approval.
 
 
-## Process
+#### Task plan final blocker check
 
-### 0. Worktree and branch setup
+Dispatch the `architect-reviewer` role with `.agents/procedures/check-for-blockers.md` and `check_stage=plan`, providing
+the exact human-approved task-plan revision and task-plan review artifact. If blocked, invoke
+`.agents/procedures/discuss-plan-with-human.md` to present findings and obtain approval of a revised plan, then rerun
+the blocker check with the prior result. After a pass, commit the approved plan using a `docs` commit and proceed to
+execution.
 
-Before creating the task plan or changing code, inspect the current parent worktree and branch.
 
-- If the parent branch is `main` or `master`, ask the human for an associated work ticket ID. Wait for their response.
-  Use the provided ID as `{TASK-ID}` or `NO-TICKET` if the human confirms there is no ticket. Derive `{type}` and
-  `{slug}`, then create the ready-to-PR parent branch without switching the human's worktree.
-- Otherwise, use the current parent branch as `{parent-branch}`. Extract `{JIRA-ID}` from it using `[A-Z]+-[0-9]+`; use
-  `NO-TICKET` when present; otherwise omit the ticket segment from artifact paths and commit messages.
+#### Execution
 
-Invoke `create-agent-worktree` before any artifact with workflow identifier `task`, the parent worktree,
-`{parent-branch}`, immutable parent base `{parent-base}`, and normal-branch naming data if needed. Keep the human in
-the parent worktree. Create
-every task artifact, journal, and code change in the agent worktree. Report the agent worktree path, agent branch,
-parent branch, and recorded base at every later human gate.
+Before execution, read `.agents/artifacts/execution-journal/description.md` and render
+`.agents/artifacts/execution-journal/template.md.j2` as `execution-journal.md` in the task artifact directory. Record
+the approved task plan as the journal's source plan and use one task entry for the coherent task or one per independent
+sub-task in the plan. Read `.agents/artifacts/plan-deviations/description.md` and render its template as
+`plan-deviations.md`, recording the approved task plan as the source and `None` for the design plan.
 
-Continue directly to stage 1 (plan) and its approval gate. Do not stop before that gate.
+Dispatch the shared `engineer-executor` role with `.agents/procedures/execute-implementation-plan.md`, `plan_type=task`,
+the exact approved task plan, task artifact directory, and the `plan-deviations.md` path. Keep the approved task plan
+immutable. Record all later implementation, review, and QA changes in `plan-deviations.md`, including source, plan
+alignment, change, reason when provided, and verification.
 
+When execution is complete, proceed to execution agent review.
 
-### 1. Plan
 
-The principal selects the profile and tier for the planner using the principal's routing policy, dispatches the shared
-`engineer-task-planner` role, and records the active profile and tier. Stop for explicit human approval of the task plan
-before execution.
+#### Execution agent review
 
-Dispatch the shared `engineer-task-planner` role to write
-`task-plan.md`. The prompt must include:
-- The task description
-- The project directory path
-- Instruction to read `.agents/artifacts/task-plan/description.md` for section definitions and render
-  `.agents/artifacts/task-plan/template.md.j2` to produce the initial file
-- Instruction to replace all dummy content — every line drawn from the retro encabulator — with real content
-- Instruction to fill in only what is essential for the executor to proceed: `Goal`, `Project Commands`,
-  `Project Standards` (if relevant), `Steps`, and `Acceptance Criteria`
-- Instruction to omit `Technical Notes` unless there is something genuinely task-specific to note
-- Instruction that the rendered file must contain no placeholder text when submitted
+Dispatch the shared `engineer-reviewer` role with `.agents/procedures/review-implementation-execution.md`,
+`plan_type=task`, the approved task plan, `execution-journal.md`, `plan-deviations.md`, worktree and branch context, and
+the review artifact path and iteration. Repeat review until the execution is approved by the reviewer; resolve findings
+in execution and record implemented changes in `plan-deviations.md`. Then proceed to **Execution human feedback**.
 
-Do not dispatch a reviewer.
 
-If the task plan contains an **Unknowns** section, resolve each Unknown with the human before
-proceeding. When resolved, fold the resolution into the plan body and remove it from Unknowns.
-Remove the Unknowns section entirely once all items are resolved.
+#### Execution human feedback
 
-**STOP — end your turn here.**
-Present the task plan to the human. Wait for the human to ask questions, request revisions, or give approval.
+Invoke `.agents/procedures/review-execution-with-human.md` with the execution-review artifact, journal, focused
+verification, task artifact directory, worktree and branch, current state, and resume states. If the human requests
+changes, implement them in execution, record them in `plan-deviations.md`, and return through execution review. On
+acceptance, proceed to the final blocker check.
 
-**Do not proceed to execution under any circumstances until the human responds with an unambiguous approval
-signal** — a message such as "approved", "looks good", "proceed", or similar. Silence, a question, or a request
-for changes is NOT approval.
 
-Your final output in this turn must include this exact block, filled in:
+#### Execution final blocker check
 
-```text
-AWAITING APPROVAL: task plan
-Path: {path to task-plan.md}
-Unlocks: stage 2 (execution) — nothing else
-```
+Dispatch the shared `engineer-reviewer` role with `.agents/procedures/check-for-blockers.md` and
+`check_stage=execution`, providing the approved task plan, execution journal, execution-review artifact, deviations, and
+verification results. If blocked, resolve findings and return through execution review and human feedback as needed.
+After a pass, commit the approved execution stage and proceed to QA.
 
-When the human responds with approval, your next turn must open with:
 
-```text
-APPROVED: task plan
-Proceeding to: stage 2 (execute)
-```
+### QA phase
 
+#### QA authoring
 
-### 2. Execute
+Invoke `.agents/procedures/qa-implementation.md` with plan type `task`, the task artifacts, and worktree and branch
+context. Continue to **QA completion** after it returns explicit QA approval.
 
-Select the executor profile and tier using the principal's routing policy, then dispatch the shared
-`engineer-executor` role and record the active profile and tier. The executor runs the focused tests
-relevant to the task and records results.
 
+#### QA completion
 
-### 3. Implementation review
-
-Run final QA exactly once after execution as the implementation quality gate. Use a constrained light
-executor to fix only straightforward failures. This final QA is distinct from the later user-directed
-QA phase. Do not repeat the quality gate unless a fix changes acceptance criteria, introduces a new
-code path, or changes behavior, an interface, data, security, or tests.
-
-Use an independent reviewer exactly once for the implementation approval. Keep the review diff-first
-and compact. Do not launch adversarial review cycles; re-review only if a critical fix changes
-acceptance criteria, a new code path, behavior, interface, data, security, or tests.
-
-Address critical findings before leaving this phase. Log significant findings as follow-up work
-unless they block the stated task. Apply trivial findings directly.
-
-Before entering QA, ask the human whether they would like to review the changes first. If they opt in, use any
-interactive diff-review capability available in the current runtime, or present a concise diff summary through the
-normal review channel. Incorporate clear feedback before entering QA. If they decline, proceed directly to QA. This
-optional review does not replace the QA approval gate.
-
-Once the independent reviewer approves, continue directly to stage 4. Do not present the code review artifact for
-human approval, do not reconcile the task plan, and do not start another planning cycle.
-
-**Do not squash. Do not create a PR. Proceed directly to stage 4.**
-
-
-### 4. QA
-
-This phase begins immediately after the independent reviewer approves execution and any optional human diff review is
-complete. The agent must stop, notify the human that the code is ready for QA, and wait for testing feedback. QA is the
-human approval gate for the implementation. It does not authorize a new planning or review cycle.
-
-Tell the human that the implementation is on the agent branch and ready for QA. Ask them to test it and report any
-issues or requested adjustments.
-
-**STOP — end your turn here.**
-
-Before making the first QA change, read `.agents/artifacts/qa-journal/description.md` and render
-`.agents/artifacts/qa-journal/template.md.j2` as `qa-journal.md` in the project directory. Replace all
-placeholder content with the implementation path and real QA details. For every user-directed change,
-append:
-
-- The user's issue or requested adjustment
-- The reason for the change
-- The files changed
-- Verification performed and its result
-
-During QA, agents and subagents MUST NOT modify the task plan, code review, or any other plan or review
-artifact. Do not dispatch plan reviewers, reconcile the implementation against the plan, or start an
-adversarial review loop. Make only the smallest changes needed to address the user's direction.
-
-After each change, run the focused project quality gate and ask the human to verify the result. Wait for
-more user direction or explicit QA approval. Issues reported, silence, or questions are not approval.
-
-When the human approves QA, add a concise summary of all QA changes and their reasons at the top of
-`qa-journal.md`, then proceed to stage 5. QA changes are committed as one approved stage.
-
-```text
-AWAITING APPROVAL: QA
-QA journal: {path to qa-journal.md}
-Unlocks: stage 5 (squash) — nothing else
-```
-
-When the human responds with approval, your next turn must open with:
-
-```text
-APPROVED: QA
-Proceeding to stage 5 (squash)
-```
-
-
-### 5. Report
-
-The selected regular branch is ready for `run-pr`. If `worktree_created` is true, invoke `cleanup-agent-worktree`
-only to remove the temporary worktree.
-
-Report completion to the human with:
-- The project directory path
-- The regular branch name
-- Any Significant findings deferred as follow-up work
-
-Tell the human to invoke `run-pr`.
+After QA approval, report the project directory, task branch, review outcome, QA status, and paths to the final
+artifacts. These artifacts are sufficient context for subsequent work. Suggest that the human start a new session for
+any follow-on work; leave the worktree and branch intact. The task workflow is complete.

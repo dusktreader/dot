@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import httpx
 import pytest
+from pydantic import AnyHttpUrl
 import pytest_mock
 
 from dot_tools.exceptions import JiraError
@@ -12,7 +13,7 @@ from dot_tools.settings import JiraInfo
 
 def make_jira_man() -> JiraManager:
     return JiraManager(JiraInfo(
-        base_url="https://dusktreader.atlassian.net",
+        base_url=AnyHttpUrl("https://dusktreader.atlassian.net"),
         api_key="dummy-key",
         cloud_id="fake-cloud-id",
     ))
@@ -57,9 +58,9 @@ class TestJiraManagerGetIssue:
         mock_response.text = "{}"
         mock_response.json.return_value = {}
 
-        with mocker.patch.object(jira_man.client, "get", return_value=mock_response):
-            jira_man.get_issue("JAWA-9999")
-            jira_man.client.get.assert_called_once_with("/rest/api/2/issue/JAWA-9999")
+        mock_get = mocker.patch.object(jira_man.client, "get", return_value=mock_response)
+        jira_man.get_issue("JAWA-9999")
+        mock_get.assert_called_once_with("/rest/api/2/issue/JAWA-9999")
 
     def test_get_issue__raises_on_invalid_key_pattern(self):
         jira_man = make_jira_man()

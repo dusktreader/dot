@@ -1,223 +1,41 @@
 # Run Fix Skill
 
-Extend an existing implementation project with a scoped fix plan. This skill is always triggered
-by a human identifying a specific gap — never by an agent acting on its own initiative.
-
-The fix lives in the same project directory as the original implementation. It adds new artifacts
-without modifying the original design plan, implementation plan, or journal.
+Apply a human-authorized, understood fix. This thin wrapper owns worktree and artifact setup, commits, and final
+reporting; `.agents/procedures/apply-fix.md` owns the fix lifecycle.
 
 
 ## When to use
 
-Use this skill when, after a `run-feature` project is complete, a human identifies a
-missed requirement or incorrect behaviour that needs a targeted fix — through code review, UAT,
-or manual testing feedback.
-
-This is a standalone skill triggered directly by humans. It always operates within an existing
-project directory created by `run-feature`.
-
-Do not use when:
-- The gap is discovered during a PR review → use `external-review` instead
-- The bug is unrelated to an existing implementation project → use `run-bug-fix` or
-  `run-hotfix` instead
-- The change is a new feature rather than a fix → start a new `run-feature` project
-- No agent triggered this — this skill must never be triggered automatically
+Use when the human understands the defect or missed requirement and explicitly requests a targeted fix. Use `triage-bug`
+first when diagnosis is needed; triage must return explicit human authorization to remediate before this workflow
+proceeds. Use `run-task` for bounded non-bug changes, `run-feature` for new or broad feature work, and `external-review`
+for PR review feedback.
 
 
 ## Prerequisites
 
-Your prompt must include:
-
-- Path to the existing project directory (`.artifacts/{project}/`)
-- A clear description of the gap or missed requirement to fix
-
-If either is missing, ask before proceeding. Do not guess.
+The prompt must include the fix description and indicate the expected outcome. Ask if either is unclear.
 
 
-## When to use this skill
+## Workflow phases
 
-Use this skill when, after implementation is complete, a human identifies something that was
-missed — through code review, UAT, or operational feedback. Examples:
+### Setup
 
-- An AC was not met
-- A key design constraint was not implemented correctly
-- A behaviour is wrong in a way that requires targeted changes
+Invoke `.agents/procedures/use-worktree.md` with branch type `fix`, a concise summary, and ticket if provided. Work only
+in the selected worktree.
 
-Do NOT use this skill to:
-- Add new features (start a new project with `run-feature` instead)
-- Make broad architectural changes (those require a new design plan)
-- Fix things proactively — only when a human explicitly requests it
+Invoke `.agents/procedures/use-artifact-dir.md` in the selected worktree with the same summary, `branch_type=fix`, and
+ticket used for `use-worktree`. Use its returned path for all fix artifacts.
 
 
-## Artifacts
+### Fix lifecycle
 
-All artifacts are written to the existing project directory alongside the original artifacts.
-
-| Artifact                                        | Description                                                               |
-| ----------------------------------------------- | ------------------------------------------------------------------------- |
-| `implementation-plan--fix-{N}.md`               | Scoped fix plan (N = zero-padded 2 digits: 01, 02, ...)                   |
-| `implementation-review--fix-{N}--{M}.md`        | Fix plan review (N = fix number, M = zero-padded iteration: 01, 02, ...)  |
-| `implementation-journal--fix-{N}.md`            | Execution journal for the fix                                             |
-| `execution-review--fix-{N}--whole-plan--{M}.md` | Execution review (N = fix number, M = zero-padded iteration: 01, 02, ...) |
-
-Use the next available N by checking what fix artifacts already exist in the project directory.
+Invoke `.agents/procedures/apply-fix.md` once with `fix_origin=standalone`, `entry_stage=plan`, `exit_stage=qa`, the
+human fix request, fix artifact directory, and selected worktree/branch.
 
 
-## Isolated worktree lifecycle
+### Completion
 
-Before reading or writing fix artifacts or changing code, invoke `create-agent-worktree` with workflow identifier
-`fix`. Every fix
-artifact and code change stays in the agent worktree, and every gate names its path and branch.
-
-Locate the existing implementation project from the agent-worktree view, then attach the fix plan,
-journal updates, bug context, and review evidence to that project's established artifact directory.
-Fail closed when the project is missing, the artifact directory is ambiguous, or the expected project
-path cannot be established in the agent worktree. Report the specific resolution failure and create
-or modify no artifact or code. Never attach fix work to the human worktree or guess a project path.
-
-For investigator, planner, executor, constrained QA-fix, and reviewer handoffs, the principal selects and records the
-active `profile:*` and `tier:*` routing metadata. Dispatch the shared specialist role through the active launcher.
-Record the profile, tier, project class, and handoff purpose in the fix journal or review context.
-
-Run final QA once, obtain independent review, and wait for explicit approval. The selected regular branch remains the
-working and publishing branch. There is no agent branch, audit branch, squash, or merge step. If `worktree_created` is
-true, invoke `cleanup-agent-worktree` only to remove the temporary worktree. Never push or create a pull request.
-
-
-## Git workflow
-
-This skill manages its own git commits throughout the workflow on the selected regular branch. It does not create a
-separate agent branch or worktree.
-
-
-### Branch and integration contract
-
-Invoke `create-agent-worktree` with workflow identifier `fix`. It owns normal-branch selection, local/audit only branch
-allocation, collision handling, and agent worktree creation. This workflow never pushes, creates a pull request, or
-merges into `main` or `master`. Once the normal branch is ready, tell the human to invoke `run-pr`.
-
-For local main integration, stop and obtain explicit human approval before integration. After approval rebase the
-normal branch onto current main, then use `git merge --ff-only`. Never squash directly to main.
-
-
-### 0. Branch setup
-
-Before reading the existing project artifacts or changing code, invoke `create-agent-worktree` with the parent
-worktree, `{parent-branch}`, immutable `{parent-base}` SHA, workflow identifier `fix`, and normal-branch naming data.
-Extract the Jira ID from the parent branch name using the same rules as
-`run-feature`. Continue directly to stage 1 (plan) and its approval gate. Do not stop before that gate.
-
-
-### Commits after each approved stage
-
-After the human approves each stage, commit:
-
-```shell
-git add -A
-git commit -m "<message>"
-```
-
-Stage-specific commit types:
-- **After fix plan approved**: `docs(<jira-id>): add fix-{N} plan for {project-name}`
-- **After fix execution approved**: `fix(<jira-id>): apply fix-{N} for {project-name}`
-
-
-### Completion on the regular branch
-
-After the human approves the fix execution and the CHANGELOG is updated, the selected regular branch is ready for
-`run-pr`. If `worktree_created` is true, invoke `cleanup-agent-worktree` only to remove the temporary worktree. Do NOT
-push the branch — that is the human's decision.
-
-
-## Process
-
-### 1. Plan
-
-Run branch setup before reading the existing implementation project.
-
-Read the existing `implementation-plan.md` and `design-plan.md` to understand the project context.
-
-Dispatch the shared `engineer-planner` role through the selected profile launcher to create
-`implementation-plan--fix-{N}.md`. The prompt
-must include:
-- The specific gap or missed requirement
-- Path to the existing project directory
-- Instruction to scope the plan narrowly — only what is needed to address the gap, nothing more
-- Instruction to read `.agents/artifacts/implementation-plan/description.md` for section definitions,
-  render `.agents/artifacts/implementation-plan/template.md.j2` to produce the initial file, and replace
-  all dummy content with real content. The rendered file must contain no placeholder text when submitted.
-
-Then dispatch the shared `architect-reviewer` role through the selected profile launcher with the
-fix plan path, and iteration `01`.
-
-Address all findings from the review:
-- Apply trivial findings directly without discussion.
-- Apply significant and critical findings using judgment. If a finding is genuinely ambiguous —
-  where the correct resolution depends on information only the human has — flag it inline and
-  note what you need. Do not stop the workflow for findings you can resolve yourself.
-- Record the outcome in each finding's `##### Outcome` subsection.
-- Re-dispatch an `architect-reviewer` at M+1 if changes were substantial. Repeat until the
-  agent reviewer approves.
-
-**STOP — end your turn here.**
-The fix plan is ready for human review. Present it to the human. Do not summarize the agent
-findings — the human will read the plan directly. Wait for the human to ask questions, request
-revisions, or give approval. Do not proceed until the human explicitly approves.
-
-Before ending your turn, verify every item in this checklist:
-- [ ] I have presented the fix plan to the human in this turn
-- [ ] I have NOT dispatched an executor agent or started any execution work
-- [ ] I am ending my turn now and will not act again until the human responds
-
-Once approved: commit (see Git workflow — "After fix plan approved").
-
-
-### 2. Execute
-
-Dispatch the shared `engineer-executor` role through the selected profile launcher with the
-`execute-implementation-plan` skill and the fix plan path. Record the selected profile and tier.
-The journal is `implementation-journal--fix-{N}.md`. Use the same role for a constrained QA-fix
-handoff and record that purpose.
-
-Then dispatch the shared `engineer-reviewer` role through the selected profile launcher with
-the `review-implementation-execution` skill, the fix journal path, scope `whole-plan`, and iteration
-`01`. Record the selected profile, tier, and project class. The review artifact is
-`execution-review--fix-{N}--whole-plan--01.md`.
-
-Address all findings from the review:
-- Apply trivial findings directly without discussion.
-- Dispatch the shared `engineer-executor` role through the selected profile launcher to fix significant and critical
-  findings. Flag genuinely ambiguous ones inline.
-- Record the outcome in each finding's `##### Outcome` subsection.
-- Re-dispatch an `engineer-reviewer` at M+1 if changes were substantial. Repeat until the
-  agent reviewer approves.
-
-If a `CHANGELOG.md` exists in the repo root, add an entry under `## Unreleased` summarising
-what was fixed. Use the fix plan's Goal as the basis. Follow the existing entry style in the
-file.
-
-Before presenting the review, use any interactive diff-review capability available in the current runtime to gather
-human feedback on the change. Incorporate clear feedback before the approval gate. If no such capability is available,
-present the review artifact and a concise diff summary through the normal human-review channel. This supplements, and
-does not replace, explicit human approval.
-
-**STOP — end your turn here.**
-The execution is ready for human review. Present the execution review to the human. Wait for the
-human to ask questions, request revisions, or give approval. Do not proceed until the human
-explicitly approves.
-
-Before ending your turn, verify every item in this checklist:
-- [ ] I have presented the execution review to the human in this turn
-- [ ] I have NOT started the squash or any post-execution work
-- [ ] I am ending my turn now and will not act again until the human responds
-
-Once approved: commit (see Git workflow — "After fix execution approved"), then perform
-the final squash onto the parent branch.
-
-
-### 3. Report
-
-Report completion with the paths to all new artifacts, a summary of what was changed, and the
-squash commit SHA on the parent branch.
-
-Once the normal branch is ready, tell the human to invoke `run-pr`.
+After QA approval and the caller-owned QA commit, report the fix artifact directory, branch/worktree, review outcome, QA
+status, and artifact paths. Leave the worktree and branch intact. Suggest a new session for follow-on work; the
+artifacts provide sufficient context. Do not push, publish, create a pull request, merge, or squash.

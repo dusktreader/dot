@@ -51,14 +51,14 @@ class ToolSpecs(pydantic.BaseModel):
     check: str
     scripts: ScriptSpecs
     gui_only: bool = False
-    depends_on: Annotated[list[str], pydantic.Field(default_factory=lambda: [])]
+    depends_on: list[str] = pydantic.Field(default_factory=list)
 
 
 class ServiceSpecs(pydantic.BaseModel):
     name: str
     label: str
     executable: str
-    args: Annotated[list[str], pydantic.Field(default_factory=lambda: [])]
+    args: list[str] = pydantic.Field(default_factory=list)
     config_template: Path | None = None
     gui_only: bool = False
     platform: str | None = None
@@ -66,13 +66,13 @@ class ServiceSpecs(pydantic.BaseModel):
 
 
 class InstallManifest(pydantic.BaseModel):
-    link_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
-    copy_paths: Annotated[list[Path | FileSpecs], pydantic.Field(default_factory=lambda: [])]
-    dotfile_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
-    mkdir_paths: Annotated[list[Path], pydantic.Field(default_factory=lambda: [])]
-    tools: Annotated[list[ToolSpecs], pydantic.Field(default_factory=lambda: [])]
-    settings: Annotated[list[SettingSpecs], pydantic.Field(default_factory=lambda: [])]
-    services: Annotated[list[ServiceSpecs], pydantic.Field(default_factory=lambda: [])]
+    link_paths: list[Path] = pydantic.Field(default_factory=list)
+    copy_paths: list[Path | FileSpecs] = pydantic.Field(default_factory=list)
+    dotfile_paths: list[Path] = pydantic.Field(default_factory=list)
+    mkdir_paths: list[Path] = pydantic.Field(default_factory=list)
+    tools: list[ToolSpecs] = pydantic.Field(default_factory=list)
+    settings: list[SettingSpecs] = pydantic.Field(default_factory=list)
+    services: list[ServiceSpecs] = pydantic.Field(default_factory=list)
 
 
 def resolve_tool_order(tools: list[ToolSpecs]) -> list[ToolSpecs]:

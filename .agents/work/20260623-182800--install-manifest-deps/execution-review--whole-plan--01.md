@@ -2,8 +2,8 @@
 
 ## Source Artifacts
 
-- **Implementation journal**: `.agents/work/20260623-182800--install-manifest-deps/implementation-journal.md`
-- **Implementation plan**: `.agents/work/20260623-182800--install-manifest-deps/implementation-plan.md`
+- **Execution journal**: `.agents/work/20260623-182800--install-manifest-deps/execution-journal.md`
+- **Approved plan**: `.agents/work/20260623-182800--install-manifest-deps/implementation-plan.md`
 
 
 ## Scope

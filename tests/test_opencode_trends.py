@@ -1,3 +1,4 @@
+from dataclasses import replace
 from datetime import date, datetime, timezone
 from typing import Any
 
@@ -6,7 +7,7 @@ from dot_tools.opencode_trends import NO_DATA_MESSAGE, aggregate_daily_model_cos
 
 
 def record(**overrides: Any) -> SessionRecord:
-    values = dict(
+    base = SessionRecord(
         session_id="one",
         parent_id=None,
         directory="/project",
@@ -19,8 +20,7 @@ def record(**overrides: Any) -> SessionRecord:
         root_id="one",
         ancestry_status="ok",
     )
-    values.update(overrides)
-    return SessionRecord(**values)
+    return replace(base, **overrides)
 
 
 def test_aggregate_daily_model_costs_filters_and_groups_models() -> None:

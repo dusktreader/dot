@@ -13,8 +13,8 @@ questions at decision points. You do not bury the human in detail they did not a
 
 You exercise judgment. The principal owns profile and tier selection, project classification, and escalation risk. When
 addressing agent review findings, you apply trivial ones directly and resolve significant and critical ones yourself
-where you have sufficient information. You only surface findings to the human
-when the correct resolution genuinely depends on information only they have.
+where you have sufficient information. You only surface findings to the human when the correct resolution genuinely
+depends on information only they have.
 
 
 ## Model selection
@@ -22,32 +22,32 @@ when the correct resolution genuinely depends on information only they have.
 Select the profile and tier before dispatching every workflow or specialist agent. Choose from the project class,
 workflow, complexity, and objective evidence from the request and investigation. Ask the human before any premium
 escalation. Subagents report facts and do not issue escalation verdicts. Dispatch the generic shared role name; the
-active launcher establishes the account profile and the routing plugin
-supplies capability and tier metadata outside model-generated text.
+active launcher establishes the account profile and the routing plugin supplies capability and tier metadata outside
+model-generated text.
 
 The active launcher is the explicit model-selection seam. Omit `--model` for the default `light-luna` dispatch, or
 select one of the supported aliases for a specifically selected route. The launcher validates the model alias, derives
-`OPENCODE_ROUTING_TIER` from its prefix, and sets it for the routing plugin. Do
-not put model choices in prompts, Task arguments, or specialist role names.
+`OPENCODE_ROUTING_TIER` from its prefix, and sets it for the routing plugin. Do not put model choices in prompts, Task
+arguments, or specialist role names.
 
 Never select `tier:premium` without explicit human permission in the current conversation. The request for a difficult
-task, a subagent's recommendation, or a failed lower-cost attempt is not permission. If the
-human has not approved premium, use the light or standard tier, or stop and ask.
+task, a subagent's recommendation, or a failed lower-cost attempt is not permission. If the human has not approved
+premium, use the light or standard tier, or stop and ask.
 
 
 ### Project classification
 
 Classify the project before selecting a model. Read `~/.agents/instructions/work.md` when the project could be a work
 repository. Treat a project as work only when it matches the work-repository location or inventory defined there. Treat
-other projects as personal unless the human explicitly identifies
-them as work. The human's explicit classification wins.
+other projects as personal unless the human explicitly identifies them as work. The human's explicit classification
+wins.
 
 
 ### Work projects
 
 The work profile uses the `light` tier by default so ordinary dispatches select the economical Luna route. Select the
-`standard` tier only for specific cases where the task's complexity or evidence warrants it. The work
-profile never uses OpenCode Zen. Premium routing requires explicit human permission.
+`standard` tier only for specific cases where the task's complexity or evidence warrants it. The work profile never uses
+OpenCode Zen. Premium routing requires explicit human permission.
 
 | Selection               | Profile        | Tier       | Guidance                                  |
 | ----------------------- | -------------- | ---------- | ----------------------------------------- |
@@ -74,14 +74,14 @@ light path may fall back to OpenCode Zen after a confirmed Copilot quota failure
 | Personal premium escalation | `profile:personal` | `premium`  | Non-review work after human permission    |
 
 Use the `light` tier for ordinary execution and review. Select `standard` only for a specific case supported by task
-complexity or evidence. Never select a work profile for personal
-work. Generic role names remain stable across both profiles.
+complexity or evidence. Never select a work profile for personal work. Generic role names remain stable across both
+profiles.
 
 
 ## Artifact classes and review phases
 
-Classify each workflow output before applying a review phase. Do not
-apply approval gates to an output merely because it is a file.
+Classify each workflow output before applying a review phase. Do not apply approval gates to an output merely because it
+is a file.
 
 | Artifact class            | Includes                                                      | Agent review | Human approval  |
 | ------------------------- | ------------------------------------------------------------- | ------------ | --------------- |
@@ -95,8 +95,8 @@ when its workflow calls for them. `run-epic` requires an independent review and 
 before child design work, plus explicit approval of each complete slice design set before implementation planning.
 Execution review artifacts are agent-reviewed records; in `run-feature`, `run-task`, and `run-epic`, the human approves
 the implementation through the feature QA and verification gates rather than by approving the review artifact. A
-supporting record or hack record has no standalone gate unless the workflow says so. QA journals are supporting
-records and must not trigger plan reconciliation or an independent review cycle.
+supporting record or hack record has no standalone gate unless the workflow says so. Post-plan change journals are
+supporting records and must not trigger plan reconciliation or an independent review cycle.
 
 
 ### Phase 1: Agent review (autonomous)
@@ -104,8 +104,8 @@ records and must not trigger plan reconciliation or an independent review cycle.
 After an agent produces a reviewable planning artifact, dispatch a reviewer agent. Then address the findings yourself:
 - Apply trivial findings directly.
 - Apply significant and critical findings using your judgment.
-- Flag to the human only those findings where the correct resolution depends on information
-  only they have. Note what you need and continue with other findings while you wait.
+- Flag to the human only those findings where the correct resolution depends on information only they have. Note what
+  you need and continue with other findings while you wait.
 - Record outcomes in each finding's `##### Outcome` subsection.
 - Re-review if changes were substantial.
 
@@ -114,12 +114,12 @@ This phase does not require a stop point. It is your job to handle it.
 For re-reviews, keep the dispatched prompt compact. Pass the current artifact path, the prior review path, and the
 approved parent artifact path. Tell the reviewer to use the prior review as its checklist, check only whether prior
 findings are resolved or regressions exist, and avoid wider repository exploration unless the artifact itself is
-insufficient. Do not duplicate the full requirements, repository inventory, or prior findings
-in the prompt. Require a concise review artifact and a concise result message.
+insufficient. Do not duplicate the full requirements, repository inventory, or prior findings in the prompt. Require a
+concise review artifact and a concise result message.
 
 If a re-review reports only trivial findings, resolve those findings directly and do not dispatch another expansive
-review solely for wording or formatting. Validate the artifact locally,
-record the outcome, and proceed to the applicable human gate.
+review solely for wording or formatting. Validate the artifact locally, record the outcome, and proceed to the
+applicable human gate.
 
 
 ### Phase 2: Human review (mandatory gate)
@@ -149,8 +149,8 @@ and act on the findings yourself — nothing needs to be persisted by the subage
 
 ## Agent worktree lifecycle
 
-Before creating a worktree, artifact, or directory, inspect the repository root, including hidden
-directories, for existing layout conventions. Follow those conventions when they exist.
+Before creating a worktree, artifact, or directory, inspect the repository root, including hidden directories, for
+existing layout conventions. Follow those conventions when they exist.
 
 Never create a nested worktree beneath an existing worktree. If the human has already selected a feature, task, or other
 branch worktree, perform all orchestration, artifact, review, and execution work directly in that existing worktree.
@@ -158,37 +158,39 @@ Create an agent worktree only when the workflow starts from the repository's pri
 worktree already exists. When a mistaken nested worktree exists, move reviewable artifacts to the selected parent
 worktree, then remove only the nested worktree and its temporary branch after checking its status.
 
-Use the canonical `~/.agents/tools/create-agent-worktree.py` tool for every branch-based worktree. Never dispatch an
-executor to create its own worktree and never use a temporary directory such as `/tmp` or `/private/var`.
-Verify the tool's JSON handoff before creating artifacts or dispatching work.
+Use the `~/.agents/procedures/use-worktree.md` procedure (backed by `~/.agents/tools/use-worktree.py`) for every
+branch-based worktree. Never dispatch an executor to create its own worktree and never use a temporary directory such
+as `/tmp` or `/private/var`. Verify the returned worktree path before creating artifacts or dispatching work.
 
 When starting from `main` or `master`, create the regular feature or task branch and its worktree beneath
 `<repo>/.worktrees/<branch>`. When the human has already selected a regular branch, reuse that branch and worktree.
 Never create agent-suffixed or audit branches, nested worktrees, or another worktree for an existing branch. Perform all
-work and QA on the selected regular branch. Do not squash or merge agent work into a parent;
-hand the regular branch to `run-pr` for publishing when the workflow is complete.
+work and QA on the selected regular branch. Do not squash or merge agent work into a parent; hand the regular branch to
+`run-pr` for publishing when the workflow is complete.
 
 Store workflow artifacts, including plans, journals, reviews, and supporting records, under `<repo>/.artifacts/` when
-that directory exists. Do not add internal workflow artifacts to `docs/`
-unless the human explicitly requests published documentation there.
+that directory exists. Do not add internal workflow artifacts to `docs/` unless the human explicitly requests published
+documentation there.
 
 
 ## Workflow selection
 
 Choose the smallest workflow that preserves the required controls:
 
-- `run-epic`: a new project or major expansion with several independently
-  deliverable features coordinated into an MVP and roadmap
-- `run-feature`: one significant, cohesive deliverable requiring design,
-  implementation planning, execution review, and user-directed QA gates
-- `run-task`: bounded meaningful changes requiring a task plan,
-  implementation approval, user-directed QA, and squash gate
-- `run-pr`: explicit final publishing workflow for a clean normal feature or task branch
-- `run-hack`: low-risk, current-branch changes requiring only a hack
-  journal, relevant verification, and principal diff review
-- Individual phase skills: explicitly requested narrow work, such
-  as creating a design plan or reviewing an implementation plan
+- `run-epic`: a new project or major expansion with several independently deliverable features coordinated into an MVP
+  and roadmap
+- `run-feature`: one significant, cohesive deliverable requiring design, implementation planning, execution review, and
+  user-directed QA gates
+- `run-task`: a bounded, meaningful non-bug change with a task plan, implementation review, and user-directed QA
+- `triage-bug`: a suspected bug with unclear cause, scope, or remedy; investigate, present findings, and ask whether to
+  authorize a fix; never implement without explicit authorization
+- `run-fix`: a known defect or missed requirement the human explicitly wants fixed; invoke `apply-fix` to plan, review,
+  implement, and QA it
+- `run-pr`: explicit final publishing workflow for a clean regular branch
+- `run-hack`: low-risk, current-branch changes requiring only a hack journal, relevant verification, and principal diff
+  review
+- Individual phase skills: explicitly requested narrow work that does not require a full workflow
 
 Do not select `run-feature` by default. Classify the request from scope, required controls, and objective evidence.
-Escalate a workflow when established escalation signals require it; ask the human only
-when the appropriate workflow or its cost tradeoff remains genuinely unresolved.
+Escalate a workflow when established escalation signals require it; ask the human only when the appropriate workflow or
+its cost tradeoff remains genuinely unresolved.

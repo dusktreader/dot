@@ -76,6 +76,11 @@ class ReportColumns:
         """Return a populated value by its report field name."""
         return next(column.value for column in self.all_columns() if column.field == field)
 
+    def get_cost(self, field: str) -> float:
+        """Return a populated numeric cost by its report field name, treating missing values as zero."""
+        value = self.get_value(field)
+        return float(value) if isinstance(value, (int, float)) else 0.0
+
     def to_dict(self) -> dict[str, object]:
         """Serialize populated columns by their public field names."""
         return {column.field: column.value for column in self.all_columns() if column.field}
@@ -297,7 +302,7 @@ class Report:
         for column in columns:
             table.add_column(column.label, no_wrap=True, overflow="ignore")
 
-        def _style(field: str, value: str, is_child: bool) -> object:
+        def _style(field: str, value: str, is_child: bool) -> Text | Align:
             align_right = field in {"recorded_cost", "local_estimate", "total_cost"}
             if is_child:
                 style = {
@@ -686,7 +691,7 @@ def table_rows(
         rendered.append((row, prefix + display, None))
         descendants = children[session_id]
         child_prefix = prefix + ("   " if is_last else "│  ") if not is_root else ""
-        total_cost = row.get_value("recorded_cost") or 0.0
+        total_cost = row.get_cost("recorded_cost")
         for index, child in enumerate(descendants):
             total_cost += add_subtree(child, child_prefix, index == len(descendants) - 1)
         if is_root:
@@ -701,15 +706,23 @@ def table_rows(
             current = subtree[index]
             subtree.extend(children[str(current.get_value("session_id"))])
             index += 1
-        root_totals.append((root, sum(row.get_value("recorded_cost") or 0.0 for row in subtree)))
+        root_totals.append((root, sum(row.get_cost("recorded_cost") for row in subtree)))
     for sort_field, reverse in (sort or []):
-        def value(item: tuple[ReportColumns, float]) -> object:
+        def value(item: tuple[ReportColumns, float]) -> str | float | None:
             """Return the requested sortable value for a root group."""
-            return item[1] if sort_field == "total_cost" else item[0].get_value(sort_field)
+            if sort_field == "total_cost":
+                return item[1]
+            candidate = item[0].get_value(sort_field)
+            return candidate if isinstance(candidate, (str, int, float)) else None
+
+        def sort_key(item: tuple[ReportColumns, float]) -> tuple[str, float]:
+            """Order text values lexically and numeric values numerically."""
+            candidate = value(item)
+            return (candidate, 0.0) if isinstance(candidate, str) else ("", float(candidate or 0))
 
         available = [item for item in root_totals if value(item) is not None]
         unavailable = [item for item in root_totals if value(item) is None]
-        available.sort(key=value, reverse=reverse)
+        available.sort(key=sort_key, reverse=reverse)
         root_totals = available + unavailable
     for root, _ in root_totals:
         add_subtree(root, "", True, is_root=True)

@@ -2,6 +2,7 @@ import hashlib
 import json
 import re
 import sqlite3
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
@@ -120,11 +121,20 @@ def session(**overrides: Any) -> ReportColumns:
 
 
 def record(**overrides: Any) -> SessionRecord:
-    values = dict(session_id="one", parent_id=None, directory="/project", agent="executor", model="gpt-5.6-luna",
-                  time_created=1760000000000, cost=2.0, tokens={"input": 100, "output": 50, "reasoning": 10,
-                  "cache_read": 20, "cache_write": 5}, metadata=None, root_id="one", ancestry_status="ok")
-    values.update(overrides)
-    return SessionRecord(**values)
+    base = SessionRecord(
+        session_id="one",
+        parent_id=None,
+        directory="/project",
+        agent="executor",
+        model="gpt-5.6-luna",
+        time_created=1760000000000,
+        cost=2.0,
+        tokens={"input": 100, "output": 50, "reasoning": 10, "cache_read": 20, "cache_write": 5},
+        metadata=None,
+        root_id="one",
+        ancestry_status="ok",
+    )
+    return replace(base, **overrides)
 
 
 def test_report_filters_metrics_estimates_and_outliers() -> None:

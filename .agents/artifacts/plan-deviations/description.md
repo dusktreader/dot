@@ -1,46 +1,47 @@
 # Plan deviations
 
-A chronological record of human-directed implementation changes that depart from the approved design or implementation
-plans after execution begins.
+A chronological journal of changes made after a plan is approved, covering implementation, code review, and QA. Record
+whether each change follows or departs from the approved plan, and capture its source and verification.
 
 
 ## Template variables
 
-| Variable                   | Description                              |
-| -------------------------- | ---------------------------------------- |
-| `plan_title`               | Title of the implementation plan         |
-| `design_plan_path`         | Path to the approved design plan         |
-| `implementation_plan_path` | Path to the approved implementation plan |
+| Variable                   | Description                                          |
+| -------------------------- | ---------------------------------------------------- |
+| `plan_title`               | Task, feature, or fix plan title                     |
+| `design_plan_path`         | Approved design plan path, or `None` if not relevant |
+| `implementation_plan_path` | Approved implementation or task plan path            |
 
 
 ## Source plans
 
-Record the paths to the approved design plan and implementation plan. These are the immutable baseline for identifying
-deviations.
+Record the approved source plan paths. These remain immutable and are the baseline for identifying deviations. Use
+`None` for a design plan when the workflow has no design stage.
 
 
-## Deviations
+## Changes
 
-Add one subsection per implemented human-directed change that departs from the approved plans, in chronological order.
-Do not record requests that were declined or changes that remain within the approved plan.
+Add one subsection per implemented change made after plan approval, in chronological order. Include implementation,
+code-review, and QA changes, whether requested by the human or initiated by the implementor. State whether each change
+departs from the approved plan. Record the source and omit unimplemented or declined requests.
 
-Each deviation subsection contains:
-
-
-### Stage
-
-Record whether the request arose during execution, human code review, or QA.
+Each change subsection contains:
 
 
-### Human feedback
+### Stage and source
 
-Record the human's request or an accurate summary. Do not infer intent or rationale.
+Record whether the change arose during implementation, code review, or QA, and identify who or what requested it.
 
 
-### Approved plan reference
+### Request
 
-Identify the affected task, acceptance criterion, or plan section. For added work, state that the approved plans do not
-cover it.
+Record the request or change trigger accurately. Do not infer intent or rationale.
+
+
+### Plan alignment
+
+Identify the affected task, acceptance criterion, or plan section. State whether the change follows or departs from the
+approved plan; for added work, state that the plan does not cover it.
 
 
 ### Change made
@@ -55,5 +56,4 @@ Record the human-provided reason when available. State that no reason was provid
 
 ### Verification
 
-Record focused tests, quality gates, or manual verification and their results. Link to the QA journal entry for QA
-deviations.
+Record focused tests, quality gates, or manual verification and their results.

@@ -88,13 +88,13 @@ class TestParseOctal:
 class TestFileSpecs:
 
     def test_file_specs__parses_path_and_perms(self):
-        spec = FileSpecs(path=Path(".ssh/config"), perms="0o600")
+        spec = FileSpecs.model_validate({"path": Path(".ssh/config"), "perms": "0o600"})
         assert spec.path == Path(".ssh/config")
         assert spec.perms == 0o600
 
     def test_file_specs__rejects_invalid_perms(self):
         with pytest.raises(Exception):
-            FileSpecs(path=Path(".ssh/config"), perms="bad")
+            FileSpecs.model_validate({"path": Path(".ssh/config"), "perms": "bad"})
 
 
 class TestScriptSpecs:
@@ -256,7 +256,7 @@ class TestInstallManifest:
             "tools": [],
             "services": [],
         }
-        manifest = InstallManifest(**data)
+        manifest = InstallManifest.model_validate(data)
         assert Path(".gitconfig") in manifest.link_paths
         assert manifest.mkdir_paths == [Path(".vim/backup")]
         assert isinstance(manifest.copy_paths[0], FileSpecs)

@@ -17,6 +17,7 @@ from dot_tools.git_tools import _run_git
 class WorktreeError(DotError):
     pass
 
+
 class BranchType(AutoNameEnum):
     feat = auto()
     fix = auto()
@@ -69,16 +70,24 @@ def parameterize_summary(summary: str) -> str:
     return parameterize(summary.lower())[:80].rstrip("-")
 
 
+def validate_ticket(ticket: str | None) -> str | None:
+    if not ticket:
+        return None
+
+    ticket = ticket.strip()
+    DotError.require_condition(
+        re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", ticket),
+        "Ticket must contain only letters, numbers, dots, underscores, and hyphens",
+    )
+    return ticket
+
+
 def build_branch_name(branch_type: BranchType, summary: str, ticket: str | None = None) -> str:
     slug = parameterize_summary(summary)
     DotError.require_condition(slug, "Summary must contain at least one letter or number")
 
+    ticket = validate_ticket(ticket)
     if ticket:
-        ticket = ticket.strip()
-        DotError.require_condition(
-            re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", ticket),
-            "Ticket must contain only letters, numbers, dots, underscores, and hyphens"
-        )
         slug = f"{ticket}--{slug}"
 
     return f"{branch_type.value}/{slug}"
@@ -156,9 +165,13 @@ def _normalize_search_text(text: str) -> str:
     return re.sub(r"[^a-z0-9]", "", text.casefold())
 
 
-def _matches_search(normalized_query: str, candidate: str) -> bool:
+def _matches_search(normalized_query: str, candidate: str, similarity: float = 0.0) -> bool:
     normalized_candidate = _normalize_search_text(candidate)
-    return normalized_query in normalized_candidate or _is_subsequence(normalized_query, normalized_candidate)
+    if normalized_query in normalized_candidate:
+        return True
+    if not _is_subsequence(normalized_query, normalized_candidate):
+        return False
+    return len(normalized_query) / len(normalized_candidate) >= similarity
 
 
 def matching_worktrees(query: str, worktrees: list[Worktree]) -> list[Worktree]:
@@ -168,11 +181,13 @@ def matching_worktrees(query: str, worktrees: list[Worktree]) -> list[Worktree]:
     return [worktree for worktree in worktrees if _matches_search(normalized_query, worktree.branch)]
 
 
-def matching_branches(query: str, branches: list[BranchRef]) -> list[BranchRef]:
+def matching_branches(query: str, branches: list[BranchRef], *, similarity: float = 0.0) -> list[BranchRef]:
     normalized_query = _normalize_search_text(query)
     if not normalized_query:
         raise DotError("Search text must contain at least one letter or number")
-    matches = [branch for branch in branches if _matches_search(normalized_query, branch.name)]
+    if not 0.0 <= similarity <= 1.0:
+        raise DotError("Similarity must be between 0 and 1")
+    matches = [branch for branch in branches if _matches_search(normalized_query, branch.name, similarity)]
     if not matches:
         raise DotError(f"No local or origin branch matches {query!r}")
     return matches

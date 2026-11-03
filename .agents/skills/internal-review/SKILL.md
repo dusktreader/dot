@@ -1,30 +1,24 @@
----
-name: internal-review
-description: Reviews code changes directly against quality standards. Use when no implementation plan or journal exists.
----
-
 # Internal review skill
 
 Start with the diff, expand context only as required, and produce compact findings. Re-review only after changes to
 acceptance criteria, a new code path, behavior, interface, data, security, or tests.
 
-Review a set of files against quality standards and produce a code review artifact. Use this skill for
-standalone reviews where no implementation plan or journal is available.
+Review a set of files against quality standards and produce a code review artifact. Use this skill for standalone
+reviews where no implementation plan or journal is available.
 
 
 ## When to use
 
-Use this skill to review a specific set of changed files against quality standards, producing a
-structured findings artifact. It is appropriate when there is no implementation plan or journal
-to cross-reference — the review is purely against code quality.
+Use this skill to review a specific set of changed files against quality standards, producing a structured findings
+artifact. It is appropriate when there is no implementation plan or journal to cross-reference — the review is purely
+against code quality.
 
 This skill is a sub-skill called by orchestrators:
-- `run-hotfix` — lightweight review after a hotfix is applied
 - `external-review` — code quality review as part of addressing GitHub pull request comments
 
-Do not confuse with `review-implementation-execution`, which reviews code *against an
-implementation plan and journal* for AC coverage and plan alignment. Use `internal-review` when
-there is no plan — use `review-implementation-execution` when there is one.
+Do not confuse with `.agents/procedures/review-implementation-execution.md`, which reviews code against an approved plan
+and execution journal for AC coverage and plan alignment. Use `internal-review` when there is no plan; use the execution
+review procedure when there is one.
 
 
 ## Prerequisites
@@ -39,18 +33,16 @@ If not provided, ask before proceeding. Do not guess.
 
 ## Artifact
 
-Write the review to `code-review--{N}.md` in the project directory. Read
-`.agents/artifacts/code-review/description.md` for the canonical section definitions, and render
-`.agents/artifacts/code-review/template.md.j2` to produce the initial file. Replace all dummy
-content — every line drawn from the retro encabulator — with real content for this review. The
+Write the review to `code-review--{N}.md` in the project directory. Read `.agents/artifacts/code-review/description.md`
+for the canonical section definitions, and render `.agents/artifacts/code-review/template.md.j2` to produce the initial
+file. Replace all dummy content — every line drawn from the retro encabulator — with real content for this review. The
 rendered file must contain no placeholder text when submitted. Supply the path to your caller on completion.
 
 
 ## Scope
 
 - Review code only. Do not modify source files.
-- There is no implementation plan or journal. Do not attempt to verify acceptance criteria or map files
-  to plan tasks.
+- There is no implementation plan or journal. Do not attempt to verify acceptance criteria or map files to plan tasks.
 
 
 ## Process
@@ -62,19 +54,18 @@ No setup required. Proceed directly to reading the files.
 
 ### 1. Read the files
 
-Read each file in the review set directly. Understand the shape and purpose of the changes before
-forming opinions.
+Read each file in the review set directly. Understand the shape and purpose of the changes before forming opinions.
 
 
 ### 2. Run verification commands (if available)
 
-If project commands were provided, run them: tests, build, linter, type-checker, and coverage. Record
-results in the artifact.
+If project commands were provided, run them: tests, build, linter, type-checker, and coverage. Record results in the
+artifact.
 
 If not, record `skipped (no project commands provided)` for each entry.
 
-If tests fail or the build is broken: write the review artifact noting the failure output and stop.
-Return "Tests failing / Build broken. Fix before review."
+If tests fail or the build is broken: write the review artifact noting the failure output and stop. Return "Tests
+failing / Build broken. Fix before review."
 
 
 ### 3. Resolve prior findings (re-review only)

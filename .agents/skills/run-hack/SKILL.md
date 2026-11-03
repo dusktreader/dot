@@ -1,50 +1,65 @@
----
-name: run-hack
-description: Makes a low-risk current-branch change with a hack journal and focused verification.
----
-
 # Run Hack Skill
 
-Make a low-risk change directly on the current branch with the smallest useful record and verification. This workflow
-uses
-no agent worktree and no Git lifecycle. It uses no worktree and does not create one.
+Make a low-risk change directly on the current worktree with the smallest useful record and verification. Do not create
+a worktree or run a Git lifecycle.
 
 
 ## When to use
 
-Use this workflow for a bounded, reversible change where the current branch is the intended destination. It operates on
-the current branch, including `main`.
-
-Do not use it when objective evidence requires a fuller workflow.
+Use this workflow for a bounded, reversible change where the current branch is the intended destination, including
+`main`. Do not use it when objective evidence requires a fuller workflow.
 
 
-## Artifacts
+## Scope and escalation
 
-Create only one artifact: `.artifacts/{YYYYMMDD}--{project-name}/hack-journal.md`.
+Resolve bounded ambiguity using judgment when the change remains low-risk, reversible, and within scope. Escalate only
+when ambiguity prevents coherent execution or an objective escalation signal applies.
+
+Escalate to `run-task` when the change adds or changes a public interface, data schema or migration, security boundary,
+externally observable behavior, or a new code path with meaningful failure modes, or when the scope is no longer
+bounded. A technical category alone is not an escalation signal when the change is demonstrably unchanged, isolated, and
+reversible.
 
 
-## Prohibitions
+## Prerequisites
 
-This workflow never creates or switches branches, never creates a worktree, never commits or squashes, never pushes, and
-never creates a PR. It
-has no plan, reviewer, or human gate by default.
+The prompt must describe a bounded change and its expected outcome. If either is unclear, ask before proceeding.
 
 
-## Process
+## Workflow phases
 
-1. The principal selects the active profile and tier, dispatches the shared `engineer-executor` role, and records the
-   profile and tier.
-2. The selected variant makes the focused change and records the files, intent, and relevant verification in
-   `hack-journal.md`.
-3. Run relevant verification for the changed behavior.
-4. The principal selects the active review profile and tier, dispatches the shared `engineer-reviewer` role, and
-   performs a concise diff-first review.
+### Setup
 
-Ambiguity is discretionary. It does not cause escalation unless it blocks coherent work. Resolve bounded ambiguity
-using judgment when the change remains low-risk, reversible, and within scope; escalate only when the ambiguity
-prevents coherent execution or an objective escalation signal applies.
+Stay in the selected current worktree and branch. Invoke `.agents/procedures/use-artifact-dir.md` with
+`branch_type=chore`, the task summary, and ticket if provided. Set `hack_journal_path` to the next unused
+`hack-journal--{task-slug}--NN.md` in the returned directory, where `task-slug` is a short lowercase kebab-case task
+summary and `NN` is a zero-padded sequence starting at `01`.
 
-Escalate to `run-task` only on objective signals: the change adds or changes a public interface, data schema or
-migration, security boundary, externally observable behavior, a new code path with meaningful failure modes, or the
-scope is no longer bounded. A technical category alone is not an escalation signal when the change is demonstrably
-unchanged, isolated, and reversible. Do not escalate merely because a language, framework, or subsystem is technical.
+
+### Hack lifecycle
+
+1. The principal selects the active profile and tier, dispatches the shared `engineer-executor` role with
+   `hack_journal_path`, and records the profile and tier.
+2. The selected variant makes the focused change and records the files and intent in `hack_journal_path`.
+3. The principal selects the active review profile and tier, dispatches the shared `engineer-reviewer` role, and
+   performs a concise diff-first review. Resolve findings and repeat review after changes.
+
+
+### QA
+
+After implementation and review are complete, run the project-documented tests and quality checks relevant to the
+change. Record exact commands and results in `hack_journal_path`. Resolve failures and rerun affected checks before
+completion. If no automated check applies, record why and perform a suitable manual check.
+
+
+### Human review
+
+Present a concise diff summary and the QA commands and results. Ask the human to accept the change or request revisions.
+Questions and silence are not acceptance. If revisions are requested, implement them in **Hack lifecycle**, repeat
+review and QA, and return to this gate.
+
+
+### Completion
+
+After explicit human acceptance, report the `hack_journal_path`, change summary, and verification results. Leave the
+current branch intact. Never create or switch branches or worktrees, commit or squash, push, or create a pull request.

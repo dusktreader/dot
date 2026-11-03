@@ -1,7 +1,7 @@
 # Markdown Style Guide
 
-Rules for every Markdown file authored or edited by an agent, including repository
-documentation, work artifacts, READMEs, plans, and files under `.agents/`.
+Rules for every Markdown file authored or edited by an agent, including repository documentation, work artifacts,
+READMEs, plans, and files under `.agents/`.
 
 
 ## File structure

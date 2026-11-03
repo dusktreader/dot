@@ -67,11 +67,9 @@ class RecordingRunner:
             assert candidate.exists(), candidate
             assert candidate.read_bytes()
         self.calls.append((args, kwargs))
-        result = type("Result", (), {})()
-        result.returncode = next(self.returncodes, 0)
-        result.stderr = b"validation failed"
-        result.stdout = b""
-        return result
+        return subprocess.CompletedProcess(
+            args, next(self.returncodes, 0), stdout=b"", stderr=b"validation failed"
+        )
 
 
 def test_sudoers_contract_has_uv_shebang_and_dependencies():

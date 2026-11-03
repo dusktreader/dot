@@ -5,7 +5,15 @@ import pytest
 from typer.testing import CliRunner
 
 from dot_tools.cli.main import cli
-from dot_tools.worktree_tools import BranchType, build_branch_name, parameterize_summary
+from dot_tools.exceptions import DotError
+from dot_tools.worktree_tools import (
+    BranchRef,
+    BranchType,
+    build_branch_name,
+    matching_branches,
+    parameterize_summary,
+    validate_ticket,
+)
 
 
 @pytest.fixture
@@ -88,8 +96,20 @@ def test_parameterize_summary_normalizes_and_truncates() -> None:
     assert result.startswith("foo-the-mud-shark-")
 
 
+def test_validate_ticket_normalizes_optional_ticket() -> None:
+    assert validate_ticket(None) is None
+    assert validate_ticket("") is None
+    assert validate_ticket(" FUS-999 ") == "FUS-999"
+
+
+@pytest.mark.parametrize("ticket", ["FUS 999", "../FUS-999", "#FUS-999"])
+def test_validate_ticket_rejects_invalid_ticket(ticket: str) -> None:
+    with pytest.raises(DotError, match="Ticket must contain only"):
+        validate_ticket(ticket)
+
+
 def test_build_branch_name_includes_optional_ticket() -> None:
-    assert build_branch_name(BranchType.chore, "foo the mud shark", "FUS-999") == (
+    assert build_branch_name(BranchType.chore, "foo the mud shark", " FUS-999 ") == (
         "chore/FUS-999--foo-the-mud-shark"
     )
 
@@ -116,9 +136,7 @@ def test_make_creates_branch_and_worktree_and_requests_navigation(
     assert navigation_file.read_text().strip() == str(expected_path)
 
 
-def test_grab_uses_matching_local_branch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, runner: CliRunner
-) -> None:
+def test_grab_uses_matching_local_branch(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, runner: CliRunner) -> None:
     root = tmp_path / "repo"
     repo = init_repo(root)
     branch = "feat/foo-mud-shark"
@@ -208,6 +226,19 @@ def test_make_defaults_to_feat_and_rejects_unknown_type(
 
     invalid = runner.invoke(cli, ["worktree", "make", "--type=unknown", "summary"])
     assert invalid.exit_code != 0
+
+
+def test_matching_branches_accepts_low_similarity_threshold() -> None:
+    branches = [BranchRef("feat/foo-mud-shark"), BranchRef("fix/other-task")]
+
+    matches = matching_branches("fms", branches, similarity=0.2)
+
+    assert [branch.name for branch in matches] == ["feat/foo-mud-shark"]
+
+
+def test_matching_branches_rejects_invalid_similarity_threshold() -> None:
+    with pytest.raises(DotError, match="Similarity must be between 0 and 1"):
+        matching_branches("task", [BranchRef("feat/some-task")], similarity=1.1)
 
 
 def test_jump_fuzzy_matches_worktree_branch_and_requests_navigation(

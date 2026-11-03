@@ -1,0 +1,54 @@
+{# Follow ~/.agents/instructions/markdown.md for all formatting rules. #}
+# Execution Journal: {{ plan_title }}
+
+A journal covering execution of the approved plan at the path below.
+
+
+## Source plan
+
+.artifacts/YYYYMMDD--project-name/task-or-implementation-plan.md
+
+
+## Status
+
+{{ overall_status }}
+
+
+## Tasks
+
+For a task plan, retain one journal task entry for a coherent task, or one entry per independent sub-task explicitly
+identified in the plan. Use numbered task headings for an implementation plan.
+
+
+### Task: Complete approved task plan
+
+#### Status
+
+**Complete**
+
+
+#### Overview
+
+Summarize the work performed to execute the task plan.
+
+
+#### Steps taken
+
+- Record each plan step completed and the focused verification result.
+
+
+#### Files modified
+
+- UPDATED: `path/to/file`
+
+
+#### Acceptance criteria validation
+
+##### Satisfied AC01: Describe the acceptance criterion
+
+Record concrete evidence such as a test name, command output, or `file:line` reference.
+
+
+#### Additional notes
+
+Record blockers, decisions, surprises, or deviations when relevant. Omit if there is nothing to add.
