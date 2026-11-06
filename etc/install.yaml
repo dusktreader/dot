@@ -46,6 +46,11 @@ tools:
     scripts:
       generic: |
         uv tool install poetry --python=$PYTHON_VERSION
+  - name: rumdl
+    check: "command -v rumdl"
+    scripts:
+      generic: |
+        uv tool install rumdl
   - name: unzip
     check: "command -v unzip"
     scripts:

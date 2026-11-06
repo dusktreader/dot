@@ -45,9 +45,10 @@ def test_personal_profile_has_aliases_and_only_personal_zen_fallback() -> None:
     assert "os.environ/OPENCODE_ZEN_API_KEY" in (ROOT / ".config/litellm/personal.yaml").read_text()
 
 
-def test_personal_overlay_uses_responses_transport_for_gpt_5_6() -> None:
+def test_personal_overlay_uses_responses_transport_for_gpt_6_1() -> None:
     overlay = json.loads((ROOT / ".config/opencode/profiles/personal.json").read_text())
     assert overlay["provider"]["personal"]["npm"] == "@ai-sdk/openai"
+    assert overlay["provider"]["personal"]["models"]["standard-terra"]["name"] == "Standard · GPT-6.1 Terra"
     assert overlay["compaction"] == {"auto": True, "buffer": 16384}
 
 
@@ -67,7 +68,7 @@ def test_personal_copilot_routes_use_models_supported_by_installed_litellm() -> 
     }
     assert models == {
         "light-luna": "github_copilot/responses/gpt-6-luna",
-        "standard-terra": "github_copilot/responses/gpt-6-terra",
+        "standard-terra": "github_copilot/responses/gpt-6.1-terra",
         "premium-sol": "github_copilot/responses/gpt-6-sol",
     }
 

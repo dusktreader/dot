@@ -25,7 +25,7 @@
           "limit": { "context": 1000000, "input": 128000, "output": 16000 }
         },
         "standard-terra": {
-          "name": "Standard · Terra",
+          "name": "Standard · GPT-6.1 Terra",
           "limit": { "context": 1050000, "input": 272000, "output": 128000 }
         },
         "standard-sonnet": {

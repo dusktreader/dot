@@ -35,7 +35,7 @@ model_list:
         - capability:tools
   - model_name: standard-terra
     litellm_params:
-      model: github_copilot/responses/gpt-6-terra
+      model: github_copilot/responses/gpt-6.1-terra
       tags:
         - profile:personal
         - tier:standard

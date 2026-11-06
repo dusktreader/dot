@@ -3,8 +3,7 @@ from typing import Annotated
 
 import typer
 
-from dot_tools.markdown_format import format_contents, markdown_files, read_file, validate_file
-
+from dot_tools.markdown_format import FormatResult, apply_format, check_format, find_markdown_files
 
 cli = typer.Typer(no_args_is_help=True, help="Format supported file types.")
 
@@ -15,28 +14,20 @@ def markdown(
     check: Annotated[bool, typer.Option("--check", help="Check formatting without changing files")] = False,
 ) -> None:
     """Format Markdown files, or check them with --check."""
-    files, input_errors = markdown_files(paths)
-    errors = list(input_errors)
-
+    file_collection = find_markdown_files(paths)
+    result: FormatResult
     if check:
-        for path in files:
-            errors.extend(validate_file(path, read_file(path)))
-        if errors:
-            typer.echo("\n".join(errors), err=True)
-            raise typer.Exit(1)
-        typer.echo(f"Markdown format check passed for {len(files)} file(s).")
-        return
+        result = check_format(file_collection.files)
+    else:
+        result = apply_format(file_collection.files)
 
-    for path in files:
-        contents = read_file(path)
-        formatted = format_contents(contents)
-        if formatted != contents:
-            path.write_text(formatted, encoding="utf-8")
-            typer.echo(f"formatted: {path}")
-        else:
-            typer.echo(f"unchanged: {path}")
-        errors.extend(validate_file(path, formatted))
+    for message in result.messages:
+        typer.echo(message, err=bool(result.exit_code))
 
-    if errors:
-        typer.echo("\n".join(errors), err=True)
-        raise typer.Exit(1)
+    if file_collection.errors:
+        typer.echo("\n".join(file_collection.errors), err=True)
+        raise typer.Exit(result.exit_code or 1)
+    if result.exit_code:
+        raise typer.Exit(result.exit_code)
+    if check:
+        typer.echo(f"Markdown format check passed for {len(file_collection.files)} file(s).")

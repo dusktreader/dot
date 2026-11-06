@@ -8,7 +8,7 @@ return {
   opts = {
     formatters_by_ft = {
       lua = { "stylua" },
-      python = { "uv_ruff_format" },
+      python = { "uv_ruff_format", "uv_ruff_import_fix" },
       javascript = { "prettierd" },
       typescript = { "prettierd" },
       json = { "prettierd" },
@@ -17,6 +17,13 @@ return {
       uv_ruff_format = {
         command = "uv",
         args = { "run", "ruff", "format", "--stdin-filename", "$FILENAME", "-" },
+        cwd = function(_, ctx)
+          return vim.fs.root(ctx.dirname, { "pyproject.toml", "uv.lock", ".git" })
+        end,
+      },
+      uv_ruff_import_fix = {
+        command = "uv",
+        args = { "run", "ruff", "check", "--fix", "--select=I", "--stdin-filename", "$FILENAME", "-" },
         cwd = function(_, ctx)
           return vim.fs.root(ctx.dirname, { "pyproject.toml", "uv.lock", ".git" })
         end,

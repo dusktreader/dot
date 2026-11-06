@@ -146,7 +146,12 @@ class Report:
         """Estimate cost with the pinned local pricing adaptation."""
         if not session.model:
             return None
-        pricing = {"gpt-5.6-luna": (0.40, 1.60), "gpt-5.6-terra": (2.00, 8.00), "gpt-5.6-sol": (5.00, 20.00)}
+        pricing = {
+            "gpt-5.6-luna": (0.40, 1.60),
+            "gpt-5.6-terra": (2.00, 8.00),
+            "gpt-6.1-terra": (2.00, 8.00),
+            "gpt-5.6-sol": (5.00, 20.00),
+        }
         model_key = session.model.rsplit("/", 1)[-1]
         rates = pricing.get(model_key)
         if rates is None:

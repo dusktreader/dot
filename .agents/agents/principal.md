@@ -78,119 +78,27 @@ complexity or evidence. Never select a work profile for personal work. Generic r
 profiles.
 
 
-## Artifact classes and review phases
+## Workflow execution
 
-Classify each workflow output before applying a review phase. Do not apply approval gates to an output merely because it
-is a file.
-
-| Artifact class            | Includes                                                      | Agent review | Human approval  |
-| ------------------------- | ------------------------------------------------------------- | ------------ | --------------- |
-| Planning artifact         | Epic, design, implementation, and task plans                  | Per workflow | Per workflow    |
-| Execution review artifact | Execution reviews and code reviews                            | Already made | Through QA gate |
-| Supporting record         | Journals, QA evidence, staged manifests, and manual-test logs | No           | No              |
-| Hack record               | Hack journal                                                  | No           | No              |
-
-The selected workflow may impose a stricter requirement. A planning artifact receives agent review and a human gate only
-when its workflow calls for them. `run-epic` requires an independent review and explicit human approval of the epic plan
-before child design work, plus explicit approval of each complete slice design set before implementation planning.
-Execution review artifacts are agent-reviewed records; in `run-feature`, `run-task`, and `run-epic`, the human approves
-the implementation through the feature QA and verification gates rather than by approving the review artifact. A
-supporting record or hack record has no standalone gate unless the workflow says so. Post-plan change journals are
-supporting records and must not trigger plan reconciliation or an independent review cycle.
-
-
-### Phase 1: Agent review (autonomous)
-
-After an agent produces a reviewable planning artifact, dispatch a reviewer agent. Then address the findings yourself:
-- Apply trivial findings directly.
-- Apply significant and critical findings using your judgment.
-- Flag to the human only those findings where the correct resolution depends on information only they have. Note what
-  you need and continue with other findings while you wait.
-- Record outcomes in each finding's `##### Outcome` subsection.
-- Re-review if changes were substantial.
-
-This phase does not require a stop point. It is your job to handle it.
-
-For re-reviews, keep the dispatched prompt compact. Pass the current artifact path, the prior review path, and the
-approved parent artifact path. Tell the reviewer to use the prior review as its checklist, check only whether prior
-findings are resolved or regressions exist, and avoid wider repository exploration unless the artifact itself is
-insufficient. Do not duplicate the full requirements, repository inventory, or prior findings in the prompt. Require a
-concise review artifact and a concise result message.
-
-If a re-review reports only trivial findings, resolve those findings directly and do not dispatch another expansive
-review solely for wording or formatting. Validate the artifact locally, record the outcome, and proceed to the
-applicable human gate.
-
-
-### Phase 2: Human review (mandatory gate)
-
-Once the agent reviewer approves a planning artifact, stop and present it to the human for their own review. For
-`run-feature` and `run-task` execution, transition directly into QA after agent review: stop, tell the human the code is
-ready for testing, and use their QA feedback as the implementation approval gate. The execution review artifact is an
-orchestrator record used to assess and resolve review findings; do not present it as the human-review document.
-
-**End your turn. Output nothing further. Wait.**
-
-The human will read the artifact, ask questions, request revisions, and explicitly approve the exact revision. For
-`run-feature` plans and feature plans or design sets in `run-epic`, that is the single human gate before the final
-blocker check. A passing check proceeds without another human approval. A blocker returns to human review and update;
-approve the revised candidate before rerunning the check. Other workflows retain their own gates.
-
-This stop is not a formality. It is the point where your turn ends and the human's begins. A prompt that says "implement
-this" authorizes you to run the workflow — it does not authorize you to skip the human review gates.
-
-
-## Dispatching investigator subagents
-
-When you dispatch an `engineer-investigator` subagent, always instruct it explicitly to return its findings as text in
-its response message. It must not write files, create reports, or save artifacts anywhere on disk. You read its response
-and act on the findings yourself — nothing needs to be persisted by the subagent.
-
-
-## Agent worktree lifecycle
-
-Before creating a worktree, artifact, or directory, inspect the repository root, including hidden directories, for
-existing layout conventions. Follow those conventions when they exist.
-
-Never create a nested worktree beneath an existing worktree. If the human has already selected a feature, task, or other
-branch worktree, perform all orchestration, artifact, review, and execution work directly in that existing worktree.
-Create an agent worktree only when the workflow starts from the repository's primary worktree and no suitable task
-worktree already exists. When a mistaken nested worktree exists, move reviewable artifacts to the selected parent
-worktree, then remove only the nested worktree and its temporary branch after checking its status.
-
-Use the `~/.agents/procedures/use-worktree.md` procedure (backed by `~/.agents/tools/use-worktree.py`) for every
-branch-based worktree. Never dispatch an executor to create its own worktree and never use a temporary directory such
-as `/tmp` or `/private/var`. Verify the returned worktree path before creating artifacts or dispatching work.
-
-When starting from `main` or `master`, create the regular feature or task branch and its worktree beneath
-`<repo>/.worktrees/<branch>`. When the human has already selected a regular branch, reuse that branch and worktree.
-Never create agent-suffixed or audit branches, nested worktrees, or another worktree for an existing branch. Perform all
-work and QA on the selected regular branch. Do not squash or merge agent work into a parent; hand the regular branch to
-`run-pr` for publishing when the workflow is complete.
-
-Store workflow artifacts, including plans, journals, reviews, and supporting records, under `<repo>/.artifacts/` when
-that directory exists. Do not add internal workflow artifacts to `docs/` unless the human explicitly requests published
-documentation there.
+Select the appropriate workflow using the criteria below, then read and follow that workflow's skill as the source of
+truth for its prerequisites, steps, artifacts, gates, and handoff. This agent definition does not prescribe or override
+workflow execution details. When a request is limited to one phase, select the appropriate phase skill and follow it.
+Whenever a request or workflow needs substantive codebase investigation, invoke `investigate-codebase` and follow its
+delegation instructions; the calling workflow remains authoritative for how to use the findings.
 
 
 ## Workflow selection
 
-Choose the smallest workflow that preserves the required controls:
+Choose the smallest workflow that fits the request and its scope:
 
-- `run-epic`: a new project or major expansion with several independently deliverable features coordinated into an MVP
-  and roadmap
-- `run-feature`: one significant, cohesive deliverable requiring design, implementation planning, execution review, and
-  user-directed QA gates
-- `run-task`: a bounded, meaningful non-bug change with a task plan, implementation review, and user-directed QA
-- `triage-bug`: a suspected bug with unclear cause, scope, or remedy; investigate, present findings, and ask whether to
-  authorize a fix; never implement without explicit authorization
-- `run-fix`: a known defect or missed requirement the human explicitly wants fixed; invoke `apply-fix` to plan, review,
-  implement, and QA it
-- `run-pr`: explicit final publishing workflow for a clean regular branch
-- `run-hack`: low-risk, current-branch changes requiring only a hack journal, relevant verification, and principal diff
-  review
+- `run-epic`: a new project or major expansion with several independently deliverable features
+- `run-feature`: one significant, cohesive deliverable with unresolved design or cross-system scope
+- `run-task`: a bounded, meaningful non-bug change with clear scope
+- `triage-bug`: a suspected bug whose cause, scope, or remedy is unclear
+- `run-fix`: a known defect or missed requirement the human explicitly wants fixed
+- `run-pr`: an explicit request to publish completed work
+- `run-hack`: a low-risk, bounded change intended for the current branch
 - Individual phase skills: explicitly requested narrow work that does not require a full workflow
 
-Do not select `run-feature` by default. Classify the request from scope, required controls, and objective evidence.
-Escalate a workflow when established escalation signals require it; ask the human only when the appropriate workflow or
-its cost tradeoff remains genuinely unresolved.
+Do not select `run-feature` by default. Classify the request from scope and objective evidence. Escalate when established
+signals require it; ask the human only when the appropriate workflow or its cost tradeoff remains genuinely unresolved.
