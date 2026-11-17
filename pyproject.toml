@@ -23,7 +23,7 @@ dependencies = [
     "rich>=14.0.0",
     "snick>=2.2.0",
     "typer~=0.15",
-    "typerdrive>=0.9.8",
+    "typerdrive>=1.0.0",
     "xdg-base-dirs>=6.0.2",
 ]
 

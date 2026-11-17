@@ -14,6 +14,12 @@ def _():
     )
 
 
+@pytest.fixture(autouse=True)
+def isolated_state_home(tmp_path):
+    """Keep each test's settings, logs, and files out of the real state directory."""
+    set_typerdrive_config(app_name="test", console_width=80, state_home=tmp_path / "state")
+
+
 @pytest.fixture
 def runner() -> CliRunner:
     return CliRunner()

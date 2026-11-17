@@ -49,7 +49,7 @@ def test_personal_overlay_uses_responses_transport_for_gpt_6_1() -> None:
     overlay = json.loads((ROOT / ".config/opencode/profiles/personal.json").read_text())
     assert overlay["provider"]["personal"]["npm"] == "@ai-sdk/openai"
     assert overlay["provider"]["personal"]["models"]["standard-terra"]["name"] == "Standard · GPT-6.1 Terra"
-    assert overlay["compaction"] == {"auto": True, "buffer": 16384}
+    assert overlay["compaction"] == {"auto": True, "reserved": 50000}
 
 
 def test_personal_premium_route_uses_github_copilot_provider() -> None:
@@ -438,7 +438,7 @@ def test_cli_launch_accepts_session_short_option() -> None:
     with patch("dot_tools.cli.opencode.personal_lifecycle") as factory:
         result = CliRunner().invoke(cli, ["opencode", "launch", "-s", "abc"])
     assert result.exit_code == 0
-    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "light-luna")
+    factory.return_value.launch.assert_called_once_with(["--session", "abc"], "light-luna", False)
 
 
 def test_cli_premium_model_forwards_without_approval_marker(tmp_path: Path) -> None:
