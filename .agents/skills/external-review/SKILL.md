@@ -28,8 +28,7 @@ setup. Ask if the pull request or branch is missing or ambiguous.
 | Setup        | GitHub context         | Confirm account and remote                                 |
 | Setup        | Pull request and base  | Resolve PR, confirm head branch, and determine base/rebase |
 | Review       | Comment inventory      | Fetch and track all review comments                        |
-| Review       | One-comment discussion | Present context and proposal; wait for explicit approval   |
-| Review       | Exact change approval  | Approve diff, commit message, response, and push target    |
+| Review       | One-comment proposal   | Present change, message, reply, push target; get one approval |
 | Review       | Implement and verify   | Make approved change, run checks, and commit one comment   |
 | Publication  | Addressed comment      | Push approved commit and reply to the exact review comment |
 | Publication  | No-change decision     | Post approved explanation without an empty commit          |
@@ -70,41 +69,47 @@ ignore dependency and CI-only comments. Track every comment in a working list, i
 change; do not silently omit comments.
 
 
-#### Discuss one comment
+#### Discuss one comment and propose the change
 
-For the next comment only:
+For the next comment only, present a single proposal containing everything the human must approve:
 
-1. Show the reviewer's complete comment.
-2. Show the relevant code context with `file_path:line_number` references.
-3. Evaluate whether the comment is valid, including evidence and any disagreement.
-4. Propose an implementation or a reason not to change anything.
-5. Stop and wait for explicit human approval before preparing a change.
+1. The reviewer's complete comment.
+2. Relevant code context with `file_path:line_number` references.
+3. Your evaluation of validity, including evidence and any disagreement.
+4. The proposed change as a precise file-level description or diff (or the reason for no change).
+5. The commit message (omit for a no-change decision).
+6. The exact GitHub reply text. Use the published formats below, with the commit SHA shown as `<sha>`.
+7. The push target as `remote/branch` (omit for a no-change decision).
 
-Do not implement, commit, push, or reply while waiting for approval.
+End with one question: "Approve this proposal?" Do not implement, commit, push, or reply while waiting.
 
 
-#### Confirm the exact change
+#### Approval is a single gate
 
-After the human approves the approach and before editing, show the proposed diff or precise file-level change, suggested
-commit message, exact GitHub response, and push target (`remote/branch`). Wait for explicit approval of this exact set.
-For a no-change decision, propose an explanatory response and do not create an empty commit or push.
-
-Stop if the human changes the approach or asks for a different commit message, response, or push target.
+- One explicit approval of the proposal authorizes every step in it: edit, verify, commit, push to the stated target, and
+  post the stated reply. Do not ask again for any of these steps.
+- Treat "yes", "approved", "looks good", or similar as approval of the most recent proposal. Do not ask the human to
+  restate it or to approve individual parts separately.
+- If the human approves only part of the proposal, or asks for changes, revise the proposal and present it again once.
+- Ask again only if the result materially deviates from what was approved: a different diff, a different commit
+  message, a different reply, a different push target, or verification failures that force a change of approach.
+  Explain the deviation and ask.
+- Showing the resulting diff after implementation is informational, not a second gate.
 
 
 #### Implement and verify
 
-After exact approval, make only the approved change, add or update behavior-focused tests when applicable, and run the
+After approval, make only the approved change, add or update behavior-focused tests when applicable, and run the
 project's required lint, typecheck, and test commands. Inspect status, diff, diff check, and recent log before
 committing. Stage only files belonging to the current comment and commit with the approved message. A commit must
-address one comment only.
+address one comment only. Then continue directly into the Publication phase.
 
 
 ### Publication phase
 
 #### Publish an addressed comment
 
-After the commit succeeds and the human has explicitly approved the push target, push the current branch without force
+After the commit succeeds, push the current branch without force
 options. Obtain the resulting commit SHA and reply to the exact review comment with actual paragraph breaks and a linked
 commit reference:
 
@@ -120,7 +125,7 @@ unless the human asks for that separately.
 
 #### Reply to a no-change decision
 
-After the human approves the exact response, reply without creating an empty commit or pushing:
+After the human approves the proposal, reply without creating an empty commit or pushing:
 
 ```text
 Won't fix: <brief explanation of why the comment does not require a code change>
@@ -144,7 +149,7 @@ Report addressed comments, commit SHAs, no-change decisions, verification result
 
 ## Safety rules
 
-- Never push before the human explicitly approves the exact change, commit message, response, and push target.
+- Never push or reply before the human approves a proposal that includes the change, commit message, response, and push target.
 - Never push unrelated working-tree changes.
 - Never force-push or amend commits.
 - Preserve secrets and redact them from replies and logs.
