@@ -31,8 +31,7 @@ A brief paragraph describing what this document covers.
 
 No trailing punctuation on headings. No bold in headings.
 
-Always include 2 blank lines before a heading UNLESS the parent heading has no content, or the heading is
-preceded by a separator bar (`----`) in which case use 1 blank line:
+Always include 2 blank lines before a heading UNLESS the parent heading has no content:
 
 ```markdown
 # Parent
@@ -54,6 +53,7 @@ level or between a parent and its first child. Use four dashes (`----`) for sepa
 ## Section 2
 
 ----
+
 
 # Next Top-Level
 ```
@@ -162,8 +162,7 @@ Wrap all prose lines at 120 characters. Code blocks and tables are exempt.
 
 ## Required formatting
 
-Run `dt format markdown` after authoring or editing Markdown. It implements this guide's
-formatting preferences; do not substitute a third-party linter.
+Run `dt format markdown` after authoring or editing Markdown. It applies the repository's rumdl formatting settings.
 
 ```shell
 dt format markdown <file-or-directory>

@@ -1,3 +1,8 @@
+---
+name: evaluate-prompt
+description: Scores a prompt against the CLEAR heuristic and applies an approved rewrite. Use when the human asks to evaluate or improve a prompt.
+---
+
 # Evaluate Prompt Skill
 
 Score a supplied prompt against the CLEAR heuristic, improve signal per token, and apply the rewrite only after explicit

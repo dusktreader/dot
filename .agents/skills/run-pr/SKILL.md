@@ -1,3 +1,8 @@
+---
+name: run-pr
+description: Publishes a clean feature or task branch and creates its pull request. Use only when the human explicitly requests creating a PR.
+---
+
 # Run PR Skill
 
 Publish a branch to GitHub and creates a pull-request for it when the human explicitly invokes this skill. This is the

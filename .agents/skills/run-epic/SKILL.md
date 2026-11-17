@@ -1,3 +1,8 @@
+---
+name: run-epic
+description: Coordinates a multi-feature initiative through an epic plan, slice designs, sequential feature lifecycles, and roadmap decisions. Use for a new project or substantial expansion spanning several features.
+---
+
 # Run Epic Skill
 
 Coordinate a multi-feature initiative through an approved epic plan, complete slice design sets, sequential feature

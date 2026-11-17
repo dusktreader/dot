@@ -1,3 +1,8 @@
+---
+name: internal-review
+description: Reviews a set of changed files against quality standards and produces a findings artifact. Use for standalone reviews when no implementation plan or journal exists.
+---
+
 # Internal review skill
 
 Start with the diff, expand context only as required, and produce compact findings. Re-review only after changes to

@@ -1,3 +1,8 @@
+---
+name: run-task
+description: Coordinates a bounded task with a human-approved plan, focused execution, review, and QA. Use for well-scoped minor changes that do not need a full design cycle.
+---
+
 # Run Task Skill
 
 Coordinate a bounded task with a human-approved plan, focused execution, implementation review, and user-directed QA.

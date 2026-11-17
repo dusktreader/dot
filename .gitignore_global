@@ -3,3 +3,7 @@ execution-review*.md
 implementation-review*.md
 code-review*.md
 qa-journal*.md
+execution-blocker-check*.md
+plan-blocker-check*.md
+task-plan-review*.md
+task-plan-blocker-check*.md

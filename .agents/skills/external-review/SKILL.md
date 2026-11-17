@@ -1,3 +1,8 @@
+---
+name: external-review
+description: Resolves GitHub pull request review comments one at a time with human approval, focused commits, pushes, and replies. Use when the human asks to address PR comments.
+---
+
 # External Review Skill
 
 Resolve GitHub pull request comments through an explicit agent-human cycle. Work on one comment at a time, keep one

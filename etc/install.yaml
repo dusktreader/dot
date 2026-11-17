@@ -45,12 +45,12 @@ tools:
     check: "command -v poetry"
     scripts:
       generic: |
-        uv tool install poetry --python=$PYTHON_VERSION
+        uv tool install --upgrade poetry --python=$PYTHON_VERSION
   - name: rumdl
     check: "command -v rumdl"
     scripts:
       generic: |
-        uv tool install rumdl
+        uv tool install --upgrade rumdl
   - name: unzip
     check: "command -v unzip"
     scripts:
@@ -206,7 +206,7 @@ tools:
   - name: litellm
     check: "command -v litellm"
     scripts:
-      generic: "uv tool install --force 'litellm[proxy]==1.104.0'"
+      generic: "uv tool install --upgrade --force 'litellm[proxy]==1.104.0'"
   - name: 1password-cli
     check: "command -v op"
     scripts:
@@ -252,7 +252,7 @@ tools:
     scripts:
       linux: |
         sudo apt install libpq-dev python-dev
-        uv tool install pgcli
+        uv tool install --upgrade pgcli
       darwin: |
         sudo port -N install pgcli
   - name: usql

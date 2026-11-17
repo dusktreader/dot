@@ -64,6 +64,14 @@ addopts = [
 line-length = 120
 src = ["src/dot_tools", "tests"]
 
+[tool.rumdl.MD013]
+line-length = 120
+
+[tool.rumdl.MD022]
+lines-above = 2
+nested-heading-lines-above = 1
+lines-above-mode = "exact"
+
 [build-system]
 requires = ["uv_build>=0.7.6,<0.8.0"]
 build-backend = "uv_build"

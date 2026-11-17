@@ -1,3 +1,8 @@
+---
+name: investigate-codebase
+description: Delegates deep codebase investigations to an engineer-investigator. Use when a request needs tracing behavior across files or establishing how existing code works.
+---
+
 # Investigate Codebase Skill
 
 Delegate substantive codebase investigations to an `engineer-investigator` through the canonical procedure.

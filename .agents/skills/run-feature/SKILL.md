@@ -1,3 +1,8 @@
+---
+name: run-feature
+description: Coordinates a standalone feature from design through QA on its own branch, ending in a run-pr handoff. Use for one significant, cohesive feature that needs design and planning.
+---
+
 # Run Feature Skill
 
 Coordinate a standalone feature from design through QA on its selected regular branch. The shared `build-feature`

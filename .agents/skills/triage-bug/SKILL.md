@@ -1,3 +1,8 @@
+---
+name: triage-bug
+description: Investigates a reported defect, establishes root cause and impact, and asks whether to authorize remediation. Use when a bug's cause or scope is unclear.
+---
+
 # Triage Bug Skill
 
 Investigate a reported defect, establish root cause and impact, and ask the human whether to authorize remediation.

@@ -1,3 +1,8 @@
+---
+name: run-hack
+description: Makes a low-risk change directly on the current branch with a hack journal and focused verification. Use for bounded, reversible changes where the current branch is the destination.
+---
+
 # Run Hack Skill
 
 Make a low-risk change directly on the current worktree with the smallest useful record and verification. Do not create

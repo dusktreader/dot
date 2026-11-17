@@ -1,3 +1,8 @@
+---
+name: run-fix
+description: Applies a human-authorized, understood fix with worktree setup, commits, and reporting. Use when the human identifies a specific defect or gap and requests a targeted fix.
+---
+
 # Run Fix Skill
 
 Apply a human-authorized, understood fix. This thin wrapper owns worktree and artifact setup, commits, and final

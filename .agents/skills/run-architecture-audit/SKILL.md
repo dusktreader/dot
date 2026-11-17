@@ -1,3 +1,8 @@
+---
+name: run-architecture-audit
+description: Coordinates an architecture audit and produces a structured assessment with findings and recommendations. Use when the human wants an architecture assessment without committing to a change.
+---
+
 # Run Architecture Audit Skill
 
 Coordinate an architecture audit: investigate the existing codebase and synthesize findings into a structured assessment
