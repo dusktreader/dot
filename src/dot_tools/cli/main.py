@@ -24,6 +24,7 @@ from dot_tools.cli.opencode import cli as opencode_cli
 from dot_tools.cli.format import cli as format_cli
 from dot_tools.cli.worktree import cli as worktree_cli
 from dot_tools.cli.src import cli as src_cli
+from dot_tools.cli.db import cli as db_cli
 from dot_tools.worktree_tools import drop_worktree, jump_to_worktree
 from dot_tools.configure import DotInstaller
 from dot_tools.settings import Settings
@@ -43,6 +44,7 @@ cli.add_typer(format_cli, name="format")
 cli.add_typer(worktree_cli, name="worktree")
 cli.add_typer(worktree_cli, name="worktrees")
 cli.add_typer(src_cli, name="src")
+cli.add_typer(db_cli, name="db")
 
 
 @cli.command(no_args_is_help=True)
