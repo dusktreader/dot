@@ -40,22 +40,22 @@ def test_personal_profile_has_aliases_and_only_personal_zen_fallback() -> None:
         for model in ("light-luna", "light-haiku", "standard-terra", "standard-sonnet", "premium-sol", "premium-opus")
     ]
     zen = next(item for item in router["model_list"] if item["model_name"] == "personal-light-zen")
-    assert zen["litellm_params"]["model"] == "openai/gpt-6-luna"
+    assert zen["litellm_params"]["model"] == "openai/gpt-5.6-luna"
     assert {"tier:light", "tier:standard", "tier:premium"} <= set(zen["litellm_params"]["tags"])
     assert "os.environ/OPENCODE_ZEN_API_KEY" in (ROOT / ".config/litellm/personal.yaml").read_text()
 
 
-def test_personal_overlay_uses_responses_transport_for_gpt_6_1() -> None:
+def test_personal_overlay_uses_responses_transport_for_gpt_5_6() -> None:
     overlay = json.loads((ROOT / ".config/opencode/profiles/personal.json").read_text())
     assert overlay["provider"]["personal"]["npm"] == "@ai-sdk/openai"
-    assert overlay["provider"]["personal"]["models"]["standard-terra"]["name"] == "Standard · GPT-6.1 Terra"
+    assert overlay["provider"]["personal"]["models"]["standard-terra"]["name"] == "Standard · GPT-5.6 Terra"
     assert overlay["compaction"] == {"auto": True, "reserved": 50000}
 
 
 def test_personal_premium_route_uses_github_copilot_provider() -> None:
     router = yaml.safe_load((ROOT / ".config/litellm/personal.yaml").read_text())
     premium = next(item for item in router["model_list"] if item["model_name"] == "premium-sol")
-    assert premium["litellm_params"]["model"] == "github_copilot/responses/gpt-6-sol"
+    assert premium["litellm_params"]["model"] == "github_copilot/responses/gpt-5.6-sol"
     assert "api_key" not in premium["litellm_params"]
 
 
@@ -67,9 +67,9 @@ def test_personal_copilot_routes_use_models_supported_by_installed_litellm() -> 
         if item["model_name"] in {"light-luna", "standard-terra", "premium-sol"}
     }
     assert models == {
-        "light-luna": "github_copilot/responses/gpt-6-luna",
-        "standard-terra": "github_copilot/responses/gpt-6.1-terra",
-        "premium-sol": "github_copilot/responses/gpt-6-sol",
+        "light-luna": "github_copilot/responses/gpt-5.6-luna",
+        "standard-terra": "github_copilot/responses/gpt-5.6-terra",
+        "premium-sol": "github_copilot/responses/gpt-5.6-sol",
     }
 
 

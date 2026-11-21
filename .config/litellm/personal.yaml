@@ -1,7 +1,7 @@
 model_list:
   - model_name: light-luna
     litellm_params:
-      model: github_copilot/responses/gpt-6-luna
+      model: github_copilot/responses/gpt-5.6-luna
       tags:
         - profile:personal
         - tier:light
@@ -12,7 +12,7 @@ model_list:
       mode: responses
   - model_name: personal-light-zen
     litellm_params:
-      model: openai/gpt-6-luna
+      model: openai/gpt-5.6-luna
       api_base: https://opencode.ai/zen/v1
       api_key: os.environ/OPENCODE_ZEN_API_KEY
       tags:
@@ -35,7 +35,7 @@ model_list:
         - capability:tools
   - model_name: standard-terra
     litellm_params:
-      model: github_copilot/responses/gpt-6.1-terra
+      model: github_copilot/responses/gpt-5.6-terra
       tags:
         - profile:personal
         - tier:standard
@@ -55,7 +55,7 @@ model_list:
         - capability:tools
   - model_name: premium-sol
     litellm_params:
-      model: github_copilot/responses/gpt-6-sol
+      model: github_copilot/responses/gpt-5.6-sol
       tags:
         - profile:personal
         - tier:premium

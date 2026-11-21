@@ -299,7 +299,7 @@ def test_report_rejects_invalid_sort_parts(sort: str) -> None:
         _parse_sort(sort)
 
 
-@pytest.mark.parametrize("model", ["gpt-5.6-terra", "gpt-6.1-terra"])
+@pytest.mark.parametrize("model", ["gpt-5.6-terra"])
 def test_terra_versions_have_local_estimates(model: str) -> None:
     assert Report._estimate(record(model=model)) == pytest.approx(0.00073)
 
