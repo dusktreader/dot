@@ -55,6 +55,10 @@ function homeWorkdir(workdir) {
 // Cap on cached sessions, so a long-running server does not accumulate entries.
 const MAX_TRACKED_SESSIONS = 256;
 
+// Cap on the subagent sessions a session report lists. A larger tree is not
+// listed at all, so the daemon reports no cost rather than part of one.
+const MAX_SUBAGENT_SESSIONS = 256;
+
 // Session metadata filled in from the event stream so a tool call usually does
 // not have to look up its session. The known flags distinguish a resolved empty
 // value from a value not yet observed; the lifecycle flags prevent duplicate V2
@@ -108,19 +112,19 @@ const HOOK_TIMEOUT_MS = 3000;
 // Total time execute.before waits for lookup, session start, and pre report.
 const BEFORE_DELIVERY_BUDGET_MS = 3000;
 // Bound SDK calls too: the hook timeout only starts after a payload is ready.
-const V2_LOOKUP_TIMEOUT_MS = 3000;
-// A queued start and end can take up to 21s across bounded lookups and sends.
+const LOOKUP_TIMEOUT_MS = 3000;
+// A queued start and end can take up to 24s across bounded lookups and sends.
 const V2_DRAIN_TIMEOUT_MS = 30000;
 // The iterator may ignore abort even after all queued reports have settled.
 const V2_ITERATOR_TIMEOUT_MS = 1000;
 
-async function v2Lookup(call) {
+async function boundedLookup(call) {
   let timer;
   try {
     return await Promise.race([
       Promise.resolve().then(call),
       new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error("V2 lookup timed out")), V2_LOOKUP_TIMEOUT_MS);
+        timer = setTimeout(() => reject(new Error("lookup timed out")), LOOKUP_TIMEOUT_MS);
         timer.unref?.();
       }),
     ]);
@@ -139,6 +143,47 @@ async function waitForV2Cleanup(promise, timeoutMs) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+// Returns every session below sessionID as { id, cost }. A subagent runs in a
+// child session that records its own cost, which the session's cost leaves
+// out. Returns undefined when a lookup fails, the walk outlasts
+// LOOKUP_TIMEOUT_MS, or the tree exceeds MAX_SUBAGENT_SESSIONS, so a partial
+// list is never sent and a stalled lookup cannot hold back the report.
+async function collectSubagentSessions(listChildren, sessionID) {
+  try {
+    // One deadline covers the whole tree, however many lookups it takes.
+    return await boundedLookup(async () => {
+      const found = [];
+      const seen = new Set([sessionID]);
+      const pending = [sessionID];
+      while (pending.length > 0) {
+        const children = await listChildren(pending.shift());
+        if (!Array.isArray(children)) return undefined;
+        for (const child of children) {
+          if (!child?.id) return undefined;
+          if (seen.has(child.id)) continue;
+          if (found.length >= MAX_SUBAGENT_SESSIONS) return undefined;
+          seen.add(child.id);
+          found.push({ id: child.id, cost: child.cost });
+          pending.push(child.id);
+        }
+      }
+      return found;
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+async function listV1Children(client, sessionID) {
+  return (await client.session.children({ path: { id: sessionID } }))?.data;
+}
+
+// Session.list returns 50 sessions unless given a limit, and accepts any limit.
+// Asking for one past the cap lets collectSubagentSessions detect overflow.
+async function listV2Children(ctx, sessionID) {
+  return (await ctx.session.list({ parentID: sessionID, limit: MAX_SUBAGENT_SESSIONS + 1 }))?.data;
 }
 
 // Sends a payload and resolves once delivery finishes, times out, or cannot be
@@ -222,7 +267,7 @@ async function getV2SessionData(ctx, sessionID) {
 
   let lookup = pendingV2Lookups.get(sessionID);
   if (!lookup) {
-    lookup = v2Lookup(() => ctx.session.get({ sessionID }))
+    lookup = boundedLookup(() => ctx.session.get({ sessionID }))
       .then((session) => ({
         version: v2Version(ctx),
         model: v2ModelID(session?.model),
@@ -253,6 +298,7 @@ function normalizeV2Session(ctx, session) {
   return {
     id: session?.id,
     parentID: session?.parentID,
+    cost: session?.cost,
     title: session?.title,
     version: v2Version(ctx),
     directory: v2Directory(ctx, session),
@@ -322,7 +368,7 @@ async function getV2Transcript(ctx, sessionID) {
   const entry = sessionCache.get(sessionID);
   let timedOut = false;
   try {
-    await v2Lookup(() => Promise.resolve(ctx.session.context({ sessionID })).then((messages) => {
+    await boundedLookup(() => Promise.resolve(ctx.session.context({ sessionID })).then((messages) => {
       // Retain snapshots even if the queue stopped waiting before they arrived.
       // Deletion or eviction invalidates this entry, including after ID reuse.
       if (sessionCache.get(sessionID) !== entry) return;
@@ -348,11 +394,11 @@ async function reportV2Session(ctx, sessionID, lifecycle) {
   try {
     let session;
     try {
-      session = await v2Lookup(() => ctx.session.get({ sessionID }));
+      session = await boundedLookup(() => ctx.session.get({ sessionID }));
     } catch (error) {
       if (lifecycle !== "end") throw error;
       // Retry the terminal event in its queue, before a newer turn can start.
-      session = await v2Lookup(() => ctx.session.get({ sessionID }));
+      session = await boundedLookup(() => ctx.session.get({ sessionID }));
     }
     if (!session) return false;
 
@@ -384,6 +430,10 @@ async function reportV2Session(ctx, sessionID, lifecycle) {
       // The parser ignores empty transcripts. Leave the end retryable instead
       // of marking it delivered when there is nothing it can record.
       if (!payload.messages?.length) return false;
+      payload.subagent_sessions = await collectSubagentSessions(
+        (id) => listV2Children(ctx, id),
+        sessionID,
+      );
     }
     await sendToHook(JSON.stringify(payload));
     return fresh;
@@ -393,7 +443,7 @@ async function reportV2Session(ctx, sessionID, lifecycle) {
   }
 }
 
-// A start attempt waits at most V2_LOOKUP_TIMEOUT_MS plus HOOK_TIMEOUT_MS;
+// A start attempt waits at most LOOKUP_TIMEOUT_MS plus HOOK_TIMEOUT_MS;
 // dependent reports then proceed. execute.before has a separate total wait
 // budget for lookup, start, and pre; its delivery chain continues in order
 // after that budget expires.
@@ -623,6 +673,10 @@ function createV1Hooks({ client, directory }) {
           path: { id: sessionID },
         });
         const messages = messagesResp?.data ?? [];
+        const subagentSessions = await collectSubagentSessions(
+          (id) => listV1Children(client, id),
+          sessionID,
+        );
 
         const lifecycle =
           event.type === "session.compacted" ? "compact" : "end";
@@ -633,6 +687,7 @@ function createV1Hooks({ client, directory }) {
             lifecycle,
             session,
             messages,
+            subagent_sessions: subagentSessions,
             directory,
           }),
         );
